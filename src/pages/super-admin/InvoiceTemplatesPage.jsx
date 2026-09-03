@@ -281,29 +281,7 @@ export const InvoiceTemplatesPage = () => {
           </div>
         </div>
 
-        <div className="p-5 rounded-3xl border space-y-1 shadow-xs" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-            Merchant Print Usage
-          </span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>{totalInstalls.toLocaleString()} Stores</span>
-            <span className="text-xs font-semibold text-emerald-500 flex items-center gap-0.5">
-              <TrendingUp className="w-3.5 h-3.5" /> +18% MoM
-            </span>
-          </div>
-        </div>
 
-        <div className="p-5 rounded-3xl border space-y-1 shadow-xs" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-            Pro Exclusive Formats
-          </span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-bold font-serif" style={{ color: 'var(--accent)' }}>{proTemplates} Pro Tiers</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)' }}>
-              0% Fee Upgrade
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* 3. Filter Tabs */}
@@ -372,10 +350,6 @@ export const InvoiceTemplatesPage = () => {
                     {template.installedCount || 0} Stores
                   </span>
                 </div>
-
-                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                  {template.description}
-                </p>
 
                 {/* Feature Tags */}
                 <div className="flex flex-wrap gap-1.5 pt-1">

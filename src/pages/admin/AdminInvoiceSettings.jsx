@@ -414,7 +414,6 @@ export const AdminInvoiceSettings = () => {
 
                     <div className="p-5 space-y-2">
                       <h3 className="font-serif text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{tpl.name}</h3>
-                      <p className="text-xs line-clamp-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{tpl.description}</p>
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         <span className="px-2 py-0.5 rounded-lg text-[10px]" style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}>
                           Font: {tpl.defaultLayout?.fontFamily || 'Inter'}
