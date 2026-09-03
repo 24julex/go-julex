@@ -31,7 +31,7 @@ const MiniThemeStorefrontCard = ({ theme }) => {
 
   return (
     <div className="w-full h-full relative bg-white overflow-hidden">
-      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} />
+      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.35)', transformOrigin: '50% 18%' }} />
     </div>
   );
 };
