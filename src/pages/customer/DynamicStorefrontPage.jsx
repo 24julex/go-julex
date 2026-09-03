@@ -2157,6 +2157,7 @@ export const DynamicStorefrontPage = () => {
                       const mainImage =
                         (product.images && product.images[0]) ||
                         product.imageUrl ||
+                        (isPreviewMode && activeThemeMeta?.products?.[0]?.image) ||
                         'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80';
 
                       return (
@@ -2401,9 +2402,9 @@ export const DynamicStorefrontPage = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
-                  section.data.reel1Img || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
-                  section.data.reel2Img || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
-                  section.data.reel3Img || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80'
+                  section.data.reel1Img || (isPreviewMode && activeThemeMeta?.products?.[0]?.image) || activeThemeMeta?.heroImage || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
+                  section.data.reel2Img || (isPreviewMode && activeThemeMeta?.products?.[1]?.image) || activeThemeMeta?.storyImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
+                  section.data.reel3Img || (isPreviewMode && activeThemeMeta?.products?.[2]?.image) || activeThemeMeta?.bannerImage || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80'
                 ].map((img, i) => (
                   <div
                     key={i}
@@ -2646,10 +2647,10 @@ export const DynamicStorefrontPage = () => {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
-                  'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
-                  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
-                  'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=400&q=80'
+                  (isPreviewMode && activeThemeMeta?.products?.[0]?.image) || activeThemeMeta?.heroImage || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
+                  (isPreviewMode && activeThemeMeta?.products?.[1]?.image) || activeThemeMeta?.storyImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
+                  (isPreviewMode && activeThemeMeta?.products?.[2]?.image) || activeThemeMeta?.bannerImage || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
+                  (isPreviewMode && activeThemeMeta?.products?.[3]?.image) || activeThemeMeta?.products?.[2]?.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=400&q=80'
                 ].map((img, i) => (
                   <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-xs border border-[#FBCBCB] group">
                     <img src={img} alt="Insta" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
