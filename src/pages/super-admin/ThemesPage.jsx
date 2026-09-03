@@ -379,59 +379,15 @@ Stores using it will fall back to the default theme.`)) return;
                   </div>
                 </div>
 
-                {/* Tokens Metadata */}
-                <div className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif text-base font-bold" style={{ color: 'var(--text-primary)' }}>
-                      {theme.name}
-                    </h3>
-                    <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{theme.version}</span>
-                  </div>
+                {/* Clean card header: theme name only */}
+                <div className="p-4 pb-2">
+                  <h3 className="font-serif text-base font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+                    {theme.name}
+                  </h3>
+              </div>              </div>
 
-                  <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                    <span className="px-2 py-0.5 rounded-lg flex items-center gap-1" style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-card)' }}>
-                      🎨 {theme.tokens?.headingFont || 'Serif'}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-lg flex items-center gap-1" style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-card)' }}>
-                      📄 {theme.tokens?.bodyFont || 'Sans'}
-                    </span>
-                    <span
-                      className="px-2 py-0.5 rounded-lg text-black font-bold"
-                      style={{ backgroundColor: theme.tokens?.primaryAccent || 'var(--accent)' }}
-                    >
-                      Accent Color
-                    </span>
-                  </div>
-
-                  <div className="pt-2 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <p className="text-[11px] font-bold mb-1.5 flex items-center justify-between" style={{ color: 'var(--text-primary)' }}>
-                      <span>Currently Active On:</span>
-                      <span className="font-bold" style={{ color: 'var(--accent)' }}>{storesUsingThis.length} Store(s)</span>
-                    </p>
-                    {storesUsingThis.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {storesUsingThis.map((store) => (
-                          <Link
-                            key={store.id}
-                            to={`/store/${(store.subdomain || store.id).replace(/^store_/, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 text-[10px] font-bold transition flex items-center gap-1"
-                          >
-                            <Store className="w-2.5 h-2.5" />
-                            {store.name}
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[10px] italic" style={{ color: 'var(--text-muted)' }}>Available in merchant marketplace</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Actions */}
-              <div className="p-4 pt-0 flex items-center justify-between gap-2">
+              {/* Bottom Actions — clean: preview, edit, delete */}
+              <div className="px-4 pb-4 pt-2 flex items-center justify-between gap-2">
                 <button
                   onClick={() => setSandboxTheme(theme)}
                   className="flex-1 py-2 rounded-xl font-bold text-xs border transition flex items-center justify-center gap-1.5 cursor-pointer text-black"
@@ -439,33 +395,22 @@ Stores using it will fall back to the default theme.`)) return;
                 >
                   <Eye className="w-3.5 h-3.5" /> Live Preview
                 </button>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setEditingTheme({ ...theme })}
-                    title="Edit Template (Super Admin)"
-                    className="p-2 rounded-xl transition cursor-pointer"
-                    style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--accent)' }}
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDuplicate(theme)}
-                    title="Duplicate Theme as Template"
-                    className="p-2 rounded-xl transition cursor-pointer"
-                    style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--text-primary)' }}
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleArchive(theme.id)}
-                    title="Delete Template"
-                    className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                    style={{ border: '1px solid var(--border-card)' }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setEditingTheme({ ...theme })}
+                  title="Edit Template"
+                  className="p-2 rounded-xl transition cursor-pointer"
+                  style={{ border: '1px solid var(--border-card)', color: 'var(--accent)' }}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleArchive(theme.id)}
+                  title="Delete Template"
+                  className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                  style={{ border: '1px solid var(--border-card)' }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           );
