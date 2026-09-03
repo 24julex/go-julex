@@ -39,6 +39,7 @@ import { DEMO_STORES, INITIAL_PRODUCTS_BY_STORE } from '../../data/multiVertical
 import { api } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { HARMONIOUS_THEME_PRESETS } from '../admin/channels/AdminThemeBuilder';
+import { THEME_META } from '../../data/themeRegistry';
 import { formatCurrency, calculateDiscount } from '../../utils/formatters';
 
 export const DynamicStorefrontPage = () => {
@@ -143,7 +144,7 @@ export const DynamicStorefrontPage = () => {
     // Default to Aura Soft Peach / preset matching vertical. Saved sections
     // (kept for live previews) take precedence over the built-in defaults.
     const defaultPreset = savedStyles || HARMONIOUS_THEME_PRESETS[0];
-    if (savedSections) {
+    if (savedSections && !previewPresetId) {
       return {
         styles: { ...defaultPreset },
         sections: savedSections
@@ -328,7 +329,13 @@ export const DynamicStorefrontPage = () => {
     return () => { cancelled = true; window.removeEventListener('focus', loadLive); };
   }, [matchedStore.id, cleanSubdomain]);
 
-  const storeProducts = liveStoreProducts.length > 0 ? liveStoreProducts : localStoreProducts;
+  const isPreviewMode = Boolean(previewPresetId) || searchParams.get('preview') === '1';
+  const activePresetId = previewPresetId || styles?.presetId || themeConfig.styles?.presetId;
+  const activeThemeMeta = THEME_META[activePresetId] || THEME_META[`preset_${activePresetId?.replace('preset_', '')}`] || THEME_META.preset_soft_peach;
+
+  const storeProducts = (isPreviewMode && activeThemeMeta?.products?.length > 0)
+    ? activeThemeMeta.products
+    : (liveStoreProducts.length > 0 ? liveStoreProducts : localStoreProducts);
 
   const [addedItemNotice, setAddedItemNotice] = useState(null);
 
@@ -808,6 +815,9 @@ export const DynamicStorefrontPage = () => {
         // 2. NAVIGATION HEADER (4 Layout Variants)
         // ----------------------------------------------------
         if (section.type === 'header') {
+          const displayLogoText = (isPreviewMode && activeThemeMeta?.brandName) || section.data.logoText || matchedStore.name;
+          const displayTagline = (isPreviewMode && activeThemeMeta?.tagline) || section.data.tagline || matchedStore.categoryLabel;
+
           if (layoutStyle === 'modern_editorial') {
             return (
               <header
@@ -821,7 +831,7 @@ export const DynamicStorefrontPage = () => {
                       className="font-black text-xl sm:text-2xl uppercase tracking-widest leading-none font-mono"
                       style={{ color: styles?.headingColor || '#000000' }}
                     >
-                      {section.data.logoText || matchedStore.name}
+                      {displayLogoText}
                     </h1>
                     <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-black text-white rounded-none uppercase">
                       D2C Edition
@@ -1018,7 +1028,7 @@ export const DynamicStorefrontPage = () => {
                     className="text-xl sm:text-2xl italic leading-none mx-auto md:mx-0"
                     style={{ color: styles?.headingColor || '#1E1E1E', fontFamily: styles?.headingFont || 'Playfair Display' }}
                   >
-                    {section.data.logoText || matchedStore.name}
+                    {displayLogoText}
                   </h1>
 
                   <div className="flex items-center gap-2">
@@ -1056,7 +1066,7 @@ export const DynamicStorefrontPage = () => {
                     className="text-lg sm:text-xl italic leading-none whitespace-nowrap"
                     style={{ color: cream, fontFamily: styles?.headingFont || 'Fraunces' }}
                   >
-                    {section.data.logoText || matchedStore.name}
+                    {displayLogoText}
                   </h1>
 
                   <nav className="hidden md:flex items-center gap-7 text-[12px] uppercase tracking-[0.14em] font-medium" style={{ color: cream }}>
@@ -1099,7 +1109,7 @@ export const DynamicStorefrontPage = () => {
                     className="text-2xl sm:text-[26px] leading-none whitespace-nowrap"
                     style={{ color: ink, fontFamily: styles?.headingFont || 'Fraunces', fontWeight: 560, letterSpacing: '0.02em' }}
                   >
-                    {section.data.logoText || matchedStore.name}
+                    {displayLogoText}
                   </h1>
 
                   <nav className="hidden md:flex items-center gap-8">
@@ -1158,7 +1168,7 @@ export const DynamicStorefrontPage = () => {
                       className="text-xl sm:text-2xl leading-none tracking-tight"
                       style={{ color: styles?.headingColor || '#3E2E20', fontFamily: styles?.headingFont || 'Playfair Display' }}
                     >
-                      {section.data.logoText || matchedStore.name}
+                      {displayLogoText}
                     </h1>
                     <span className="text-[9px] uppercase tracking-[0.35em] block mt-1.5" style={{ color: accent }}>
                       {section.data.tagline || matchedStore.categoryLabel}
@@ -1219,7 +1229,7 @@ export const DynamicStorefrontPage = () => {
                       className="text-lg sm:text-xl uppercase tracking-tight leading-none"
                       style={{ color: styles?.headingColor || '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}
                     >
-                      {section.data.logoText || matchedStore.name}
+                      {displayLogoText}
                     </h1>
                   </div>
 
@@ -1279,7 +1289,7 @@ export const DynamicStorefrontPage = () => {
                         className="font-bold text-lg sm:text-xl tracking-tight leading-none"
                         style={{ color: styles?.headingColor || '#0F172A', fontFamily: styles?.headingFont || 'Playfair Display' }}
                       >
-                        {section.data.logoText || matchedStore.name}
+                        {displayLogoText}
                       </h1>
                       <span className="text-[10px] text-stone-500 font-medium block mt-0.5">
                         {section.data.tagline || matchedStore.categoryLabel}
@@ -1329,11 +1339,11 @@ export const DynamicStorefrontPage = () => {
         // 3. HERO BANNER (4 Distinct UI Layout Variants)
         // ----------------------------------------------------
         if (section.type === 'hero') {
-          const headlineText = section.data.headline || section.data.title || `Bespoke Creations at ${matchedStore.name}`;
-          const subText = section.data.subtext || section.data.subtitle || 'Direct from master artisans with 0% platform commission markup.';
-          const badgeText = section.data.badgeText || section.data.badge || '✨ Pure D2C Craftsmanship';
+          const headlineText = (isPreviewMode && activeThemeMeta?.brandName) ? `${activeThemeMeta.brandName}` : (section.data.headline || section.data.title || `Bespoke Creations at ${matchedStore.name}`);
+          const subText = (isPreviewMode && activeThemeMeta?.tagline) || section.data.subtext || section.data.subtitle || 'Direct from master artisans with 0% platform commission markup.';
+          const badgeText = (isPreviewMode && activeThemeMeta?.aesthetic) || section.data.badgeText || section.data.badge || '✨ Pure D2C Craftsmanship';
           const ctaBtnText = section.data.ctaText || section.data.primaryBtnText || 'Explore Catalog';
-          const heroImg = section.data.imageUrl || section.data.heroImage || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80';
+          const heroImg = (isPreviewMode && activeThemeMeta?.heroImage) || section.data.imageUrl || section.data.heroImage || activeThemeMeta?.heroImage || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80';
 
           if (layoutStyle === 'modern_editorial') {
             return (
@@ -1986,7 +1996,7 @@ export const DynamicStorefrontPage = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                   {storeProducts.slice(0, 3).map((product) => {
-                    const img = (product.images && product.images[0]) || product.imageUrl || heroImg;
+                    const img = (product.images && product.images[0]) || product.imageUrl || activeThemeMeta?.heroImage || '/theme-images/fashion-2.jpg';
                     return (
                       <Link key={product.id} to={`/product/${product.id}`} className="group block">
                         <div className="overflow-hidden aspect-[4/3] bg-[#F6F6F6]">
@@ -2307,7 +2317,7 @@ export const DynamicStorefrontPage = () => {
             return (
               <section key={section.id} className="relative h-[26rem] sm:h-[30rem] overflow-hidden">
                 <img
-                  src={section.data.imageUrl || section.data.heroImage || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1400&q=80'}
+                  src={(isPreviewMode && activeThemeMeta?.bannerImage) || section.data.imageUrl || section.data.heroImage || activeThemeMeta?.bannerImage || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1400&q=80'}
                   alt="Newsletter"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -2525,7 +2535,7 @@ export const DynamicStorefrontPage = () => {
                   <div className="lg:col-span-5">
                     <div className="rounded-3xl overflow-hidden shadow-xl border border-black/10 aspect-[4/3]">
                       <img
-                        src={section.data.imageUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80'}
+                        src={(isPreviewMode && activeThemeMeta?.storyImage) || section.data.imageUrl || activeThemeMeta?.storyImage || 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=800&q=80'}
                         alt="Atelier Story"
                         className="w-full h-full object-cover hover:scale-105 transition duration-700"
                       />

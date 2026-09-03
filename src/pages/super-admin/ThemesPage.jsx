@@ -18,7 +18,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { CreateThemeModal } from '../../components/super-admin/themes/CreateThemeModal';
 import { ThemePreviewModal } from '../../components/common/ThemePreviewModal';
-import { MASTER_THEME_CATALOG as MASTER_THEMES_CATALOG } from '../../data/themeRegistry';
+import { MASTER_THEME_CATALOG as MASTER_THEMES_CATALOG, THEME_META } from '../../data/themeRegistry';
 import { api } from '../../services/api';
 
 
@@ -29,6 +29,8 @@ const MiniThemeStorefrontCard = ({ theme }) => {
   const accent = theme.tokens?.primaryAccent || '#D4A017';
   const headingColor = theme.tokens?.headingColor || '#0F172A';
   const fontSerif = theme.tokens?.headingFont || 'serif';
+  const meta = THEME_META[theme.presetId || theme.id] || THEME_META.preset_soft_peach;
+  const productList = theme.products || meta.products || [];
 
   return (
     <div
@@ -42,7 +44,7 @@ const MiniThemeStorefrontCard = ({ theme }) => {
             GJ
           </div>
           <span className="text-[11px] font-extrabold truncate max-w-[140px]" style={{ color: headingColor, fontFamily: fontSerif }}>
-            {theme.name.split(' ')[0]} Storefront
+            {meta.brandName || theme.name.split(' ')[0]}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[8px]" style={{ color: headingColor }}>
@@ -53,40 +55,42 @@ const MiniThemeStorefrontCard = ({ theme }) => {
         </div>
       </div>
 
-      {/* Mini Store Hero Banner */}
-      <div className="py-2 px-2.5 rounded-xl space-y-1 border" style={{ backgroundColor: surface, borderColor: 'rgba(0,0,0,0.08)' }}>
-        <div className="flex items-center justify-between">
-          <span className="text-[7px] uppercase tracking-wider font-extrabold px-1.5 py-0.2 rounded" style={{ backgroundColor: 'rgba(212,160,23,0.18)', color: accent }}>
-            {theme.vertical.split(',')[0]}
-          </span>
-          <span className="text-[7px] font-mono opacity-60" style={{ color: headingColor }}>0% Fee SaaS</span>
-        </div>
-        <h4 className="text-[10px] font-extrabold leading-snug truncate" style={{ color: headingColor, fontFamily: fontSerif }}>
-          {theme.tagline}
-        </h4>
-        <div className="flex items-center gap-1.5 pt-0.5">
-          <span className="px-2 py-0.5 rounded text-[7px] font-bold text-white shadow-xs" style={{ backgroundColor: accent }}>
-            Explore Collection →
-          </span>
+      {/* Mini Store Hero Banner with Pinterest Photography */}
+      <div className="py-2 px-2.5 rounded-xl space-y-1 border relative overflow-hidden h-16 flex flex-col justify-center" style={{ backgroundColor: surface, borderColor: 'rgba(0,0,0,0.08)' }}>
+        <img
+          src={theme.thumbnail || meta.thumbnail}
+          alt={theme.name}
+          className="absolute inset-0 w-full h-full object-cover opacity-25"
+        />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <span className="text-[7px] uppercase tracking-wider font-extrabold px-1.5 py-0.2 rounded text-white" style={{ backgroundColor: accent }}>
+              {theme.vertical ? theme.vertical.split(',')[0] : 'Curated Store'}
+            </span>
+            <span className="text-[7px] font-mono opacity-80 font-bold" style={{ color: headingColor }}>0% Fee</span>
+          </div>
+          <h4 className="text-[9px] font-extrabold leading-snug truncate pt-0.5" style={{ color: headingColor, fontFamily: fontSerif }}>
+            {meta.tagline || theme.tagline}
+          </h4>
         </div>
       </div>
 
-      {/* Mini 3-Item Store Product Cards */}
+      {/* Mini 3-Item Store Product Cards with Pinterest Images */}
       <div className="grid grid-cols-3 gap-1.5 pt-1">
-        {[1, 2, 3].map((idx) => (
+        {productList.slice(0, 3).map((prod, idx) => (
           <div key={idx} className="p-1 rounded-lg border space-y-0.5" style={{ backgroundColor: surface, borderColor: 'rgba(0,0,0,0.08)' }}>
-            <div className="w-full h-8 rounded bg-black/10 overflow-hidden relative">
+            <div className="w-full h-9 rounded overflow-hidden relative">
               <img
-                src={theme.thumbnail}
-                alt="Product Preview"
-                className="w-full h-full object-cover opacity-85"
+                src={prod.image || theme.thumbnail}
+                alt={prod.name}
+                className="w-full h-full object-cover"
               />
             </div>
-            <div className="text-[7px] font-bold truncate" style={{ color: headingColor }}>
-              Artisan SKU #{idx}
+            <div className="text-[6.5px] font-bold truncate" style={{ color: headingColor }}>
+              {prod.name}
             </div>
-            <div className="text-[7px] font-mono font-extrabold" style={{ color: accent }}>
-              ₹{(idx * 1999).toLocaleString('en-IN')}
+            <div className="text-[6.5px] font-mono font-extrabold" style={{ color: accent }}>
+              ₹{prod.price?.toLocaleString('en-IN')}
             </div>
           </div>
         ))}

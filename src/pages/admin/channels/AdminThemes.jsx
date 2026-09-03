@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
 import { HARMONIOUS_THEME_PRESETS } from './AdminThemeBuilder';
-import { THEME_MARKETPLACE as THEME_MARKETPLACE_12 } from '../../../data/themeRegistry';
+import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, THEME_META } from '../../../data/themeRegistry';
 import { ThemePreviewModal } from '../../../components/common/ThemePreviewModal';
 import { api } from '../../../services/api';
 
@@ -25,6 +25,11 @@ import { api } from '../../../services/api';
 export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
   const preset = HARMONIOUS_THEME_PRESETS.find((p) => p.id === theme.presetId) || HARMONIOUS_THEME_PRESETS[0];
   const layoutStyle = preset.layoutStyle || 'haute_atelier';
+  const themeMeta = THEME_META[theme.presetId] || THEME_META[preset.id] || {};
+  const productsList = (theme.products && theme.products.length > 0 ? theme.products : themeMeta.products) || [
+    { name: theme.name + ' Item A', price: 2490, image: theme.thumbnail, tag: 'Popular' },
+    { name: theme.name + ' Item B', price: 4890, image: theme.thumbnail, tag: 'New' }
+  ];
 
   return (
     <div
@@ -72,11 +77,11 @@ export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
           }`}
           style={{ fontFamily: preset.headingFont, color: preset.headingColor }}
         >
-          {theme.name.split(' ')[0]} Store
+          {themeMeta.brandName || theme.name.split(' ')[0]}
         </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-[7px] font-medium hidden sm:inline" style={{ color: preset.textColor }}>Millets</span>
-          <span className="text-[7px] font-medium hidden sm:inline" style={{ color: preset.textColor }}>Snacks</span>
+          <span className="text-[7px] font-medium hidden sm:inline" style={{ color: preset.textColor }}>Collection</span>
+          <span className="text-[7px] font-medium hidden sm:inline" style={{ color: preset.textColor }}>Deals</span>
           <span
             className={`px-1.5 py-0.5 text-white text-[7px] font-bold shadow-2xs ${
               layoutStyle === 'organic_pantry' ? 'rounded-full bg-emerald-700' : layoutStyle === 'organic_artisan' ? 'rounded-full' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-lg'
@@ -88,81 +93,62 @@ export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
         </div>
       </div>
 
-      {/* Dynamic Hero Banner */}
+      {/* Dynamic Hero Banner with High-Res Vertical Photography */}
       <div
-        className={`p-2.5 sm:p-3 border-b flex flex-col justify-center space-y-1 relative overflow-hidden shrink-0 ${
-          layoutStyle === 'neo_tech' ? 'bg-gradient-to-r from-black/80 to-stone-900 text-white' : ''
-        }`}
+        className="p-2.5 sm:p-3 border-b flex flex-col justify-center space-y-1 relative overflow-hidden shrink-0 h-16 sm:h-20"
         style={{ backgroundColor: preset.surfaceColor, borderColor: preset.accentColor + '20' }}
       >
-        <span
-          className={`px-1.5 py-0.2 text-[6px] sm:text-[7px] font-bold text-white uppercase tracking-wider w-fit ${
-            layoutStyle === 'organic_pantry' ? 'rounded-full bg-emerald-800' : layoutStyle === 'organic_artisan' ? 'rounded-full' : layoutStyle === 'modern_editorial' ? 'rounded-none font-mono' : 'rounded-md'
-          }`}
-          style={{ backgroundColor: preset.accentColor }}
-        >
-          {layoutStyle === 'organic_pantry' && '🌿 100% Organic Pantry'}
-          {layoutStyle === 'haute_atelier' && '✨ Master Atelier'}
-          {layoutStyle === 'modern_editorial' && '[NEW DROP]'}
-          {layoutStyle === 'organic_artisan' && '🌱 Artisanal Batch'}
-          {layoutStyle === 'neo_tech' && '⚡ CYBER ENGINE'}
-        </span>
-        <h4
-          className="font-bold text-[10px] sm:text-[11px] leading-tight line-clamp-1"
-          style={{ fontFamily: preset.headingFont, color: layoutStyle === 'neo_tech' ? '#FFF' : preset.headingColor }}
-        >
-          {theme.name}
-        </h4>
-        <p className="text-[7px] sm:text-[8px] opacity-75 line-clamp-1">Direct from organic farmers • Zero additives</p>
-        <div className="pt-0.5">
+        <img
+          src={theme.thumbnail || themeMeta.thumbnail}
+          alt={theme.name}
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
+        />
+        <div className="relative z-10">
           <span
-            className={`px-2 py-0.5 text-[7px] font-bold text-white inline-block shadow-2xs ${
-              layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-full' : layoutStyle === 'modern_editorial' ? 'rounded-none' : preset.buttonRadius
+            className={`px-1.5 py-0.2 text-[6px] sm:text-[7px] font-bold text-white uppercase tracking-wider inline-block ${
+              layoutStyle === 'organic_pantry' ? 'rounded-full bg-emerald-800' : layoutStyle === 'organic_artisan' ? 'rounded-full' : layoutStyle === 'modern_editorial' ? 'rounded-none font-mono' : 'rounded-md'
             }`}
             style={{ backgroundColor: preset.accentColor }}
           >
-            Shop Pantry →
+            Curated Showcase
           </span>
+          <p className="font-bold text-[9px] sm:text-[10px] truncate" style={{ fontFamily: preset.headingFont, color: preset.headingColor }}>
+            {theme.name}
+          </p>
         </div>
       </div>
 
-      {/* Dynamic Product Cards */}
+      {/* Dynamic Topic-Specific Product Cards */}
       <div className="p-2 flex-1 overflow-hidden grid grid-cols-2 gap-1.5">
-        <div
-          className={`p-1.5 border space-y-1 shadow-2xs ${
-            layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-2xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-xl'
-          } ${preset.cardBorder || 'border-black/5'}`}
-          style={{ backgroundColor: preset.cardSurface }}
-        >
-          <div className={`w-full aspect-[4/3] bg-black/5 overflow-hidden flex items-center justify-center ${
-            layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-lg'
-          }`}>
-            <Sparkles className="w-3.5 h-3.5 opacity-40" style={{ color: preset.accentColor }} />
+        {productsList.slice(0, 2).map((item, idx) => (
+          <div
+            key={idx}
+            className={`p-1.5 border space-y-1 shadow-2xs ${
+              layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-2xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-xl'
+            } ${preset.cardBorder || 'border-black/5'}`}
+            style={{ backgroundColor: preset.cardSurface }}
+          >
+            <div className={`w-full aspect-[4/3] bg-black/5 overflow-hidden relative ${
+              layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-lg'
+            }`}>
+              <img
+                src={item.image || theme.thumbnail}
+                alt={item.name}
+                className="w-full h-full object-cover"
+              />
+              {item.tag && (
+                <span className="absolute top-1 left-1 px-1 py-0.2 rounded text-[5px] font-bold text-white shadow-xs" style={{ backgroundColor: preset.accentColor }}>
+                  {item.tag}
+                </span>
+              )}
+            </div>
+            <p className="font-bold text-[7px] sm:text-[8px] truncate" style={{ color: preset.headingColor }}>{item.name}</p>
+            <div className="flex items-center justify-between">
+              <p className="font-mono font-bold text-[7px] sm:text-[8px]" style={{ color: preset.accentColor }}>₹{item.price?.toLocaleString('en-IN')}</p>
+              <span className="text-[5px] px-1 bg-black/5 rounded font-bold" style={{ color: preset.textColor }}>In Stock</span>
+            </div>
           </div>
-          <p className="font-bold text-[7px] sm:text-[8px] truncate" style={{ color: preset.headingColor }}>Unpolished Foxtail Millet</p>
-          <div className="flex items-center justify-between">
-            <p className="font-mono font-bold text-[7px] sm:text-[8px]" style={{ color: preset.accentColor }}>₹249</p>
-            <span className="text-[6px] px-1 bg-emerald-100 text-emerald-800 rounded font-bold">500g</span>
-          </div>
-        </div>
-
-        <div
-          className={`p-1.5 border space-y-1 shadow-2xs ${
-            layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-2xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-xl'
-          } ${preset.cardBorder || 'border-black/5'}`}
-          style={{ backgroundColor: preset.cardSurface }}
-        >
-          <div className={`w-full aspect-[4/3] bg-black/5 overflow-hidden flex items-center justify-center ${
-            layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-lg'
-          }`}>
-            <ShoppingBag className="w-3.5 h-3.5 opacity-40" style={{ color: preset.accentColor }} />
-          </div>
-          <p className="font-bold text-[7px] sm:text-[8px] truncate" style={{ color: preset.headingColor }}>Organic Ragi Flakes</p>
-          <div className="flex items-center justify-between">
-            <p className="font-mono font-bold text-[7px] sm:text-[8px]" style={{ color: preset.accentColor }}>₹180</p>
-            <span className="text-[6px] px-1 bg-emerald-100 text-emerald-800 rounded font-bold">1kg</span>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Palette Strip & Layout Tag */}
