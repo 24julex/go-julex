@@ -1343,7 +1343,7 @@ export const DynamicStorefrontPage = () => {
           const subText = (isPreviewMode && activeThemeMeta?.tagline) || section.data.subtext || section.data.subtitle || 'Direct from master artisans with 0% platform commission markup.';
           const badgeText = (isPreviewMode && activeThemeMeta?.aesthetic) || section.data.badgeText || section.data.badge || '✨ Pure D2C Craftsmanship';
           const ctaBtnText = section.data.ctaText || section.data.primaryBtnText || 'Explore Catalog';
-          const heroImg = (isPreviewMode && activeThemeMeta?.heroImage) || section.data.imageUrl || section.data.heroImage || activeThemeMeta?.heroImage || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80';
+          const heroImg = (isPreviewMode && activeThemeMeta?.heroImage) || section.data.imageUrl || section.data.heroImage || activeThemeMeta?.heroImage || '/theme-images/fashion-2.jpg';
 
           if (layoutStyle === 'modern_editorial') {
             return (
@@ -1996,7 +1996,7 @@ export const DynamicStorefrontPage = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                   {storeProducts.slice(0, 3).map((product) => {
-                    const img = (product.images && product.images[0]) || product.imageUrl || activeThemeMeta?.heroImage || '/theme-images/fashion-2.jpg';
+                    const img = (product.images && product.images[0]) || product.imageUrl || product.image || activeThemeMeta?.heroImage || '/theme-images/fashion-2.jpg';
                     return (
                       <Link key={product.id} to={`/product/${product.id}`} className="group block">
                         <div className="overflow-hidden aspect-[4/3] bg-[#F6F6F6]">
@@ -2157,6 +2157,7 @@ export const DynamicStorefrontPage = () => {
                       const mainImage =
                         (product.images && product.images[0]) ||
                         product.imageUrl ||
+                        product.image ||
                         (isPreviewMode && activeThemeMeta?.products?.[0]?.image) ||
                         'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80';
 
