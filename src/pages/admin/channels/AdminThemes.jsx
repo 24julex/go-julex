@@ -23,149 +23,29 @@ import { api } from '../../../services/api';
 
 
 export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
-  const preset = HARMONIOUS_THEME_PRESETS.find((p) => p.id === theme.presetId) || HARMONIOUS_THEME_PRESETS[0];
-  const layoutStyle = preset.layoutStyle || 'haute_atelier';
-  const themeMeta = THEME_META[theme.presetId] || THEME_META[preset.id] || {};
-  const productsList = (theme.products && theme.products.length > 0 ? theme.products : themeMeta.products) || [
-    { name: theme.name + ' Item A', price: 2490, image: theme.thumbnail, tag: 'Popular' },
-    { name: theme.name + ' Item B', price: 4890, image: theme.thumbnail, tag: 'New' }
-  ];
+  // Real-image preview: the theme's actual hero + product photographs from
+  // THEME_META (served locally from /theme-images/) — not an illustration
+  const themeMeta = THEME_META[theme.presetId] || {};
+  const hero = themeMeta.heroImage || theme.thumbnail;
+  const products = (themeMeta.products || []).slice(0, 3);
 
   return (
-    <div
-      className="w-full h-full select-none flex flex-col font-sans transition-colors duration-300 relative overflow-hidden"
-      style={{ backgroundColor: preset.backgroundColor, color: preset.textColor }}
-    >
-      {/* Top Browser Bar */}
-      <div className="h-4 sm:h-5 px-2 bg-black/10 border-b border-black/10 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block" />
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-        </div>
-        <div className="px-2 py-0.2 rounded bg-white/70 text-[7px] font-mono truncate max-w-[140px]" style={{ color: '#111' }}>
-          store.gojulex.com
-        </div>
-        <div className="w-4" />
-      </div>
-
-      {/* Dynamic Announcement Bar */}
-      <div
-        className={`py-1 px-2 text-center text-[7px] sm:text-[8px] font-bold truncate shrink-0 tracking-tight ${
-          layoutStyle === 'editions_hyper' ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black font-mono tracking-widest uppercase' : layoutStyle === 'modern_editorial' ? 'uppercase font-mono tracking-widest' : ''
-        }`}
-        style={{ backgroundColor: preset.announcementBg, color: preset.announcementText }}
-      >
-        {layoutStyle === 'editions_hyper' && '⚡ SHOPIFY EDITIONS KINETIC RELEASE • 150+ MOTION UPDATES • 0% FEE'}
-        {layoutStyle === 'organic_pantry' && '🌿 100% Certified Organic Millets & Foods • Express Shipping'}
-        {layoutStyle === 'haute_atelier' && '✨ Haute Atelier • Free Express Delivery • 100% Authentic'}
-        {layoutStyle === 'modern_editorial' && '⚡ EDITORIAL RELEASE • 0% COMMISSION D2C • EXPRESS SHIPPING'}
-        {layoutStyle === 'organic_artisan' && '🌱 Certified 100% Handcrafted Harvest • Direct Studio'}
-        {layoutStyle === 'neo_tech' && '🔮 NEON ENGINE LIVE • INSTANT DIRECT CHECKOUT'}
-      </div>
-
-      {/* Dynamic Header */}
-      <div
-        className={`py-1.5 px-3 border-b flex items-center justify-between shrink-0 ${
-          layoutStyle === 'haute_atelier' ? 'justify-center flex-col gap-0.5' : ''
-        }`}
-        style={{ backgroundColor: preset.headerBg, borderColor: preset.accentColor + '25' }}
-      >
+    <div className="w-full h-full flex flex-col bg-white overflow-hidden">
+      <div className={isLarge ? 'h-3/5 relative' : 'h-[55%] relative'}>
+        <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" />
         <span
-          className={`font-bold text-[9px] sm:text-[10px] tracking-tight truncate max-w-[130px] ${
-            layoutStyle === 'modern_editorial' ? 'uppercase tracking-widest font-black' : ''
-          }`}
-          style={{ fontFamily: preset.headingFont, color: preset.headingColor }}
+          className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-bold text-white shadow"
+          style={{ backgroundColor: 'rgba(17,17,17,0.75)' }}
         >
-          {themeMeta.brandName || theme.name.split(' ')[0]}
+          {themeMeta.brandName || theme.name}
         </span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[7px] font-medium hidden sm:inline" style={{ color: preset.textColor }}>Collection</span>
-          <span className="text-[7px] font-medium hidden sm:inline" style={{ color: preset.textColor }}>Deals</span>
-          <span
-            className={`px-1.5 py-0.5 text-white text-[7px] font-bold shadow-2xs ${
-              layoutStyle === 'organic_pantry' ? 'rounded-full bg-emerald-700' : layoutStyle === 'organic_artisan' ? 'rounded-full' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-lg'
-            }`}
-            style={{ backgroundColor: preset.accentColor }}
-          >
-            Bag (2)
-          </span>
-        </div>
       </div>
-
-      {/* Dynamic Hero Banner with High-Res Vertical Photography */}
-      <div
-        className="p-2.5 sm:p-3 border-b flex flex-col justify-center space-y-1 relative overflow-hidden shrink-0 h-16 sm:h-20"
-        style={{ backgroundColor: preset.surfaceColor, borderColor: preset.accentColor + '20' }}
-      >
-        <img
-          src={theme.thumbnail || themeMeta.thumbnail}
-          alt={theme.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
-        />
-        <div className="relative z-10">
-          <span
-            className={`px-1.5 py-0.2 text-[6px] sm:text-[7px] font-bold text-white uppercase tracking-wider inline-block ${
-              layoutStyle === 'organic_pantry' ? 'rounded-full bg-emerald-800' : layoutStyle === 'organic_artisan' ? 'rounded-full' : layoutStyle === 'modern_editorial' ? 'rounded-none font-mono' : 'rounded-md'
-            }`}
-            style={{ backgroundColor: preset.accentColor }}
-          >
-            Curated Showcase
-          </span>
-          <p className="font-bold text-[9px] sm:text-[10px] truncate" style={{ fontFamily: preset.headingFont, color: preset.headingColor }}>
-            {theme.name}
-          </p>
-        </div>
-      </div>
-
-      {/* Dynamic Topic-Specific Product Cards */}
-      <div className="p-2 flex-1 overflow-hidden grid grid-cols-2 gap-1.5">
-        {productsList.slice(0, 2).map((item, idx) => (
-          <div
-            key={idx}
-            className={`p-1.5 border space-y-1 shadow-2xs ${
-              layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-2xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-xl'
-            } ${preset.cardBorder || 'border-black/5'}`}
-            style={{ backgroundColor: preset.cardSurface }}
-          >
-            <div className={`w-full aspect-[4/3] bg-black/5 overflow-hidden relative ${
-              layoutStyle === 'organic_pantry' || layoutStyle === 'organic_artisan' ? 'rounded-xl' : layoutStyle === 'modern_editorial' ? 'rounded-none' : 'rounded-lg'
-            }`}>
-              <img
-                src={item.image || theme.thumbnail}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-              {item.tag && (
-                <span className="absolute top-1 left-1 px-1 py-0.2 rounded text-[5px] font-bold text-white shadow-xs" style={{ backgroundColor: preset.accentColor }}>
-                  {item.tag}
-                </span>
-              )}
-            </div>
-            <p className="font-bold text-[7px] sm:text-[8px] truncate" style={{ color: preset.headingColor }}>{item.name}</p>
-            <div className="flex items-center justify-between">
-              <p className="font-mono font-bold text-[7px] sm:text-[8px]" style={{ color: preset.accentColor }}>₹{item.price?.toLocaleString('en-IN')}</p>
-              <span className="text-[5px] px-1 bg-black/5 rounded font-bold" style={{ color: preset.textColor }}>In Stock</span>
-            </div>
+      <div className={isLarge ? 'flex-1 grid grid-cols-3 gap-1 p-1' : 'flex-1 grid grid-cols-3 gap-1 p-1'}>
+        {products.map((pr, i) => (
+          <div key={i} className="relative bg-[#F4F4F2] overflow-hidden">
+            <img src={pr.image} alt={pr.name} className="absolute inset-0 w-full h-full object-cover" />
           </div>
         ))}
-      </div>
-
-      {/* Palette Strip & Layout Tag */}
-      <div className="py-1 px-2.5 bg-black/5 border-t border-black/5 flex items-center justify-between shrink-0">
-        <span className="text-[6px] sm:text-[7px] font-bold uppercase tracking-wider opacity-80" style={{ color: preset.accentColor }}>
-          {layoutStyle === 'organic_pantry' && '🌿 Organic Pantry'}
-          {layoutStyle === 'haute_atelier' && '✨ Haute Atelier'}
-          {layoutStyle === 'modern_editorial' && '⚡ Editorial Grid'}
-          {layoutStyle === 'organic_artisan' && '☕ Minimal Warm'}
-          {layoutStyle === 'neo_tech' && '🔮 Neo-Tech'}
-        </span>
-        <div className="flex items-center -space-x-1">
-          <span className="w-3 h-3 rounded-full border border-white shadow-2xs" style={{ backgroundColor: preset.backgroundColor }} title="Canvas Bg" />
-          <span className="w-3 h-3 rounded-full border border-white shadow-2xs" style={{ backgroundColor: preset.surfaceColor }} title="Surface" />
-          <span className="w-3 h-3 rounded-full border border-white shadow-2xs" style={{ backgroundColor: preset.accentColor }} title="Accent" />
-          <span className="w-3 h-3 rounded-full border border-white shadow-2xs" style={{ backgroundColor: preset.headingColor }} title="Heading" />
-        </div>
       </div>
     </div>
   );

@@ -24,74 +24,23 @@ import { api } from '../../services/api';
 
 /* Rendered Live Website Template Card Front */
 const MiniThemeStorefrontCard = ({ theme }) => {
-  const bg = theme.tokens?.backgroundColor || '#FFFFFF';
-  const surface = theme.tokens?.surfaceColor || '#F5F5F0';
-  const accent = theme.tokens?.primaryAccent || '#D4A017';
-  const headingColor = theme.tokens?.headingColor || '#0F172A';
-  const fontSerif = theme.tokens?.headingFont || 'serif';
-  const meta = THEME_META[theme.presetId || theme.id] || THEME_META.preset_soft_peach;
-  const productList = theme.products || meta.products || [];
+  // Real-image preview using the theme's local hero + product photography
+  const themeMeta = THEME_META[theme.id] || {};
+  const hero = themeMeta.heroImage || theme.thumbnail;
+  const products = (themeMeta.products || []).slice(0, 3);
 
   return (
-    <div
-      className="w-full h-full p-3 flex flex-col justify-between select-none overflow-hidden relative shadow-inner"
-      style={{ backgroundColor: bg }}
-    >
-      {/* Mini Store Header Bar */}
-      <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded flex items-center justify-center text-[8px] font-bold text-black shadow-xs" style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}>
-            GJ
-          </div>
-          <span className="text-[11px] font-extrabold truncate max-w-[140px]" style={{ color: headingColor, fontFamily: fontSerif }}>
-            {meta.brandName || theme.name.split(' ')[0]}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[8px]" style={{ color: headingColor }}>
-          <span className="hidden sm:inline font-medium opacity-80">Catalog</span>
-          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold text-white shadow-xs" style={{ backgroundColor: accent }}>
-            Buy Now
-          </span>
-        </div>
+    <div className="w-full h-full flex flex-col bg-white overflow-hidden">
+      <div className="h-[55%] relative">
+        <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" />
+        <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-bold text-white shadow" style={{ backgroundColor: 'rgba(17,17,17,0.75)' }}>
+          {themeMeta.brandName || theme.name}
+        </span>
       </div>
-
-      {/* Mini Store Hero Banner with Pinterest Photography */}
-      <div className="py-2 px-2.5 rounded-xl space-y-1 border relative overflow-hidden h-16 flex flex-col justify-center" style={{ backgroundColor: surface, borderColor: 'rgba(0,0,0,0.08)' }}>
-        <img
-          src={theme.thumbnail || meta.thumbnail}
-          alt={theme.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-25"
-        />
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <span className="text-[7px] uppercase tracking-wider font-extrabold px-1.5 py-0.2 rounded text-white" style={{ backgroundColor: accent }}>
-              {theme.vertical ? theme.vertical.split(',')[0] : 'Curated Store'}
-            </span>
-            <span className="text-[7px] font-mono opacity-80 font-bold" style={{ color: headingColor }}>0% Fee</span>
-          </div>
-          <h4 className="text-[9px] font-extrabold leading-snug truncate pt-0.5" style={{ color: headingColor, fontFamily: fontSerif }}>
-            {meta.tagline || theme.tagline}
-          </h4>
-        </div>
-      </div>
-
-      {/* Mini 3-Item Store Product Cards with Pinterest Images */}
-      <div className="grid grid-cols-3 gap-1.5 pt-1">
-        {productList.slice(0, 3).map((prod, idx) => (
-          <div key={idx} className="p-1 rounded-lg border space-y-0.5" style={{ backgroundColor: surface, borderColor: 'rgba(0,0,0,0.08)' }}>
-            <div className="w-full h-9 rounded overflow-hidden relative">
-              <img
-                src={prod.image || theme.thumbnail}
-                alt={prod.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="text-[6.5px] font-bold truncate" style={{ color: headingColor }}>
-              {prod.name}
-            </div>
-            <div className="text-[6.5px] font-mono font-extrabold" style={{ color: accent }}>
-              ₹{prod.price?.toLocaleString('en-IN')}
-            </div>
+      <div className="flex-1 grid grid-cols-3 gap-1 p-1">
+        {products.map((pr, i) => (
+          <div key={i} className="relative bg-[#F4F4F2] overflow-hidden">
+            <img src={pr.image} alt={pr.name} className="absolute inset-0 w-full h-full object-cover" />
           </div>
         ))}
       </div>
