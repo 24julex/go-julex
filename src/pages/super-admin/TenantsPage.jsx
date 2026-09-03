@@ -205,16 +205,15 @@ export const TenantsPage = () => {
       {/* 3. Table */}
       <div className="border rounded-3xl overflow-hidden shadow-xs" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-sm">
             <thead className="border-b text-[10px] uppercase font-bold tracking-wider" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
               <tr>
-                <th className="py-3.5 px-4">Store Tenant</th>
-                <th className="py-3.5 px-4">Domain & URLs</th>
-                <th className="py-3.5 px-4">Catalog</th>
-                <th className="py-3.5 px-4">Plan Badge</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4">Merchant Admin</th>
-                <th className="py-3.5 px-4">Platform GMV</th>
+                <th className="py-3 px-2.5">Store Tenant</th>
+                <th className="py-3 px-2.5">Domain & URLs</th>
+                <th className="py-3 px-2.5">Plan Badge</th>
+                <th className="py-3 px-2.5">Status</th>
+                <th className="py-3 px-2.5">Merchant Admin</th>
+                <th className="py-3 px-2.5">Platform GMV</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -225,7 +224,7 @@ export const TenantsPage = () => {
                   onClick={() => handleOpenDrawer(tenant.id)}
                   className="hover:bg-amber-500/5 cursor-pointer transition"
                 >
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-2.5">
                     <div className="flex items-center gap-3">
                       <img
                         src={(tenant.logoUrl || tenant.logo || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=150&q=80')}
@@ -244,7 +243,7 @@ export const TenantsPage = () => {
                     </div>
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-2.5">
                     {tenant.customDomain ? (
                       <div className="flex items-center gap-1 text-emerald-500 font-medium">
                         <Globe className="w-3 h-3 text-emerald-500" />
@@ -257,25 +256,19 @@ export const TenantsPage = () => {
                     )}
                   </td>
 
-                  <td className="py-3.5 px-4">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.12)', color: 'var(--accent)' }}>
-                      📦 {tenant.productsCount ?? 0} Listed
-                    </span>
-                  </td>
-
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-2.5">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)' }}>
                       {tenant.planName}
                     </span>
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-2.5">
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
                       {tenant.status}
                     </span>
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-2.5">
                     <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>{(tenant.admin?.name || tenant.ownerName || '')}</div>
                     <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{(tenant.admin?.email || tenant.ownerEmail || '')}</div>
                   </td>
