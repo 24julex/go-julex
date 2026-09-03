@@ -31,7 +31,7 @@ export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
 
   return (
     <div className="w-full h-full relative bg-white overflow-hidden">
-      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.35)', transformOrigin: '50% 18%' }} />
+      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.8)', transformOrigin: '50% 18%' }} />
     </div>
   );
 };
@@ -332,7 +332,7 @@ export const AdminThemes = () => {
                   borderColor: isCurrentlyActive ? 'var(--accent)' : 'var(--border-card)',
                 }}
               >
-                <div className="relative aspect-[16/10] overflow-hidden border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                <div className="relative aspect-[16/8] overflow-hidden border-b" style={{ borderColor: 'var(--border-subtle)' }}>
                   <ThemeStorefrontPreview theme={theme} />
 
                   {isCurrentlyActive && (
@@ -362,7 +362,7 @@ export const AdminThemes = () => {
 
                 {/* Clean card body: name + apply */}
                 <div className="px-4 py-3 flex items-center justify-between gap-2">
-                  <h3 className="font-bold text-sm font-serif truncate" style={{ color: 'var(--text-primary)' }}>{theme.name}</h3>
+                  <h3 className="font-bold text-lg font-serif truncate" style={{ color: 'var(--text-primary)' }}>{theme.name}</h3>
                   {isCurrentlyActive ? (
                     <span className="px-3 py-1 rounded-xl text-xs font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.30)' }}>
                       Active

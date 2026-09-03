@@ -31,7 +31,7 @@ const MiniThemeStorefrontCard = ({ theme }) => {
 
   return (
     <div className="w-full h-full relative bg-white overflow-hidden">
-      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.35)', transformOrigin: '50% 18%' }} />
+      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.8)', transformOrigin: '50% 18%' }} />
     </div>
   );
 };
@@ -345,7 +345,7 @@ Stores using it will fall back to the default theme.`)) return;
             >
               <div>
                 {/* Live Rendered Storefront Template Front Header */}
-                <div className="relative aspect-[16/10] w-full border-b overflow-hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+                <div className="relative aspect-[16/8] w-full border-b overflow-hidden" style={{ borderColor: 'var(--border-subtle)' }}>
                   <MiniThemeStorefrontCard theme={theme} />
 
                   <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
@@ -369,7 +369,7 @@ Stores using it will fall back to the default theme.`)) return;
 
                 {/* Clean card header: theme name only */}
                 <div className="p-4 pb-2">
-                  <h3 className="font-serif text-base font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+                  <h3 className="font-serif text-lg font-bold truncate" style={{ color: 'var(--text-primary)' }}>
                     {theme.name}
                   </h3>
               </div>              </div>
