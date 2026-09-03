@@ -43,7 +43,7 @@ npm run dev                   # Vite on http://localhost:3000
 | Role | Login | Password |
 |---|---|---|
 | Super Admin | `admin@gojulex.com` | `admin123` |
-| Merchant (RAM'S T-SHIRT STORE) | `merchant@gojulex.com` | `admin123` |
+| Merchant | `merchant@gojulex.com` | `admin123` |
 | Customer | `customer@gojulex.com` | `customer123` |
 
 ## Project Structure
