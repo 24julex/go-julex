@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build output
+dist/
+server/dist/
+
+# Environment & secrets
+.env
+server/.env
+*.env.local
+
+# Database (local dev only — volumes hold production data)
+server/prisma/dev.db
+server/prisma/dev.db-journal
+*.sqlite
+
+# Prisma generated client (regenerate with: npx prisma generate)
+server/src/generated/
+
+# Logs & OS junk
+*.log
+.DS_Store
+Thumbs.db
+
+# Tooling caches
+.eslintcache
+.vite/

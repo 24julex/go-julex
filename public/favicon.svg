@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3D1" />
+      <stop offset="30%" stop-color="#F5D061" />
+      <stop offset="70%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#8B6914" />
+    </linearGradient>
+    <radialGradient id="dialGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#141824" />
+      <stop offset="75%" stop-color="#0A0C10" />
+      <stop offset="100%" stop-color="#040507" />
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#D4AF37" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Watch Straps Top & Bottom -->
+  <path d="M 22 2 L 42 2 L 40 14 L 24 14 Z" fill="url(#goldGrad)" opacity="0.95" />
+  <path d="M 24 50 L 40 50 L 42 62 L 22 62 Z" fill="url(#goldGrad)" opacity="0.95" />
+
+  <!-- Outer Watch Bezel -->
+  <circle cx="32" cy="32" r="26" fill="url(#goldGrad)" />
+  
+  <!-- Fluted Inner Bezel Ring -->
+  <circle cx="32" cy="32" r="23.5" fill="#0A0C10" stroke="url(#goldGrad)" stroke-width="1.5" />
+
+  <!-- Dial Center -->
+  <circle cx="32" cy="32" r="21" fill="url(#dialGrad)" />
+
+  <!-- Crown Winder on Right -->
+  <path d="M 58 29 L 61 29 A 2 2 0 0 1 63 31 L 63 33 A 2 2 0 0 1 61 35 L 58 35 Z" fill="url(#goldGrad)" />
+
+  <!-- Hour Markers -->
+  <rect x="30.5" y="13" width="3" height="5" rx="1" fill="url(#goldGrad)" />
+  <rect x="30.5" y="46" width="3" height="5" rx="1" fill="url(#goldGrad)" />
+  <rect x="13" y="30.5" width="5" height="3" rx="1" fill="url(#goldGrad)" />
+  <rect x="46" y="30.5" width="5" height="3" rx="1" fill="url(#goldGrad)" />
+
+  <!-- Sub-markers -->
+  <circle cx="21" cy="21" r="1.4" fill="#D4AF37" />
+  <circle cx="43" cy="21" r="1.4" fill="#D4AF37" />
+  <circle cx="21" cy="43" r="1.4" fill="#D4AF37" />
+  <circle cx="43" cy="43" r="1.4" fill="#D4AF37" />
+
+  <!-- Watch Hands in 10:10 Position -->
+  <!-- Hour Hand -->
+  <line x1="32" y1="32" x2="23" y2="23" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" filter="url(#glow)" />
+  <!-- Minute Hand -->
+  <line x1="32" y1="32" x2="43" y2="20" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round" filter="url(#glow)" />
+  <!-- Second Hand (Rose-Red accent) -->
+  <line x1="32" y1="37" x2="32" y2="14" stroke="#F43F5E" stroke-width="1.2" stroke-linecap="round" />
+
+  <!-- Center Pin Jewel -->
+  <circle cx="32" cy="32" r="3.2" fill="url(#goldGrad)" />
+  <circle cx="32" cy="32" r="1.2" fill="#0A0C10" />
+</svg>

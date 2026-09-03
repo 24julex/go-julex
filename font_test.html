@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Go Julex Font Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Allison&family=Arizona&family=Birthstone&family=Birthstone+Bounce&family=Bonheur+Royale&family=Caramel&family=Caveat&family=Cherish&family=Clicker+Script&family=Cookie&family=Courgette&family=Damion&family=Dancing+Script&family=Devonshire&family=Ephesis&family=Estonia&family=Explora&family=Fleur+De+Leah&family=Grand+Hotel&family=Great+Vibes&family=Gwendolyn&family=Herr+Von+Muellerhoff&family=Imperial+Script&family=Indie+Flower&family=Italianno&family=Jim+Nightshade&family=Julius+Sans+One&family=Just+Another+Hand&family=Kalam&family=Kaushan+Script&family=Kristi&family=La+Belle+Aurore&family=League+Script&family=Loved+by+the+King&family=Lovers+Quarrel&family=Marck+Script&family=Meie+Script&family=Meow+Script&family=Monsieur+La+Doulaise&family=MonteCarlo&family=Mr+Bedfort&family=Mr+De+Haviland&family=Mrs+Saint+Delafield&family=Niconne&family=Nothing+You+Could+Do&family=Oooh+Baby&family=Over+the+Rainbow&family=Pacifico&family=Parisienne&family=Passions+Conflict&family=Petit+Formal+Script&family=Pinyon+Script&family=Playball&family=Qwigley&family=Rancho&family=Redressed&family=Reenie+Beanie&family=Rochester&family=Rouge+Script&family=Ruthrysis&family=Sacramento&family=Satisfy&family=Seaweed+Script&family=Shadows+Into+Light&family=Shalimar&family=Sofia&family=Stalemate&family=Style+Script&family=Sue+Ellen+Francisco&family=Tangerine&family=Updock&family=Vibur&family=Whisper&family=WindSong&family=Yellowtail&family=Yesteryear&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 300;
+      color: #38bdf8;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    .card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: #e2e8f0;
+    }
+    .font-name {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #334155;
+      width: 100%;
+      padding-bottom: 0.5rem;
+      text-align: center;
+      font-family: monospace;
+    }
+    .preview {
+      font-size: 3.5rem;
+      white-space: nowrap;
+      background: linear-gradient(to bottom, #ffe699 0%, #d4af37 50%, #aa7c11 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6)) 
+              drop-shadow(0 0 2px rgba(212, 175, 55, 0.8));
+      line-height: 1.2;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Go Julex Font Preview Comparison</h1>
+  
+  <div class="grid">
+    <div class="card">
+      <div class="font-name">Monsieur La Doulaise</div>
+      <div class="preview" style="font-family: 'Monsieur La Doulaise', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Pinyon Script</div>
+      <div class="preview" style="font-family: 'Pinyon Script', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Great Vibes</div>
+      <div class="preview" style="font-family: 'Great Vibes', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Alex Brush</div>
+      <div class="preview" style="font-family: 'Alex Brush', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Allura</div>
+      <div class="preview" style="font-family: 'Allura', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Parisienne</div>
+      <div class="preview" style="font-family: 'Parisienne', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Tangerine</div>
+      <div class="preview" style="font-family: 'Tangerine', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Mr De Haviland</div>
+      <div class="preview" style="font-family: 'Mr De Haviland', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Mrs Saint Delafield</div>
+      <div class="preview" style="font-family: 'Mrs Saint Delafield', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Herr Von Muellerhoff</div>
+      <div class="preview" style="font-family: 'Herr Von Muellerhoff', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">WindSong</div>
+      <div class="preview" style="font-family: 'WindSong', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Yesteryear</div>
+      <div class="preview" style="font-family: 'Yesteryear', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Sacramento</div>
+      <div class="preview" style="font-family: 'Sacramento', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Rochester</div>
+      <div class="preview" style="font-family: 'Rochester', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Satisfy</div>
+      <div class="preview" style="font-family: 'Satisfy', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Dancing Script</div>
+      <div class="preview" style="font-family: 'Dancing Script', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Niconne</div>
+      <div class="preview" style="font-family: 'Niconne', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Italianno</div>
+      <div class="preview" style="font-family: 'Italianno', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">MonteCarlo</div>
+      <div class="preview" style="font-family: 'MonteCarlo', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Qwigley</div>
+      <div class="preview" style="font-family: 'Qwigley', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Gwendolyn</div>
+      <div class="preview" style="font-family: 'Gwendolyn', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Whisper</div>
+      <div class="preview" style="font-family: 'Whisper', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Allison</div>
+      <div class="preview" style="font-family: 'Allison', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Explora</div>
+      <div class="preview" style="font-family: 'Explora', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Cherish</div>
+      <div class="preview" style="font-family: 'Cherish', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Ephesis</div>
+      <div class="preview" style="font-family: 'Ephesis', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Fleur De Leah</div>
+      <div class="preview" style="font-family: 'Fleur De Leah', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Petit Formal Script</div>
+      <div class="preview" style="font-family: 'Petit Formal Script', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Imperial Script</div>
+      <div class="preview" style="font-family: 'Imperial Script', cursive;">Go Julex</div>
+    </div>
+    <div class="card">
+      <div class="font-name">Birthstone</div>
+      <div class="preview" style="font-family: 'Birthstone', cursive;">Go Julex</div>
+    </div>
+  </div>
+</body>
+</html>

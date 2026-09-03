@@ -1,0 +1,242 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+// ----------------------------------------------------
+// 1. Multi-Tenant User & Role-Based Authentication
+// ----------------------------------------------------
+model User {
+  id                String      @id @default(uuid())
+  email             String      @unique
+  passwordHash      String
+  name              String
+  role              String      @default("MERCHANT_OWNER") // "SUPER_ADMIN", "MERCHANT_OWNER", "MERCHANT_STAFF", "USER"
+  tenantId          String?     // Nullable for Super Admins; Required for Merchant Staff/Owners
+  tenant            Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  twoFactorEnabled  Boolean     @default(false)
+  avatarUrl         String?
+  phone             String?
+  address           String?
+  orders            Order[]
+  reviews           Review[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+// ----------------------------------------------------
+// 2. Tenants (Stores)
+// ----------------------------------------------------
+model Tenant {
+  id                       String                  @id @default(uuid())
+  name                     String
+  subdomain                String                  @unique
+  customDomain             String?                 @unique
+  category                 String                  @default("General")
+  city                     String?
+  state                    String?
+  planTier                 String                  @default("SIX_MONTH") // "SIX_MONTH", "ONE_YEAR", "TRIAL", "FREE"
+  status                   String                  @default("ACTIVE")    // "ACTIVE", "TRIALING", "SUSPENDED"
+  activeThemeId            String                  @default("theme_aura_soft_peach")
+  activeInvoiceTemplateId  String                  @default("tpl_classic_a4")
+  users                    User[]
+  products                 Product[]
+  orders                   Order[]
+  invoiceConfig            TenantInvoiceConfig?
+  auditLogs                AuditLog[]
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+}
+
+// ----------------------------------------------------
+// 3. Super Admin Master Invoice Template Registry
+// ----------------------------------------------------
+model MasterInvoiceTemplate {
+  id                 String                @id @default(uuid())
+  name               String                // e.g. "Classic Tax A4", "Minimalist Thermal", "Modern Luxury Ribbon", "Earthy Kraft Farm Slip"
+  slug               String                @unique
+  description        String?
+  thumbnailUrl       String?
+  isPublished        Boolean               @default(true)
+  tierAccess         String                @default("FREE") // "FREE", "PRO_EXCLUSIVE"
+  installedCount     Int                   @default(0)
+  defaultLayoutJson  String                // Stringified JSON: header style, column structures, tax summary configuration, terms, signature slot
+  tenantConfigs      TenantInvoiceConfig[]
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+}
+
+// ----------------------------------------------------
+// 4. Merchant Tenant Customization Layer
+// ----------------------------------------------------
+model TenantInvoiceConfig {
+  id                      String                 @id @default(uuid())
+  tenantId                String                 @unique
+  tenant                  Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  templateId              String
+  template                MasterInvoiceTemplate  @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  storeGstin              String?
+  storeLegalName          String
+  storeTradeName          String?
+  storeAddress            String
+  storePhone              String?
+  storeEmail              String?
+  authorizedSignatoryUrl  String?
+  customStylesJson        String                 // Stringified JSON: font family, font size, primary heading color, border accents, notes/terms copy, showTaxBreakdown, showQrCode
+  updatedAt               DateTime               @updatedAt
+}
+
+// ----------------------------------------------------
+// 5. Products & Multi-Tenant Inventory
+// ----------------------------------------------------
+model Product {
+  id              String      @id @default(uuid())
+  tenantId        String?
+  tenant          Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name            String
+  brand           String
+  category        String
+  productType     String?
+  price           Float       // Selling Price in INR (₹)
+  compareAtPrice  Float?      // Strikethrough compare price in INR
+  discountPercent Int         @default(0)
+  stock           Int         @default(10)
+  sku             String?     @unique
+  chargeTax       Boolean     @default(true)
+  gstRatePercent  Int         @default(3)
+  description     String
+  specsJson       String      // Technical specs or options JSON
+  imagesArray     String      // JSON array of image URLs
+  hasVariants     Boolean     @default(false)
+  variantsJson    String?     // JSON of generated variant matrix
+  rating          Float       @default(5.0)
+  reviewsCount    Int         @default(0)
+  isFeatured      Boolean     @default(false)
+  isNewArrival    Boolean     @default(false)
+  isBestSeller    Boolean     @default(false)
+  status          Boolean     @default(true)
+  reviews         Review[]
+  orderItems      OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Brand {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  logoUrl     String?
+  createdAt   DateTime  @default(now())
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  authorName String
+  rating     Int      @default(5)
+  comment    String
+  createdAt  DateTime @default(now())
+}
+
+// ----------------------------------------------------
+// 6. Orders & Tax Invoicing
+// ----------------------------------------------------
+model Order {
+  id                String      @id @default(uuid())
+  tenantId          String?
+  tenant            Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderNumber       String      @unique
+  channel           String      @default("WEB") // "WEB", "WHATSAPP", "INSTAGRAM", "POS"
+  userId            String?
+  user              User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName      String
+  customerEmail     String
+  customerPhone     String?
+  subtotalAmount    Float       @default(0)
+  discountAmount    Float       @default(0)
+  shippingFee       Float       @default(0)
+  taxAmount         Float       @default(0)
+  totalAmount       Float       // Calculated Total: subtotal - discount + shipping + tax
+  paymentStatus     String      @default("PAID") // "PAID", "PENDING", "REFUNDED"
+  fulfillmentStatus String      @default("PROCESSING") // "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"
+  shippingAddress   String      // Stringified JSON address
+  deliveryMethod    String      @default("Standard Courier")
+  paymentMethod     String      @default("UPI / Razorpay")
+  trackingNumber    String?
+  notes             String?
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model OrderItem {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName     String
+  productSku      String?
+  productImage    String
+  quantity        Int
+  priceAtPurchase Float    // Unit price in INR (₹)
+  gstPercent      Int      @default(3)
+  createdAt       DateTime @default(now())
+}
+
+// ----------------------------------------------------
+// 7. Coupons & Discount Rules
+// ----------------------------------------------------
+model Coupon {
+  id                String    @id @default(uuid())
+  tenantId          String?
+  code              String    @unique
+  description       String
+  discountType      String    @default("PERCENT") // "PERCENT" or "FIXED"
+  discountValue     Float     // Percentage or Flat INR
+  minOrderAmount    Float     @default(0)
+  maxDiscountAmount Float?
+  expiresAt         DateTime?
+  isActive          Boolean   @default(true)
+  usageCount        Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// ----------------------------------------------------
+// 8. Audit Logs (Super Admin Impersonation & Security)
+// ----------------------------------------------------
+model AuditLog {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actorId     String
+  actorEmail  String
+  action      String   // e.g. "IMPERSONATION_START", "TEMPLATE_PUBLISHED", "PLAN_UPGRADE"
+  entityType  String   // e.g. "TENANT", "INVOICE_TEMPLATE", "USER"
+  entityId    String?
+  detailsJson String?  // Stringified JSON details
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+}
+
+// Super Admin theme catalog customizations — shared with merchant dashboards
+model ThemeCatalogOverride {
+  id             String   @id // preset id, e.g. "preset_markly_luxe"
+  name           String?
+  tagline        String?
+  vertical       String?
+  accentColor    String?
+  backgroundColor String?
+  headingFont    String?
+  deleted        Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+}

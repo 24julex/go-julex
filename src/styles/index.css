@@ -1,0 +1,597 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   JULEX THEME CSS VARIABLES
+   Dark = default, Light via html.light class
+   ========================================================================== */
+
+/* DARK THEME (Default) */
+:root,
+html.dark {
+  --bg-page: #111111;
+  --bg-surface: #1C1C1C;
+  --bg-subtle: #252525;
+  --bg-input: #1A1A1A;
+  --bg-nav: rgba(17,17,17,0.97);
+  --bg-sidebar: #161616;
+  --bg-dropdown: #1E1E1E;
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-card: rgba(255,255,255,0.10);
+  --border-input: rgba(255,255,255,0.14);
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8B8B8;
+  --text-muted: #777777;
+  --accent: #D4A017;
+  --accent-light: #F5C842;
+  --accent-dark: #A87A00;
+  --accent-pink: #E040FB;
+  --accent-pink-to: #FF6B9D;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.6);
+  --shadow-nav: 0 2px 20px rgba(0,0,0,0.4);
+  --scrollbar-track: #111111;
+  --scrollbar-thumb: #333333;
+  --scrollbar-thumb-hover: #D4A017;
+}
+
+/* LIGHT THEME */
+html.light {
+  --bg-page: #FAFAF5;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F5F5F0;
+  --bg-input: #FFFFFF;
+  --bg-nav: rgba(255,255,255,0.97);
+  --bg-sidebar: #FFFFFF;
+  --bg-dropdown: #FFFFFF;
+  --border-subtle: #E8E8E0;
+  --border-card: #EBEBEB;
+  --border-input: #D0D0C8;
+  --text-primary: #0D0D0D;
+  --text-secondary: #4A4A4A;
+  --text-muted: #888888;
+  --accent: #C89B00;
+  --accent-light: #D4A017;
+  --accent-dark: #A87A00;
+  --accent-pink: #E040FB;
+  --accent-pink-to: #FF6B9D;
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.06);
+  --shadow-nav: 0 2px 12px rgba(0,0,0,0.08);
+  --scrollbar-track: #F5F5F0;
+  --scrollbar-thumb: #CCCCCC;
+  --scrollbar-thumb-hover: #C89B00;
+}
+
+/* ==========================================================================
+   BASE STYLING
+   ========================================================================== */
+
+html {
+  background-color: var(--bg-page);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+  @apply antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ==========================================================================
+   GLOBAL COMPONENT TOKENS
+   ========================================================================== */
+
+.card-base {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-base:hover {
+  border-color: var(--accent);
+}
+
+.glass-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ==========================================================================
+   BRAND LOGO
+   ========================================================================== */
+
+.brand-gojulex-logo {
+  font-family: 'Great Vibes', 'Alex Brush', 'Pinyon Script', cursive;
+  background: linear-gradient(135deg, #FDE68A 0%, #F5C842 30%, #D4A017 65%, #A87A00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  display: inline-block;
+  line-height: 1.1;
+  filter: drop-shadow(0 2px 4px rgba(180, 140, 9, 0.30));
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #A87A00 0%, #D4A017 50%, #F5C842 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #A87A00 0%, #D4A017 50%, #F5C842 100%);
+}
+
+.pink-gradient-bg {
+  background: linear-gradient(135deg, #E040FB 0%, #FF6B9D 100%);
+}
+
+/* ==========================================================================
+   COMPREHENSIVE DARK MODE OVERRIDES
+   ========================================================================== */
+
+html.dark body,
+html.dark #root {
+  background-color: #111111 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .min-h-screen {
+  background-color: #111111 !important;
+}
+
+/* Nav / Header */
+html.dark header {
+  background-color: rgba(17,17,17,0.97) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #FFFFFF !important;
+}
+
+/* Sidebar */
+html.dark aside {
+  background-color: #161616 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #FFFFFF !important;
+}
+
+/* Footer */
+html.dark footer {
+  background-color: #111111 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #B8B8B8 !important;
+}
+
+/* Cards & panels */
+html.dark .glass-panel,
+html.dark .card-base,
+html.dark .card-white {
+  background-color: #1C1C1C !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
+}
+
+/* Common dark-bg classes used throughout app */
+html.dark .bg-white {
+  background-color: #1C1C1C !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-slate-50,
+html.dark .bg-stone-50,
+html.dark .bg-zinc-50,
+html.dark .bg-neutral-50 {
+  background-color: #252525 !important;
+}
+
+html.dark .bg-gray-100,
+html.dark .bg-slate-100,
+html.dark .bg-stone-100,
+html.dark .bg-zinc-100 {
+  background-color: #252525 !important;
+}
+
+html.dark .bg-gray-200,
+html.dark .bg-slate-200 {
+  background-color: #333333 !important;
+}
+
+/* Former blush/rose bg classes → dark surface */
+html.dark [class*="bg-\[#fedddd\]"],
+html.dark [class*="bg-rose-50"],
+html.dark [class*="bg-red-50"],
+html.dark [class*="bg-pink-50"],
+html.dark [class*="bg-\[#FFF1F2\]"],
+html.dark [class*="bg-\[#FEE2E2\]"],
+html.dark [class*="bg-\[#FECDD3\]"] {
+  background-color: #252525 !important;
+}
+
+/* Obsidian classes */
+html.dark [class*="bg-obsidian"] {
+  background-color: #1C1C1C !important;
+}
+
+/* Text overrides */
+html.dark .text-white { color: #FFFFFF !important; }
+html.dark .text-black { color: #FFFFFF !important; }
+
+html.dark h1, html.dark h2, html.dark h3,
+html.dark h4, html.dark h5, html.dark h6 {
+  color: #FFFFFF !important;
+}
+
+html.dark .text-gray-900,
+html.dark .text-slate-900,
+html.dark .text-stone-900,
+html.dark [class*="text-\[#0F172A\]"],
+html.dark [class*="text-\[#0D0D0D\]"],
+html.dark [class*="text-\[#1C1917\]"] {
+  color: #FFFFFF !important;
+}
+
+html.dark .text-gray-800,
+html.dark .text-slate-800,
+html.dark [class*="text-\[#1E293B\]"] {
+  color: #E0E0E0 !important;
+}
+
+html.dark .text-gray-700,
+html.dark .text-slate-700,
+html.dark [class*="text-\[#374151\]"],
+html.dark [class*="text-\[#334155\]"] {
+  color: #B8B8B8 !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-slate-600,
+html.dark [class*="text-\[#475569\]"] {
+  color: #999999 !important;
+}
+
+html.dark .text-gray-500,
+html.dark .text-slate-500,
+html.dark [class*="text-\[#64748B\]"] {
+  color: #777777 !important;
+}
+
+html.dark .text-gray-400,
+html.dark .text-slate-400 {
+  color: #666666 !important;
+}
+
+/* Former rose/pink text → gold */
+html.dark [class*="text-\[#881337\]"],
+html.dark [class*="text-\[#9F1239\]"],
+html.dark [class*="text-\[#BE123C\]"],
+html.dark [class*="text-rose-700"],
+html.dark [class*="text-rose-800"],
+html.dark [class*="text-rose-900"] {
+  color: #D4A017 !important;
+}
+
+/* Border overrides */
+html.dark .border,
+html.dark [class*="border-"] {
+  border-color: rgba(255,255,255,0.10);
+}
+
+html.dark [class*="border-\[#FBCBCB\]"],
+html.dark [class*="border-\[#F8B4B4\]"],
+html.dark [class*="border-rose-"],
+html.dark [class*="border-red-"],
+html.dark [class*="border-slate-200"],
+html.dark [class*="border-slate-300"] {
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* Inputs */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255,255,255,0.14) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #666666 !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #D4A017 !important;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.25) !important;
+}
+
+/* Tables */
+html.dark table {
+  border-color: rgba(255,255,255,0.08);
+}
+
+html.dark thead tr {
+  background-color: #252525 !important;
+  color: #B8B8B8 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html.dark tbody tr {
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+html.dark tr:hover {
+  background-color: #252525 !important;
+}
+
+/* Dropdowns & modals */
+html.dark [class*="rounded"][class*="shadow"] {
+  background-color: #1E1E1E;
+  border-color: rgba(255,255,255,0.10);
+}
+
+/* ==========================================================================
+   COMPREHENSIVE LIGHT MODE OVERRIDES
+   ========================================================================== */
+
+html.light body,
+html.light #root {
+  background-color: #FAFAF5 !important;
+  color: #0D0D0D !important;
+}
+
+html.light .min-h-screen {
+  background-color: #FAFAF5 !important;
+}
+
+html.light header {
+  background-color: rgba(255,255,255,0.97) !important;
+  border-color: #E8E8E0 !important;
+  color: #0D0D0D !important;
+}
+
+html.light aside {
+  background-color: #FFFFFF !important;
+  border-color: #E8E8E0 !important;
+  color: #0D0D0D !important;
+}
+
+html.light footer {
+  background-color: #F5F5F0 !important;
+  border-color: #E8E8E0 !important;
+  color: #4A4A4A !important;
+}
+
+html.light .glass-panel,
+html.light .card-base,
+html.light .card-white {
+  background-color: #FFFFFF !important;
+  border-color: #EBEBEB !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
+}
+
+/* Former dark bg classes → light surface */
+html.light [class*="bg-obsidian"],
+html.light [class*="bg-\[#0C0D12\]"],
+html.light [class*="bg-\[#07080A\]"],
+html.light [class*="bg-\[#111111\]"],
+html.light [class*="bg-\[#1C1C1C\]"] {
+  background-color: #F5F5F0 !important;
+}
+
+html.light .bg-white {
+  background-color: #FFFFFF !important;
+}
+
+html.light .bg-gray-50,
+html.light .bg-slate-50 {
+  background-color: #F5F5F0 !important;
+}
+
+html.light .bg-gray-100,
+html.light .bg-slate-100 {
+  background-color: #EBEBEB !important;
+}
+
+/* Former blush/rose bg → light surface */
+html.light [class*="bg-\[#fedddd\]"] {
+  background-color: #FFF9E8 !important;
+}
+
+/* Text overrides */
+html.light h1, html.light h2, html.light h3,
+html.light h4, html.light h5, html.light h6 {
+  color: #0D0D0D !important;
+}
+
+html.light .text-white {
+  color: #0D0D0D !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #0D0D0D !important;
+}
+
+html.light .text-slate-300 {
+  color: #4A4A4A !important;
+}
+
+html.light .text-slate-400 {
+  color: #888888 !important;
+}
+
+html.light .text-gray-900,
+html.light .text-slate-900,
+html.light [class*="text-\[#0F172A\]"] {
+  color: #0D0D0D !important;
+}
+
+html.light .text-gray-700,
+html.light .text-slate-700,
+html.light [class*="text-\[#374151\]"] {
+  color: #4A4A4A !important;
+}
+
+/* Former rose accent → gold */
+html.light [class*="text-\[#881337\]"],
+html.light [class*="text-\[#9F1239\]"],
+html.light [class*="text-\[#BE123C\]"],
+html.light [class*="text-rose-700"],
+html.light [class*="text-rose-800"] {
+  color: #C89B00 !important;
+}
+
+/* Borders */
+html.light [class*="border-\[#FBCBCB\]"],
+html.light [class*="border-\[#F8B4B4\]"],
+html.light [class*="border-rose-"],
+html.light [class*="border-red-200"] {
+  border-color: #E8E8E0 !important;
+}
+
+/* Inputs */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #FFFFFF !important;
+  color: #0D0D0D !important;
+  border-color: #D0D0C8 !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #888888 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #D4A017 !important;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.20) !important;
+}
+
+/* Tables */
+html.light thead tr {
+  background-color: #F5F5F0 !important;
+  color: #4A4A4A !important;
+}
+
+html.light tr:hover {
+  background-color: #FAF9F2 !important;
+}
+
+/* Gold gradient text in light mode keeps gold */
+html.light .gold-gradient-text {
+  background: linear-gradient(135deg, #A87A00 0%, #C89B00 50%, #D4A017 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ==========================================================================
+   SCROLLBARS
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ==========================================================================
+   FOCUS RINGS
+   ========================================================================== */
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.20) !important;
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+
+.theme-bg-page { background-color: var(--bg-page); }
+.theme-bg-surface { background-color: var(--bg-surface); }
+.theme-bg-subtle { background-color: var(--bg-subtle); }
+.theme-text-primary { color: var(--text-primary); }
+.theme-text-secondary { color: var(--text-secondary); }
+.theme-text-muted { color: var(--text-muted); }
+.theme-border { border-color: var(--border-card); }
+.theme-accent { color: var(--accent); }
+.theme-accent-bg { background-color: var(--accent); }
+/* ==========================================================================
+   STOREFRONT THEME ANIMATIONS
+   ========================================================================== */
+@keyframes julex-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes julex-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes julex-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes julex-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(59, 130, 246, 0.15); }
+  50% { box-shadow: 0 0 35px rgba(168, 85, 247, 0.6), 0 0 60px rgba(59, 130, 246, 0.3); }
+}
+@keyframes julex-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes julex-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes julex-slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes julex-bounce-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.julex-animate-marquee { animation: julex-marquee 18s linear infinite; }
+.julex-animate-float { animation: julex-float 4s ease-in-out infinite; }
+.julex-animate-gradient { animation: julex-gradient-shift 6s ease infinite; background-size: 200% 200%; }
+.julex-animate-glow { animation: julex-pulse-glow 3s ease-in-out infinite; }
+.julex-animate-shimmer { animation: julex-shimmer 3s linear infinite; }
+.julex-animate-spin-slow { animation: julex-spin-slow 12s linear infinite; }
+.julex-animate-slide-up { animation: julex-slide-up 0.6s ease-out both; }
+.julex-animate-bounce-in { animation: julex-bounce-in 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .julex-animate-marquee,
+  .julex-animate-float,
+  .julex-animate-gradient,
+  .julex-animate-glow,
+  .julex-animate-shimmer,
+  .julex-animate-spin-slow { animation: none; }
+}
