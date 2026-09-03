@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gojulex_saas_multi_tenant_super_secret_jwt_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? null : 'gojulex_saas_multi_tenant_super_secret_jwt_key_2026');
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET must be set in production.');
+  process.exit(1);
+}
 
 export const generateToken = (user, impersonatedTenantId = null) => {
   return jwt.sign(
@@ -27,11 +31,13 @@ export const requireAuth = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
+    // Signature verification is mandatory — never fall back to jwt.decode,
+    // which accepts forged/unsigned tokens (full account takeover)
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
     } catch (e) {
-      decoded = jwt.decode(token);
+      return res.status(401).json({ success: false, message: 'Invalid or expired session. Please sign in again.' });
     }
 
     if (!decoded || (!decoded.id && !decoded.email)) {

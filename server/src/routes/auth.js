@@ -26,9 +26,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials. User does not exist.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch && password !== 'admin123' && password !== 'customer123') {
-      return res.status(401).json({ success: false, message: 'Invalid credentials. Please verify your password.' });
+    // Strict credential check — no universal password backdoors.
+    // bcrypt.compare alone decides; a null passwordHash (OAuth-only account)
+    // can never log in via password.
+    const isMatch = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials. Please verify your email and password.' });
     }
 
     const token = generateToken(user);

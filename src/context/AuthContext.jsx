@@ -98,69 +98,26 @@ export const AuthProvider = ({ children }) => {
         return { success: true, user: userObj };
       }
 
-      // Offline / custom credentials fallback
-      if (cleanEmail === SUPER_ADMIN_CREDENTIALS.email.toLowerCase()) {
+      // Offline fallback: ONLY the two exact demo accounts, with their exact
+      // passwords. No arbitrary-email authentication, no role escalation.
+      if (password === 'admin123' && cleanEmail === SUPER_ADMIN_CREDENTIALS.email.toLowerCase()) {
         setCurrentUser(SUPER_ADMIN_CREDENTIALS);
         setLoading(false);
         return { success: true, user: SUPER_ADMIN_CREDENTIALS };
       }
-      if (cleanEmail === MERCHANT_CREDENTIALS.email.toLowerCase()) {
+      if (password === 'admin123' && cleanEmail === MERCHANT_CREDENTIALS.email.toLowerCase()) {
         setCurrentUser(MERCHANT_CREDENTIALS);
         setLoading(false);
         return { success: true, user: MERCHANT_CREDENTIALS };
       }
 
-      // If user provided any valid custom merchant email, authenticate them as Merchant Owner
-      if (cleanEmail && password) {
-        const username = cleanEmail.split('@')[0];
-        const formattedName = username.charAt(0).toUpperCase() + username.slice(1);
-        const savedProfileRaw = localStorage.getItem(`gojulex_store_profile_store_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`) ||
-                                localStorage.getItem(`gojulex_store_profile_${username.toLowerCase().replace(/[^a-z0-9]/g, '')}`);
-        const savedProfile = savedProfileRaw ? JSON.parse(savedProfileRaw) : null;
-
-        const customMerchant = {
-          id: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-          email: cleanEmail,
-          name: savedProfile?.ownerName || formattedName,
-          role: 'MERCHANT_OWNER',
-          tenantId: savedProfile?.id || 'store_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(savedProfile?.ownerName || formattedName)}&background=EFF6FF&color=2563EB&size=200`,
-          twoFactorEnabled: false,
-          tenant: savedProfile || {
-            id: 'store_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-            name: `${formattedName}'s Store`,
-            subdomain: username.toLowerCase().replace(/[^a-z0-9]/g, '') || 'mystore',
-            customDomain: `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
-            category: 'Bespoke E-Commerce Store',
-            planTier: 'SIX_MONTH',
-            status: 'ACTIVE'
-          }
-        };
-        setCurrentUser(customMerchant);
-        setLoading(false);
-        return { success: true, user: customMerchant };
-      }
-
       setLoading(false);
       return { success: false, message: res.message || 'Invalid credentials.' };
     } catch (err) {
-      if (cleanEmail && password) {
-        const username = cleanEmail.split('@')[0];
-        const formattedName = username.charAt(0).toUpperCase() + username.slice(1);
-        const fallbackUser = {
-          id: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-          email: cleanEmail,
-          name: formattedName,
-          role: cleanEmail.includes('admin') ? 'SUPER_ADMIN' : 'MERCHANT_OWNER',
-          tenantId: 'store_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=EFF6FF&color=2563EB&size=200`
-        };
-        setCurrentUser(fallbackUser);
-        setLoading(false);
-        return { success: true, user: fallbackUser };
-      }
+      // Connection failure must NOT fabricate a session — sign-in strictly
+      // requires the backend
       setLoading(false);
-      return { success: false, message: 'Server connection error.' };
+      return { success: false, message: 'Cannot reach the server. Please check your connection and try again.' };
     }
   };
 
