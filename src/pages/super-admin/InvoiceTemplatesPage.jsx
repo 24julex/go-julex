@@ -315,7 +315,7 @@ export const InvoiceTemplatesPage = () => {
           >
             <div>
               {/* Rendered Live Invoice Document Front Card Header */}
-              <div className="relative h-56 w-full overflow-hidden border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+              <div className="relative h-32 w-full overflow-hidden border-b" style={{ borderColor: 'var(--border-subtle)' }}>
                 <MiniInvoiceDocumentCard template={template} />
 
                 <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
@@ -338,7 +338,7 @@ export const InvoiceTemplatesPage = () => {
               </div>
 
               {/* Body Details */}
-              <div className="p-5 space-y-3">
+              <div className="px-4 py-2.5 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="font-serif text-lg font-bold transition" style={{ color: 'var(--text-primary)' }}>
@@ -352,7 +352,7 @@ export const InvoiceTemplatesPage = () => {
             </div>
 
             {/* Bottom Actions */}
-            <div className="p-5 pt-0 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="px-4 py-2 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--border-subtle)' }}>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleTemplatePublish(template.id)}
