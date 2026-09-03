@@ -346,25 +346,8 @@ export const InvoiceTemplatesPage = () => {
                     </h3>
                     <code className="text-[10px] font-mono block" style={{ color: 'var(--text-muted)' }}>slug: {template.slug}</code>
                   </div>
-                  <span className="px-2 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)' }}>
-                    {template.installedCount || 0} Stores
-                  </span>
                 </div>
 
-                {/* Feature Tags */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="px-2 py-0.5 rounded-lg text-[10px] font-medium" style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}>
-                    Font: {template.defaultLayout?.fontFamily || 'Inter'}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-lg text-[10px] font-medium" style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}>
-                    Header: {template.defaultLayout?.headerStyle?.replace('_', ' ') || 'split'}
-                  </span>
-                  {template.defaultLayout?.showQrCode && (
-                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/30">
-                      QR Code Ready
-                    </span>
-                  )}
-                </div>
               </div>
             </div>
 
