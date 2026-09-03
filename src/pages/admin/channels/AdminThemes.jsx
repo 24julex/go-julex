@@ -335,34 +335,11 @@ export const AdminThemes = () => {
                 <div className="relative aspect-[16/10] overflow-hidden border-b" style={{ borderColor: 'var(--border-subtle)' }}>
                   <ThemeStorefrontPreview theme={theme} />
 
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    <span
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-xs"
-                      style={{ backgroundColor: 'rgba(212,160,23,0.2)', color: '#7A5800', border: '1px solid rgba(168,122,0,0.35)' }}
-                    >
-                      {theme.aesthetic}
+                  {isCurrentlyActive && (
+                    <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-xs">
+                      Active Live
                     </span>
-
-                    {isCurrentlyActive && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-xs">
-                        Active Live
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Theme tokens: font pair + accent swatch (always visible) */}
-                  <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-white/85 backdrop-blur-sm text-slate-700 truncate" title="Heading font">
-                      Aa {themePreset.headingFont}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-white/85 backdrop-blur-sm text-slate-700 truncate" title="Body font">
-                      {themePreset.bodyFont}
-                    </span>
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-white/85 backdrop-blur-sm text-slate-700" title="Accent color">
-                      <span className="w-2.5 h-2.5 rounded-full border border-black/20 inline-block" style={{ backgroundColor: themePreset.accentColor }} />
-                      {themePreset.accentColor}
-                    </span>
-                  </div>
+                  )}
 
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 p-4">
                     <button
@@ -383,50 +360,22 @@ export const AdminThemes = () => {
                   </div>
                 </div>
 
-                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-sm font-serif" style={{ color: 'var(--text-primary)' }}>{theme.name}</h3>
-                      <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{theme.version}</span>
-                    </div>
-                    <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                      {theme.description}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {theme.featureTags.slice(0, 3).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-0.5 rounded-md text-[9px]"
-                        style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <span className="text-[11px] font-semibold" style={{ color: 'var(--text-muted)' }}>{theme.vibe}</span>
-
-                    {isCurrentlyActive ? (
-                      <Link
-                        to="/admin/channels/online-store/themes/builder"
-                        className="px-3 py-1 rounded-xl text-xs font-bold transition"
-                        style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.30)' }}
-                      >
-                        Customize
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => handleApplyTheme(theme)}
-                        className="px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer"
-                        style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)', color: 'var(--text-primary)' }}
-                      >
-                        Apply Theme
-                      </button>
-                    )}
-                  </div>
+                {/* Clean card body: name + apply */}
+                <div className="px-4 py-3 flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-sm font-serif truncate" style={{ color: 'var(--text-primary)' }}>{theme.name}</h3>
+                  {isCurrentlyActive ? (
+                    <span className="px-3 py-1 rounded-xl text-xs font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.30)' }}>
+                      Active
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleApplyTheme(theme)}
+                      className="px-3 py-1 rounded-xl text-xs font-bold text-black shadow-xs transition cursor-pointer whitespace-nowrap"
+                      style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
+                    >
+                      Apply Theme
+                    </button>
+                  )}
                 </div>
               </div>
             );
