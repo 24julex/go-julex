@@ -33,9 +33,6 @@ const MiniThemeStorefrontCard = ({ theme }) => {
     <div className="w-full h-full flex flex-col bg-white overflow-hidden">
       <div className="h-[55%] relative">
         <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" />
-        <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-bold text-white shadow" style={{ backgroundColor: 'rgba(17,17,17,0.75)' }}>
-          {themeMeta.brandName || theme.name}
-        </span>
       </div>
       <div className="flex-1 grid grid-cols-3 gap-1 p-1">
         {products.map((pr, i) => (
@@ -373,9 +370,7 @@ Stores using it will fall back to the default theme.`)) return;
                         <Crown className="w-3 h-3" /> PRO
                       </span>
                     )}
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-xs">
-                      LIVE TEMPLATE
-                    </span>
+                    
                   </div>
                 </div>
 
