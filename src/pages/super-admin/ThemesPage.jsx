@@ -30,17 +30,8 @@ const MiniThemeStorefrontCard = ({ theme }) => {
   const products = (themeMeta.products || []).slice(0, 3);
 
   return (
-    <div className="w-full h-full flex flex-col bg-white overflow-hidden">
-      <div className="h-[55%] relative">
-        <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" />
-      </div>
-      <div className="flex-1 grid grid-cols-3 gap-1 p-1">
-        {products.map((pr, i) => (
-          <div key={i} className="relative bg-[#F4F4F2] overflow-hidden">
-            <img src={pr.image} alt={pr.name} className="absolute inset-0 w-full h-full object-cover" />
-          </div>
-        ))}
-      </div>
+    <div className="w-full h-full relative bg-white overflow-hidden">
+      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover object-center" />
     </div>
   );
 };
@@ -130,8 +121,10 @@ export const ThemesPage = () => {
     return true;
   });
 
-  const getStoresUsingTheme = (themeSlug) => {
-    return tenants.filter((t) => (t.themeSlug || 'aura-soft-peach') === themeSlug || (t.activeThemeSlug || 'aura-soft-peach') === themeSlug);
+  const getStoresUsingTheme = (theme) => {
+    // Match on the real recorded assignment (activeThemeId), falling back to
+    // the tenant's activeThemeId only — no fake defaults
+    return tenants.filter((t) => t.activeThemeId === theme.id || t.activeThemeId === theme.presetId);
   };
 
   const handleDuplicate = (theme) => {
@@ -342,7 +335,7 @@ Stores using it will fall back to the default theme.`)) return;
       {/* 5. Master Themes Grid with Rendered Live Storefront Template Preview Front Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredThemes.map((theme) => {
-          const storesUsingThis = getStoresUsingTheme(theme.slug);
+          const storesUsingThis = getStoresUsingTheme(theme);
 
           return (
             <div

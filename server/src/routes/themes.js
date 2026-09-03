@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
-import { requireSuperAdmin } from '../middleware/auth.js';
+import { requireSuperAdmin, requireMerchantAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -78,6 +78,28 @@ router.post('/reset', requireSuperAdmin, async (req, res) => {
   } catch (error) {
     console.error('Reset theme overrides error:', error);
     return res.status(500).json({ success: false, message: 'Failed to restore defaults.' });
+  }
+});
+
+/**
+ * POST /api/themes/assign — merchant applies a theme to their store.
+ * Records the real store->theme mapping (used by the super-admin portal).
+ */
+router.post('/assign', requireMerchantAdmin, async (req, res) => {
+  try {
+    const tenantId = req.tenantId || req.body.tenantId;
+    const { themeId } = req.body;
+    if (!tenantId || !themeId) {
+      return res.status(400).json({ success: false, message: 'tenantId and themeId are required.' });
+    }
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { activeThemeId: themeId }
+    });
+    return res.json({ success: true, message: 'Theme assigned to store.' });
+  } catch (error) {
+    console.error('Assign theme error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to assign theme.' });
   }
 });
 

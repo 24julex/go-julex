@@ -30,23 +30,8 @@ export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
   const products = (themeMeta.products || []).slice(0, 3);
 
   return (
-    <div className="w-full h-full flex flex-col bg-white overflow-hidden">
-      <div className={isLarge ? 'h-3/5 relative' : 'h-[55%] relative'}>
-        <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" />
-        <span
-          className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-bold text-white shadow"
-          style={{ backgroundColor: 'rgba(17,17,17,0.75)' }}
-        >
-          {themeMeta.brandName || theme.name}
-        </span>
-      </div>
-      <div className={isLarge ? 'flex-1 grid grid-cols-3 gap-1 p-1' : 'flex-1 grid grid-cols-3 gap-1 p-1'}>
-        {products.map((pr, i) => (
-          <div key={i} className="relative bg-[#F4F4F2] overflow-hidden">
-            <img src={pr.image} alt={pr.name} className="absolute inset-0 w-full h-full object-cover" />
-          </div>
-        ))}
-      </div>
+    <div className="w-full h-full relative bg-white overflow-hidden">
+      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover object-center" />
     </div>
   );
 };
@@ -159,6 +144,8 @@ export const AdminThemes = () => {
     localStorage.setItem(`gojulex_store_active_theme_${cleanSubdomain}`, theme.id);
 
     setActiveTheme(theme);
+    // Record the real store->theme mapping in the backend (super-admin portal reads it)
+    api.themes.assign(currentStore?.id, theme.presetId).catch(() => {});
     showToast(`"${theme.name}" applied & published live to your storefront! 🚀`, 'success');
 
     if (redirect) {

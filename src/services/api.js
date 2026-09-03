@@ -103,7 +103,12 @@ export const api = {
       }),
     deleteOverride: (id) =>
       request(`/themes/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-    resetOverrides: () => request('/themes/reset', { method: 'POST' })
+    resetOverrides: () => request('/themes/reset', { method: 'POST' }),
+    assign: (tenantId, themeId) =>
+      request('/themes/assign', {
+        method: 'POST',
+        body: JSON.stringify({ tenantId, themeId })
+      })
   },
 
   // Store Invoice (public — used by customer checkout invoice preview)
