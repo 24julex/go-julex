@@ -58,13 +58,8 @@ export const SidebarNav = ({ onOpenAddProduct, onCloseMobile }) => {
       <div className="p-4 shrink-0 space-y-3.5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center justify-between">
           <Link to="/admin" onClick={onCloseMobile} className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-500 flex items-center justify-center shadow text-slate-950 font-bold font-script text-lg">
-              GJ
-            </div>
             <div>
-              <span className="brand-gojulex-logo text-2xl tracking-normal block leading-tight">
-                Go Julex
-              </span>
+              <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-11 w-auto" />
               <span className="text-[9px] uppercase tracking-widest font-bold block leading-none" style={{ color: 'var(--accent)' }}>
                 Merchant Admin
               </span>
@@ -212,19 +207,6 @@ export const SidebarNav = ({ onOpenAddProduct, onCloseMobile }) => {
 
       {/* Bottom Area */}
       <div className="p-3 mt-auto shrink-0 space-y-2.5 text-xs" style={{ borderTop: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-sidebar)' }}>
-        {/* Fee Savings */}
-        <div className="p-2.5 rounded-2xl space-y-1" style={{ backgroundColor: 'rgba(212,160,23,0.08)', border: '1px solid rgba(212,160,23,0.20)' }}>
-          <div className="flex items-center justify-between text-[11px] font-bold" style={{ color: 'var(--text-primary)' }}>
-            <span>0% Fee Savings</span>
-            <span className="font-mono font-black text-emerald-500">
-              +₹{(kpis?.feesSavedINR ?? 0).toLocaleString('en-IN')}
-            </span>
-          </div>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-            100% store revenue retained vs marketplace take rates.
-          </p>
-        </div>
-
         {/* Super Admin Link */}
         {isSuperAdmin && (
           <Link

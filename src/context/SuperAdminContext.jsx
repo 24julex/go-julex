@@ -10,7 +10,6 @@ import {
   initialBroadcasts,
   initialFeatureFlags,
   conversionFunnelData,
-  signupVelocity7Days,
   platformGMVTrend
 } from '../data/superAdminData';
 
@@ -595,6 +594,7 @@ export const SuperAdminProvider = ({ children }) => {
             totalOrders: bt.orderCount || 0,
             gmvINR: bt.monthlyRevenue || 0,
             createdAt: bt.createdAt ? new Date(bt.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            activeThemeId: bt.activeThemeId || null,
             isLiveBackendTenant: true
           }));
 
@@ -1067,6 +1067,22 @@ export const SuperAdminProvider = ({ children }) => {
   // Signups in last 7 days
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const recent7DaySignups = tenants.filter(t => new Date(t.createdAt) >= sevenDaysAgo).length;
+
+  // Real 7-day signup velocity derived from actual tenant records
+  const signupVelocity7Days = (() => {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      const key = d.toLocaleDateString('sv-SE'); // YYYY-MM-DD local
+      const dayTenants = tenants.filter(t => String(t.createdAt || '').slice(0, 10) === key);
+      days.push({
+        day: d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }),
+        signups: dayTenants.length,
+        conversions: dayTenants.filter(t => t.status === 'active').length,
+      });
+    }
+    return days;
+  })();
 
   // Global Platform Metrics
   const totalPlatformGMV = tenants.reduce((sum, t) => sum + Number(t.gmvINR || 0), 0);

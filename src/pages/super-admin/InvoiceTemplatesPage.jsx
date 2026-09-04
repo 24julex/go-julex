@@ -313,41 +313,27 @@ export const InvoiceTemplatesPage = () => {
             className="rounded-3xl border overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group"
             style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}
           >
-            <div>
-              {/* Rendered Live Invoice Document Front Card Header */}
-              <div className="relative h-32 w-full overflow-hidden border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <MiniInvoiceDocumentCard template={template} />
-
-                <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-xs ${
-                    template.tierAccess === 'PRO_EXCLUSIVE'
-                      ? 'bg-amber-500 text-black border-amber-400'
-                      : 'bg-emerald-500 text-white border-emerald-400'
-                  }`}>
-                    {template.tierAccess === 'PRO_EXCLUSIVE' ? '👑 Pro Exclusive' : '✨ Free Tier'}
-                  </span>
-                </div>
-
+            <div className="p-6 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-serif text-2xl font-bold leading-snug transition" style={{ color: 'var(--text-primary)' }}>
+                  {template.name}
+                </h3>
+              </div>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-xs ${
+                  template.tierAccess === 'PRO_EXCLUSIVE'
+                    ? 'bg-amber-500 text-black border-amber-400'
+                    : 'bg-emerald-500 text-white border-emerald-400'
+                }`}>
+                  {template.tierAccess === 'PRO_EXCLUSIVE' ? '👑 Pro Exclusive' : '✨ Free Tier'}
+                </span>
                 <button
                   onClick={() => setSelectedTemplateForPreview(template)}
-                  className="absolute bottom-3 right-3 px-3 py-1.5 rounded-xl border text-xs font-bold shadow-xs flex items-center gap-1.5 transition z-10 text-black cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border text-xs font-bold shadow-xs flex items-center gap-1.5 transition text-black cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
                 >
                   <Eye className="w-3.5 h-3.5" /> Full Live Preview
                 </button>
-              </div>
-
-              {/* Body Details */}
-              <div className="px-4 py-2.5 space-y-1.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-serif text-lg font-bold transition" style={{ color: 'var(--text-primary)' }}>
-                      {template.name}
-                    </h3>
-                    <code className="text-[10px] font-mono block" style={{ color: 'var(--text-muted)' }}>slug: {template.slug}</code>
-                  </div>
-                </div>
-
               </div>
             </div>
 

@@ -86,13 +86,8 @@ export const SuperAdminLayout = () => {
         {/* Brand Header */}
         <div className="p-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
           <NavLink to="/super-admin/overview" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-slate-950 font-bold font-script text-lg shadow-xs group-hover:scale-105 transition">
-              GJ
-            </div>
             <div className="flex flex-col">
-              <span className="brand-gojulex-logo text-2xl tracking-normal block leading-tight">
-                Go Julex
-              </span>
+              <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-11 w-auto" />
               <span className="text-[9px] font-bold uppercase tracking-wider block leading-none" style={{ color: 'var(--accent)' }}>
                 MASTER PORTAL
               </span>

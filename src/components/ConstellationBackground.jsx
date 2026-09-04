@@ -45,7 +45,7 @@ export const ConstellationBackground = () => {
         vx: (Math.random() - 0.5) * 0.4,
         vy: (Math.random() - 0.5) * 0.4,
         radius: Math.random() * 2.2 + 1.2,
-        color: isGold ? 'rgba(217, 119, 6, ' : 'rgba(159, 18, 57, ',
+        color: 'rgba(217, 119, 6, ',
         baseAlpha: Math.random() * 0.4 + 0.3,
         pulseSpeed: Math.random() * 0.02 + 0.008,
         pulseVal: Math.random() * Math.PI
@@ -56,19 +56,6 @@ export const ConstellationBackground = () => {
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
-
-      // Subtle ambient glowing orbs
-      const glow1 = ctx.createRadialGradient(width * 0.25, height * 0.2, 20, width * 0.25, height * 0.2, 380);
-      glow1.addColorStop(0, 'rgba(254, 243, 199, 0.5)');
-      glow1.addColorStop(1, 'rgba(254, 221, 221, 0)');
-      ctx.fillStyle = glow1;
-      ctx.fillRect(0, 0, width, height);
-
-      const glow2 = ctx.createRadialGradient(width * 0.75, height * 0.35, 20, width * 0.75, height * 0.35, 420);
-      glow2.addColorStop(0, 'rgba(254, 205, 211, 0.45)');
-      glow2.addColorStop(1, 'rgba(254, 221, 221, 0)');
-      ctx.fillStyle = glow2;
-      ctx.fillRect(0, 0, width, height);
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];

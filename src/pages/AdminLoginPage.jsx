@@ -1,4 +1,4 @@
-import { ConstellationBackground } from '../components/ConstellationBackground';
+import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -41,6 +41,41 @@ export const AdminLoginPage = () => {
 
   // Modal / Drawer state for Login / Register
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [flippedCard, setFlippedCard] = useState(null);
+
+  // ----------------------------------------------------
+  // LUXURY 3D COVERFLOW CAROUSEL (Aceternity-style)
+  // ----------------------------------------------------
+  const [luxuryIndex, setLuxuryIndex] = useState(0);
+  const luxuryDragStart = useRef(null);
+
+  const luxurySlides = [
+    { title: 'Signature Luxury Packaging', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-1.png' },
+    { title: 'Editorial Brand Photoshoots', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-3.jpg' },
+    { title: 'Boutique Digital Storefronts', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-5.jpg' },
+    { title: 'Premium Unboxing Experience', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-2.jpg' },
+    { title: 'Tailored Brand Stationery', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-4.png' },
+    { title: 'Heritage Craft Detailing', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-6.jpg' },
+  ];
+
+  const luxuryNext = () => setLuxuryIndex((i) => (i + 1) % luxurySlides.length);
+  const luxuryPrev = () => setLuxuryIndex((i) => (i - 1 + luxurySlides.length) % luxurySlides.length);
+
+  const handleCarouselDragStart = (e) => {
+    luxuryDragStart.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+  const handleCarouselDragMove = (e) => {
+    if (luxuryDragStart.current === null) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const diff = luxuryDragStart.current - x;
+    if (Math.abs(diff) > 60) {
+      diff > 0 ? luxuryNext() : luxuryPrev();
+      luxuryDragStart.current = x;
+    }
+  };
+  const handleCarouselDragEnd = () => {
+    luxuryDragStart.current = null;
+  };
   const [authMode, setAuthMode] = useState('signin'); // 'signin' | 'signup'
 
   // Sign In Form State
@@ -155,23 +190,23 @@ export const AdminLoginPage = () => {
           onClick={(e) => {
             e.stopPropagation();
           }}
-          className="bg-white border border-[#FBCBCB] rounded-3xl p-5 sm:p-6 text-left space-y-4 shadow-sm relative overflow-hidden transition hover:shadow-md"
+          className="bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-3xl p-6 sm:p-8 text-left space-y-6 shadow-sm relative overflow-hidden transition hover:shadow-md w-full h-full flex flex-col justify-center"
         >
-          <div className="flex items-center justify-between border-b border-[#FBCBCB] pb-3">
+          <div className="flex items-center justify-between border-b border-[#EFE2BC] pb-3">
             <div>
-              <span className="font-bold text-xs text-[#0F172A] block">Interactive Fee Calculator</span>
-              <span className="text-[10px] text-[#475569]">Drag slider to test your store\'s monthly sales</span>
+              <span className="font-bold text-lg text-[#0F172A] dark:text-slate-100 block">Interactive Fee Calculator</span>
+              <span className="text-sm text-[#475569] dark:text-slate-400">Drag slider to test your store\'s monthly sales</span>
             </div>
-            <span className="font-mono font-bold text-xs bg-[#fedddd] text-[#881337] px-2.5 py-1 rounded-xl border border-[#F8B4B4]">
+            <span className="font-mono font-bold text-base bg-[#FBF0D2] dark:bg-obsidian-800 text-[#8A6200] px-2.5 py-1 rounded-xl border border-[#E7D49E]">
               ₹{calcSales.toLocaleString('en-IN')}/mo
             </span>
           </div>
 
           {/* Interactive Range Slider */}
           <div className="space-y-1.5">
-            <div className="flex justify-between text-[10px] font-bold text-[#475569]">
+            <div className="flex justify-between text-base font-bold text-[#475569] dark:text-slate-400">
               <span>₹10,000</span>
-              <span className="text-[#9F1239]">Monthly GMV</span>
+              <span className="text-[#A87A00]">Monthly GMV</span>
               <span>₹5,00,000</span>
             </div>
             <input
@@ -181,28 +216,25 @@ export const AdminLoginPage = () => {
               step="5000"
               value={calcSales}
               onChange={(e) => setCalcSales(Number(e.target.value))}
-              className="w-full accent-[#9F1239] cursor-pointer h-2 bg-[#fedddd] rounded-lg"
+              className="w-full accent-[#9F1239] cursor-pointer h-2 bg-[#FBF0D2] dark:bg-obsidian-800 rounded-lg"
             />
           </div>
 
           {/* Comparison Cards */}
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between items-center text-rose-700 bg-rose-50 p-2.5 rounded-xl border border-rose-200 font-medium">
+          <div className="space-y-2 text-base">
+            <div className="flex justify-between items-center text-amber-800 bg-amber-50 p-3.5 rounded-xl border border-amber-200 font-medium">
               <span>Marketplace (25% Cut)</span>
               <span className="font-mono font-bold">-₹{Math.round(calcSales * 0.25).toLocaleString('en-IN')}</span>
             </div>
-            <div className="flex justify-between items-center text-emerald-800 font-bold bg-emerald-50 p-3 rounded-xl border border-emerald-200 shadow-xs">
+            <div className="flex justify-between items-center text-emerald-800 font-bold bg-emerald-50 p-4 rounded-xl border border-emerald-200 shadow-xs">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>Go Julex 0% Take-Rate</span>
               </div>
-              <span className="font-mono text-sm">+₹{calcSales.toLocaleString('en-IN')} (100% Yours)</span>
+              <span className="font-mono text-base">+₹{calcSales.toLocaleString('en-IN')} (100% Yours)</span>
             </div>
           </div>
 
-          <p className="text-[11px] text-amber-800 font-bold text-center pt-1 bg-amber-50/60 p-2 rounded-xl border border-amber-200">
-            ✨ You save ₹{Math.round(calcSales * 0.25).toLocaleString('en-IN')} every month with Go Julex.
-          </p>
         </div>
       )
     },
@@ -221,16 +253,16 @@ export const AdminLoginPage = () => {
       previewGraphic: (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="bg-white border border-[#FBCBCB] rounded-3xl p-5 sm:p-6 text-left space-y-4 shadow-sm relative overflow-hidden transition hover:shadow-md"
+          className="bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-3xl p-6 sm:p-8 text-left space-y-6 shadow-sm relative overflow-hidden transition hover:shadow-md w-full h-full flex flex-col justify-center"
         >
-          <div className="flex items-center justify-between border-b border-[#FBCBCB] pb-2">
+          <div className="flex items-center justify-between border-b border-[#EFE2BC] pb-2">
             <div>
-              <span className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#9F1239]" /> Live Storefront Palette
+              <span className="font-bold text-lg text-[#0F172A] dark:text-slate-100 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#A87A00]" /> Live Storefront Palette
               </span>
-              <span className="text-[10px] text-[#475569]">Click a swatch to see instant real-time theme styling</span>
+              <span className="text-sm text-[#475569] dark:text-slate-400">Click a swatch to see instant real-time theme styling</span>
             </div>
-            <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#fedddd] text-[#881337] border border-[#F8B4B4] font-bold">
+            <span className="px-2 py-0.5 rounded-full text-base bg-[#FBF0D2] dark:bg-obsidian-800 text-[#8A6200] border border-[#E7D49E] font-bold">
               Active
             </span>
           </div>
@@ -247,30 +279,14 @@ export const AdminLoginPage = () => {
                 key={th.id}
                 type="button"
                 onClick={() => setPreviewTheme(th.id)}
-                className={'p-2 rounded-2xl border text-center transition cursor-pointer ' + (previewTheme === th.id ? 'ring-2 ring-offset-1 ring-[#9F1239] font-bold shadow-xs' : 'opacity-70 hover:opacity-100')}
+                className={'p-3 rounded-2xl border text-center transition cursor-pointer ' + (previewTheme === th.id ? 'ring-2 ring-offset-1 ring-[#9F1239] font-bold shadow-xs' : 'opacity-70 hover:opacity-100')}
                 style={{ backgroundColor: th.color, borderColor: th.border, color: th.text }}
               >
-                <span className="text-[10px] block font-bold truncate">{th.name}</span>
+                <span className="text-sm block font-bold truncate">{th.name}</span>
               </button>
             ))}
           </div>
 
-          {/* Mock Storefront Canvas with Real Brand Packaging */}
-          <div className="relative rounded-2xl border border-[#FBCBCB] overflow-hidden group shadow-sm">
-            <img
-              src="/images/gojulex_luxury_bags.jpg"
-              alt="Go Julex Luxury Brand Packaging"
-              className="w-full h-36 object-cover transform group-hover:scale-105 transition duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent flex items-end p-3">
-              <div className="flex items-center justify-between w-full text-white text-xs">
-                <span className="font-serif font-bold text-[11px]">✨ Luxury Brand Packaging Preview</span>
-                <span className="text-[9px] bg-white/25 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/40 font-bold">
-                  Live
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       )
     },
@@ -289,43 +305,39 @@ export const AdminLoginPage = () => {
       previewGraphic: (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="bg-white border border-[#FBCBCB] rounded-3xl p-5 sm:p-6 text-left space-y-4 shadow-sm relative overflow-hidden transition hover:shadow-md"
+          className="bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-3xl p-6 sm:p-8 text-left space-y-6 shadow-sm relative overflow-hidden transition hover:shadow-md w-full h-full flex flex-col justify-center"
         >
-          <div className="text-xs font-bold text-[#0F172A] flex items-center justify-between border-b border-[#FBCBCB] pb-2">
+          <div className="text-lg font-bold text-[#0F172A] dark:text-slate-100 flex items-center justify-between border-b border-[#EFE2BC] pb-2">
             <span>Tenant Domain Routing</span>
-            <span className="text-emerald-700 font-mono text-[10px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+            <span className="text-emerald-700 font-mono text-base bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
               ● Active Sandbox
             </span>
           </div>
 
           {/* Interactive Subdomain vs Custom Domain Tab */}
-          <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#fedddd] border border-[#F8B4B4] text-xs font-bold">
+          <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E] text-base font-bold">
             <button
               type="button"
               onClick={() => setActiveDomainTab('subdomain')}
-              className={'py-1.5 rounded-xl transition cursor-pointer text-center ' + (activeDomainTab === 'subdomain' ? 'bg-white text-[#881337] shadow-xs' : 'text-[#475569] hover:text-[#0F172A]')}
+              className={'py-2 rounded-xl transition cursor-pointer text-center ' + (activeDomainTab === 'subdomain' ? 'bg-white text-[#8A6200] shadow-xs' : 'text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100')}
             >
               Cloud Subdomain
             </button>
             <button
               type="button"
               onClick={() => setActiveDomainTab('custom')}
-              className={'py-1.5 rounded-xl transition cursor-pointer text-center ' + (activeDomainTab === 'custom' ? 'bg-white text-[#881337] shadow-xs' : 'text-[#475569] hover:text-[#0F172A]')}
+              className={'py-2 rounded-xl transition cursor-pointer text-center ' + (activeDomainTab === 'custom' ? 'bg-white text-[#8A6200] shadow-xs' : 'text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100')}
             >
               Custom Domain (.in / .com)
             </button>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#FFF5F5] border border-[#FBCBCB] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#475569] font-medium">Domain Route:</span>
-              <span className="font-mono text-[#9F1239] font-bold">
+          <div className="p-5 rounded-2xl bg-[#FDFAEE] dark:bg-obsidian-800 border border-[#EFE2BC] space-y-2">
+            <div className="flex items-center justify-between text-base">
+              <span className="text-xs text-[#475569] dark:text-slate-400 font-medium">Domain Route:</span>
+              <span className="font-mono text-[#A87A00] font-bold">
                 {activeDomainTab === 'subdomain' ? 'abisjewel.gojulex.com' : 'abisjewel.in'}
               </span>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-emerald-800 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-              <span>SSL Encryption & Isolated DB</span>
-              <span>✓ Verified</span>
             </div>
           </div>
         </div>
@@ -346,47 +358,44 @@ export const AdminLoginPage = () => {
       previewGraphic: (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="bg-white border border-[#FBCBCB] rounded-3xl p-5 sm:p-6 text-left space-y-4 shadow-sm relative overflow-hidden transition hover:shadow-md"
+          className="bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-3xl p-6 sm:p-8 text-left space-y-6 shadow-sm relative overflow-hidden transition hover:shadow-md w-full h-full flex flex-col justify-center"
         >
-          <div className="flex items-center justify-between text-xs border-b border-[#FBCBCB] pb-2">
-            <span className="font-bold text-[#0F172A]">GST Tax Receipt Simulator</span>
-            <span className="font-mono text-[10px] text-[#881337] bg-[#fedddd] px-2 py-0.5 rounded-full border border-[#F8B4B4]">
+          <div className="flex items-center justify-between text-base border-b border-[#EFE2BC] pb-2">
+            <span className="font-bold text-lg text-[#0F172A] dark:text-slate-100">GST Tax Receipt Simulator</span>
+            <span className="font-mono text-base text-[#8A6200] bg-[#FBF0D2] dark:bg-obsidian-800 px-2 py-0.5 rounded-full border border-[#E7D49E]">
               INV-2026-8801
             </span>
           </div>
 
           {/* Interactive Format Toggle */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-base">
             <button
               type="button"
               onClick={() => setActiveInvoiceFormat('A4')}
-              className={'p-2 rounded-xl border text-center font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ' + (activeInvoiceFormat === 'A4' ? 'bg-[#9F1239] text-white border-[#9F1239]' : 'bg-[#FFF5F5] border-[#FBCBCB] text-[#475569]')}
+              className={'p-3 rounded-xl border text-center font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ' + (activeInvoiceFormat === 'A4' ? 'bg-[#9F1239] text-white border-[#9F1239]' : 'bg-[#FDFAEE] dark:bg-obsidian-800 border-[#EFE2BC] text-[#475569] dark:text-slate-400')}
             >
               <Printer className="w-3.5 h-3.5" /> Classic A4 PDF
             </button>
             <button
               type="button"
               onClick={() => setActiveInvoiceFormat('thermal')}
-              className={'p-2 rounded-xl border text-center font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ' + (activeInvoiceFormat === 'thermal' ? 'bg-[#9F1239] text-white border-[#9F1239]' : 'bg-[#FFF5F5] border-[#FBCBCB] text-[#475569]')}
+              className={'p-3 rounded-xl border text-center font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ' + (activeInvoiceFormat === 'thermal' ? 'bg-[#9F1239] text-white border-[#9F1239]' : 'bg-[#FDFAEE] dark:bg-obsidian-800 border-[#EFE2BC] text-[#475569] dark:text-slate-400')}
             >
               <QrCode className="w-3.5 h-3.5" /> Thermal POS Slip
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="p-2.5 rounded-2xl bg-[#fedddd] border border-[#FBCBCB]">
-              <span className="text-[#475569] block text-[10px]">CGST (9%)</span>
-              <span className="font-mono font-bold text-[#0F172A]">₹225.00</span>
+          <div className="grid grid-cols-2 gap-2 text-base">
+            <div className="p-4 rounded-2xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#EFE2BC]">
+              <span className="text-[#475569] dark:text-slate-400 block text-xs">CGST (9%)</span>
+              <span className="font-mono font-bold text-[#0F172A] dark:text-slate-100">₹225.00</span>
             </div>
-            <div className="p-2.5 rounded-2xl bg-[#fedddd] border border-[#FBCBCB]">
-              <span className="text-[#475569] block text-[10px]">SGST (9%)</span>
-              <span className="font-mono font-bold text-[#0F172A]">₹225.00</span>
+            <div className="p-4 rounded-2xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#EFE2BC]">
+              <span className="text-[#475569] dark:text-slate-400 block text-xs">SGST (9%)</span>
+              <span className="font-mono font-bold text-[#0F172A] dark:text-slate-100">₹225.00</span>
             </div>
           </div>
 
-          <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 text-center font-bold">
-            ✓ Automated WhatsApp Delivery & 1-Click Print Ready
-          </div>
         </div>
       )
     }
@@ -467,54 +476,36 @@ export const AdminLoginPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#fedddd] text-[#0F172A] selection:bg-rose-200 selection:text-rose-900 overflow-x-hidden font-sans">
+    <div className="relative h-screen overflow-y-auto overflow-x-hidden snap-y snap-mandatory julex-landing-bg text-[#0F172A] dark:text-slate-100 selection:bg-amber-200 selection:text-amber-900 font-sans">
       {/* Interactive Floating Constellation & Glow Animation Canvas */}
-      <ConstellationBackground />
-
-      {/* Subtle Background Glow Elements */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-[#fedddd] via-pink-100/40 to-transparent pointer-events-none" />
-
-      {/* TOP NAVIGATION BAR */}
-      <header className="relative z-30 border-b border-[#FBCBCB] bg-white/90 backdrop-blur-xl px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs">
-        {/* Left: Golden Brand Identity */}
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-slate-950 font-script font-bold text-2xl shadow-md shadow-amber-500/20 transform group-hover:scale-105 transition">
-              GJ
-            </div>
-            <div>
-              <span className="brand-gojulex-logo text-3xl sm:text-4xl tracking-normal block leading-none">
-                Go Julex
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.25em] text-amber-800 font-bold block mt-0.5">
-                Commerce Cloud
-              </span>
-            </div>
-          </Link>
-
-          <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold bg-[#fedddd] border border-[#F8B4B4] text-[#881337] ml-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#9F1239] animate-pulse" />
-            MULTI-TENANT PLATFORM
+      {/* TOP NAVIGATION BAR — fixed so each screen below aligns exactly to the viewport */}
+      <header className="fixed top-0 left-0 right-0 z-40 border-b border-[#EFE2BC] dark:border-obsidian-700 bg-white/90 dark:bg-obsidian-900/90 dark:bg-obsidian-900/90 backdrop-blur-xl px-4 sm:px-8 py-2 flex items-center justify-between shadow-xs">
+        {/* Left: Golden Brand Identity — logo with subtitle centered beneath */}
+        <Link to="/" className="flex flex-col items-center group">
+          <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-9 sm:h-10 w-auto" />
+          <span className="text-[9px] uppercase tracking-[0.22em] text-amber-800 dark:text-gold-300 font-bold mt-0.5">
+            Multi-Tenant Platform
           </span>
-        </div>
+        </Link>
 
         {/* Center Navigation Links */}
-        <div className="hidden lg:flex items-center gap-6 text-xs text-[#475569] font-semibold">
-          <a href="#showcase" className="hover:text-[#9F1239] transition">Platform Showcase</a>
-          <a href="#tenants-get" className="hover:text-[#9F1239] transition">What Tenants Get</a>
-          <a href="#tenants-get" className="hover:text-[#9F1239] transition">0% Fee Architecture</a>
+        <div className="hidden lg:flex items-center gap-8 text-sm text-[#475569] dark:text-slate-400 font-semibold">
+          <a href="#showcase" className="hover:text-[#A87A00] transition">Platform Showcase</a>
+          <a href="#tenants-get" className="hover:text-[#A87A00] transition">What Tenants Get</a>
+          <a href="#tenants-get" className="hover:text-[#A87A00] transition">0% Fee Architecture</a>
         </div>
 
-        {/* Right: Sign In & Launch Buttons */}
+        {/* Right: Theme Switch, Sign In & Launch Buttons */}
         <div className="flex items-center gap-2.5">
+          <ThemeSwitcher />
           <button
             onClick={() => {
               setAuthMode('signin');
               setIsAuthOpen(true);
             }}
-            className="px-4 py-2 rounded-xl bg-white hover:bg-[#fedddd] border border-[#FBCBCB] text-xs font-bold text-[#881337] transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#EFE2BC] text-sm font-bold text-[#8A6200] transition flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <Lock className="w-3.5 h-3.5 text-[#9F1239]" />
+            <Lock className="w-4 h-4 text-[#A87A00]" />
             <span>Sign In</span>
           </button>
 
@@ -523,309 +514,190 @@ export const AdminLoginPage = () => {
               setAuthMode('signup');
               setIsAuthOpen(true);
             }}
-            className="px-4 sm:px-5 py-2 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs shadow-md shadow-rose-900/20 transition transform hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 sm:px-5 py-2 rounded-xl bg-[#A87A00] hover:bg-[#8A6200] text-white font-bold text-sm shadow-md shadow-amber-900/20 transition transform hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
-            <Store className="w-3.5 h-3.5" />
+            <Store className="w-4 h-4" />
             <span>Start Your Store Free</span>
           </button>
         </div>
       </header>
 
-      {/* HERO & INTERACTIVE MULTI-TENANT SHOWCASE SLIDESHOW */}
-      <section id="showcase" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-16">
-        <div className="text-center space-y-3 max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#fedddd] border border-[#F8B4B4]">
-            <span className="w-2 h-2 rounded-full bg-[#9F1239] animate-ping" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#881337]">✦ 0% COMMISSION • 100% PROFIT</span>
+      {/* HERO — fills exactly the first viewport below the fixed header */}
+      <section id="showcase" className="relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 pt-[73px] snap-start">
+        <div className="text-center space-y-5 max-w-4xl mx-auto h-[calc(100vh-73px)] flex flex-col items-center justify-center py-8">
+          <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#9F1239] animate-ping" />
+            <span className="text-sm sm:text-base font-bold uppercase tracking-[0.25em] text-[#8A6200]">✦ 0% COMMISSION • 100% PROFIT</span>
           </div>
 
-          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#0F172A] leading-tight">
+          <h1 className="font-serif text-[2.75rem] sm:text-6xl lg:text-7xl font-black tracking-tight text-[#0F172A] dark:text-slate-100 leading-tight">
             Launch Your Independent Brand Storefront.{' '}
-            <span className="brand-gojulex-logo text-4xl sm:text-6xl inline-block px-1">
+            <span className="text-[#A87A00] inline-block">
               Retain 100% of Every Sale.
             </span>
           </h1>
 
-          <p className="text-xs sm:text-base text-[#475569] font-normal max-w-xl mx-auto leading-relaxed">Launch a high-converting luxury storefront in minutes. 0% take-rate. Instant checkout. Keep 100% of every rupee.</p>
+          <p className="text-lg sm:text-xl lg:text-2xl text-[#475569] dark:text-slate-400 font-normal max-w-3xl mx-auto leading-relaxed">Launch a high-converting luxury storefront in minutes. 0% take-rate. Instant checkout. Keep 100% of every rupee.</p>
         </div>
 
-        {/* INTERACTIVE MULTI-TENANT SHOWCASE DISPLAY */}
-        <div
-          onMouseDown={handleTouchStart}
-          onMouseMove={handleTouchMove}
-          onMouseUp={handleTouchEnd}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseEnter={() => setIsAutoPlaying(false)}
-          onMouseLeave={() => setIsAutoPlaying(true)}
-          className="relative bg-white border border-[#FBCBCB] rounded-3xl p-6 sm:p-10 shadow-xl overflow-hidden text-left select-none transition-all duration-300 hover:shadow-2xl"
-        >
-          {/* Top Slide Indicator Tabs (Clickable to jump directly) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-8 border-b border-[#FBCBCB] pb-4">
-            {showcaseSlides.map((slide, idx) => {
-              const IconComp = slide.icon;
-              const isActive = idx === currentSlideIndex;
-              return (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToSlide(idx);
-                  }}
-                  className={'relative p-3 rounded-2xl text-left transition-all duration-300 flex items-center gap-2.5 cursor-pointer ' + (isActive ? 'bg-[#fedddd] border border-[#F8B4B4] text-[#881337] shadow-sm transform scale-[1.02]' : 'bg-[#FFF5F5] border border-[#E2E8F0] text-[#475569] hover:bg-[#fedddd]')}
-                >
-                  <div className={'w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ' + (isActive ? 'bg-[#9F1239] text-white shadow-xs' : 'bg-white border border-[#FBCBCB] text-[#475569]')}>
-                    <IconComp className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[9px] uppercase tracking-wider font-bold block truncate text-[#475569]">
-                      {slide.tag}
-                    </span>
-                    <span className={'text-xs font-bold block truncate ' + (isActive ? 'text-[#881337]' : 'text-[#0F172A]')}>
-                      {slide.badge}
-                    </span>
-                  </div>
-
-                  {/* Active Auto-play Progress Bar */}
-                  {isActive && (
-                    <div
-                      className="absolute bottom-0 left-0 h-1 bg-[#9F1239] rounded-b-2xl transition-all duration-75"
-                      style={{ width: progress + '%' }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Slide Content with Animated Entry */}
-          <div
-            key={currentSlideIndex}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fade-in"
-          >
-            {/* Left Info */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#fedddd] text-[#881337] border border-[#F8B4B4]">
-                <Sparkles className="w-3.5 h-3.5 text-[#9F1239]" />
-                <span>Feature Showcase • Slide {currentSlideIndex + 1} of {showcaseSlides.length}</span>
-              </div>
-
-              <h2 className="font-serif text-2xl sm:text-4xl font-bold text-[#0F172A] leading-tight">
-                {activeSlide.title}
-              </h2>
-
-              <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-                {activeSlide.subtitle}
-              </p>
-
-              {/* Stats Highlight Bar */}
-              <div className="grid grid-cols-3 gap-3 pt-2">
-                {activeSlide.highlightStats.map((stat, sIdx) => (
-                  <div key={sIdx} className="p-3.5 rounded-2xl bg-[#fedddd]/60 border border-[#FBCBCB]">
-                    <span className="text-[10px] text-[#475569] uppercase tracking-wider block font-semibold">
-                      {stat.label}
-                    </span>
-                    <span className="text-base sm:text-lg font-bold font-mono text-[#9F1239] mt-0.5 block">
-                      {stat.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Primary Action Button */}
-              <div className="pt-3 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAuthMode('signup');
-                    setIsAuthOpen(true);
-                  }}
-                  className="px-6 py-3.5 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs shadow-lg shadow-rose-900/20 hover:scale-105 active:scale-95 transition flex items-center gap-2 cursor-pointer"
-                >
-                  <span>Start Your Store Free</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAutoPlaying(!isAutoPlaying);
-                  }}
-                  className="p-3 rounded-xl bg-[#fedddd] hover:bg-[#FEE2E2] border border-[#FBCBCB] text-[#881337] transition cursor-pointer"
-                  title={isAutoPlaying ? 'Pause Slideshow' : 'Resume Slideshow'}
-                >
-                  {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Right Graphic Preview (Interactive) */}
-            <div className="lg:col-span-5">
-              {activeSlide.previewGraphic}
-            </div>
-          </div>
-
-          {/* Clean Centered Dot Indicators */}
-          <div className="flex items-center justify-center pt-6 mt-8 border-t border-[#FBCBCB]">
-            <div className="flex items-center gap-2">
-              {showcaseSlides.map((_, dotIdx) => (
-                <button
-                  key={dotIdx}
-                  type="button"
-                  onClick={() => goToSlide(dotIdx)}
-                  className={'h-2 rounded-full transition-all duration-300 cursor-pointer ' + (dotIdx === currentSlideIndex ? 'w-8 bg-[#9F1239]' : 'w-2 bg-[#F8B4B4] hover:bg-[#9F1239]')}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* WHAT WE PROVIDE TO TENANTS (6 PILLARS) */}
-      <section id="tenants-get" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 border-t border-[#FBCBCB]">
+      <section id="tenants-get" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 border-t border-[#EFE2BC] snap-start">
         <div className="text-center space-y-2 mb-12">
-          <span className="text-xs uppercase tracking-[0.25em] text-[#9F1239] font-bold block">
+          <span className="text-xs uppercase tracking-[0.25em] text-[#A87A00] font-bold block">
             THE SAAS TENANT ECOSYSTEM
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A]">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] dark:text-slate-100">
             Everything Provided to Every Store Owner
           </h2>
-          <p className="text-xs sm:text-sm text-[#475569] max-w-xl mx-auto">
+          <p className="text-sm text-[#475569] dark:text-slate-400 max-w-2xl mx-auto">
             From instant storefront deployment to automated GST tax invoicing, our multi-tenant cloud provides everything in one unified dashboard.
           </p>
         </div>
 
+        {/* Framer-style flip cards: front = heading, back = explanation */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] hover:border-[#9F1239] hover:shadow-md transition duration-300 space-y-3 text-left group">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 group-hover:scale-110 transition">
-              <Percent className="w-6 h-6" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-[#0F172A] group-hover:text-[#9F1239] transition">
-              0% Platform Commission
-            </h3>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              No intermediary marketplace cut. You retain 100% of your retail sales with direct merchant bank settlement.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] hover:border-[#9F1239] hover:shadow-md transition duration-300 space-y-3 text-left group">
-            <div className="w-12 h-12 rounded-2xl bg-[#FFF1F2] border border-[#FECDD3] flex items-center justify-center text-[#9F1239] group-hover:scale-110 transition">
-              <Palette className="w-6 h-6" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-[#0F172A] group-hover:text-[#9F1239] transition">
-              Visual Drag & Drop Theme Customizer
-            </h3>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              Full control over hero banners, announcement ribbons, trust badges, typography, and color palettes in real-time.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] hover:border-[#9F1239] hover:shadow-md transition duration-300 space-y-3 text-left group">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 group-hover:scale-110 transition">
-              <Globe className="w-6 h-6" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-[#0F172A] group-hover:text-purple-600 transition">
-              Instant Subdomain & Custom Domains
-            </h3>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              Instantly live at <code className="text-[#9F1239] font-mono font-bold">yourbrand.gojulex.com</code> with 1-click custom domain mapping for your brand.
-            </p>
-          </div>
-
-          {/* Card 4 */}
-          <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] hover:border-[#9F1239] hover:shadow-md transition duration-300 space-y-3 text-left group">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition">
-              <FileText className="w-6 h-6" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-[#0F172A] group-hover:text-emerald-700 transition">
-              GST Tax Invoices & A4/Thermal Print
-            </h3>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              Dual CGST/SGST breakdowns, HSN codes, printable tax invoices, and automated WhatsApp order confirmations.
-            </p>
-          </div>
-
-          {/* Card 5 */}
-          <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] hover:border-[#9F1239] hover:shadow-md transition duration-300 space-y-3 text-left group">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 group-hover:scale-110 transition">
-              <CreditCard className="w-6 h-6" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-[#0F172A] group-hover:text-rose-600 transition">
-              1-Click Checkout, UPI & COD
-            </h3>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              Frictionless checkout experience with instant Google Pay, PhonePe, Paytm QR, cards, net banking, and cash on delivery.
-            </p>
-          </div>
-
-          {/* Card 6 */}
-          <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] hover:border-[#9F1239] hover:shadow-md transition duration-300 space-y-3 text-left group">
-            <div className="w-12 h-12 rounded-2xl bg-yellow-50 border border-yellow-200 flex items-center justify-center text-yellow-600 group-hover:scale-110 transition">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="font-serif text-lg font-bold text-[#0F172A] group-hover:text-yellow-700 transition">
-              Master Admin Escrow & Tenant Isolation
-            </h3>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              Multi-tenant architecture guarantees complete store privacy, zero cross-store data leakage, and master super admin oversight.
-            </p>
-          </div>
+          {[
+            { icon: Percent, bubble: 'bg-amber-50 border-amber-200 text-amber-600', title: '0% Platform Commission', desc: 'No intermediary marketplace cut. You retain 100% of your retail sales with direct merchant bank settlement.' },
+            { icon: Palette, bubble: 'bg-[#FFF1F2] border-[#FECDD3] text-[#9F1239]', title: 'Visual Drag & Drop Theme Customizer', desc: 'Full control over hero banners, announcement ribbons, trust badges, typography, and color palettes in real-time.' },
+            { icon: Globe, bubble: 'bg-purple-50 border-purple-200 text-purple-600', title: 'Instant Subdomain & Custom Domains', desc: 'Instantly live at yourbrand.gojulex.com with 1-click custom domain mapping for your brand.' },
+            { icon: FileText, bubble: 'bg-emerald-50 border-emerald-200 text-emerald-600', title: 'GST Tax Invoices & A4/Thermal Print', desc: 'Dual CGST/SGST breakdowns, HSN codes, printable tax invoices, and automated WhatsApp order confirmations.' },
+            { icon: CreditCard, bubble: 'bg-rose-50 border-rose-200 text-rose-600', title: '1-Click Checkout, UPI & COD', desc: 'Frictionless checkout experience with instant Google Pay, PhonePe, Paytm QR, cards, net banking, and cash on delivery.' },
+            { icon: ShieldCheck, bubble: 'bg-yellow-50 border-yellow-200 text-yellow-600', title: 'Master Admin Escrow & Tenant Isolation', desc: 'Multi-tenant architecture guarantees complete store privacy, zero cross-store data leakage, and master super admin oversight.' },
+          ].map((card) => {
+            const IconComp = card.icon;
+            return (
+              <div
+                key={card.title}
+                className={'flip-scene h-[260px] cursor-pointer ' + (flippedCard === card.title ? 'flipped' : '')}
+                onClick={() => setFlippedCard(flippedCard === card.title ? null : card.title)}
+              >
+                <div className="flip-inner">
+                  {/* FRONT: heading */}
+                  <div className="flip-face rounded-3xl bg-white dark:bg-obsidian-850 border border-[#EFE2BC] dark:border-obsidian-700 p-8 flex flex-col items-center justify-center text-center gap-5 shadow-sm">
+                    <div className={'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border ' + card.bubble}>
+                      <IconComp className="w-7 h-7" />
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-[#0F172A] dark:text-slate-100">
+                      {card.title}
+                    </h3>
+                  </div>
+                  {/* BACK: explanation */}
+                  <div className="flip-face flip-back rounded-3xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E] dark:border-gold-400/40 p-8 flex flex-col items-center justify-center text-center gap-4 shadow-md">
+                    <h4 className="font-serif text-base font-bold text-[#8A6200] dark:text-gold-300">
+                      {card.title}
+                    </h4>
+                    <p className="text-sm text-[#475569] dark:text-slate-300 leading-relaxed">
+                      {card.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      
-      {/* LUXURY BRANDING & PACKAGING SHOWCASE */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="relative rounded-3xl overflow-hidden border border-[#FBCBCB] shadow-xl bg-white">
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
-            <div className="lg:col-span-7 relative h-72 sm:h-96">
-              <img
-                src="/images/gojulex_luxury_bags.jpg"
-                alt="Go Julex Luxury Brand Packaging"
-                className="w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white hidden lg:block" />
-            </div>
-            <div className="lg:col-span-5 p-6 sm:p-10 space-y-4 text-left">
-              <span className="text-[10px] uppercase tracking-[0.25em] text-[#9F1239] font-bold block">
-                ✦ LUXURY PACKAGING & BRANDING
-              </span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A]">
-                Elevate Your Store with Signature Luxury Appeal
-              </h2>
-              <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-                From high-end packaging to tailored digital storefronts, Go Julex gives your independent brand an elite, recognizable identity with 0% take-rate.
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setIsAuthOpen(true);
+      {/* LUXURY BRANDING & PACKAGING — Aceternity-style 3D coverflow carousel */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 snap-start overflow-hidden">
+        <div className="text-center space-y-3 mb-10">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-[#9F1239] font-bold block">
+            ✦ LUXURY PACKAGING & BRANDING
+          </span>
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A] dark:text-slate-100">
+            Elevate Your Store with Signature Luxury Appeal
+          </h2>
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-400 max-w-2xl mx-auto">
+            Drag or use the arrows — from high-end packaging to tailored digital storefronts, Go Julex gives your independent brand an elite, recognizable identity with 0% take-rate.
+          </p>
+        </div>
+
+        {/* 3D coverflow stage */}
+        <div
+          className="relative h-[460px] select-none cursor-grab active:cursor-grabbing"
+          style={{ perspective: '1600px' }}
+          onMouseDown={handleCarouselDragStart}
+          onMouseMove={handleCarouselDragMove}
+          onMouseUp={handleCarouselDragEnd}
+          onMouseLeave={handleCarouselDragEnd}
+          onTouchStart={handleCarouselDragStart}
+          onTouchMove={handleCarouselDragMove}
+          onTouchEnd={handleCarouselDragEnd}
+        >
+          <div className="absolute inset-0" style={{ transformStyle: 'preserve-3d' }}>
+            {luxurySlides.map((slide, i) => {
+              // shortest signed distance around the ring
+              let offset = i - luxuryIndex;
+              const half = luxurySlides.length / 2;
+              if (offset > half) offset -= luxurySlides.length;
+              if (offset < -half) offset += luxurySlides.length;
+              if (Math.abs(offset) > 2) return null;
+              return (
+                <div
+                  key={slide.title}
+                  onClick={() => offset !== 0 && setLuxuryIndex(i)}
+                  className="absolute left-1/2 top-1/2 w-[280px] sm:w-[340px] h-[400px] sm:h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-3xl overflow-hidden border border-[#EFE2BC] dark:border-obsidian-700 shadow-2xl"
+                  style={{
+                    transform: `translateX(${offset * 55}%) translateZ(${-Math.abs(offset) * 220}px) rotateY(${offset * -32}deg) scale(${offset === 0 ? 1 : 0.92})`,
+                    zIndex: 10 - Math.abs(offset),
+                    opacity: Math.abs(offset) > 1 ? 0.35 : 1,
+                    transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease',
+                    pointerEvents: offset === 0 ? 'auto' : 'none',
                   }}
-                  className="px-5 py-3 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer"
                 >
-                  <span>Build Your Luxury Storefront</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+                  <img src={slide.src} alt={slide.title} draggable={false} className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="font-serif text-xl font-bold text-white">{slide.title}</h3>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAuthMode('signup');
+                        setIsAuthOpen(true);
+                      }}
+                      className="mt-3 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white text-xs font-bold transition cursor-pointer"
+                    >
+                      {slide.button}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Arrows */}
+          <button
+            onClick={luxuryPrev}
+            className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 dark:bg-obsidian-800/80 border border-[#EFE2BC] dark:border-obsidian-600 shadow-md flex items-center justify-center text-[#8A6200] hover:scale-110 transition cursor-pointer"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={luxuryNext}
+            className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 dark:bg-obsidian-800/80 border border-[#EFE2BC] dark:border-obsidian-600 shadow-md flex items-center justify-center text-[#8A6200] hover:scale-110 transition cursor-pointer"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* Dots */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+            {luxurySlides.map((_, dIdx) => (
+              <button
+                key={dIdx}
+                onClick={() => setLuxuryIndex(dIdx)}
+                className={'h-2 rounded-full transition-all duration-300 cursor-pointer ' + (dIdx === luxuryIndex ? 'w-7 bg-[#A87A00]' : 'w-2 bg-[#E7D49E] hover:bg-[#A87A00]')}
+              />
+            ))}
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 border-t border-[#FBCBCB] bg-white py-8 text-center text-xs text-[#475569] space-y-2">
-        <p className="brand-gojulex-logo text-3xl tracking-normal">
-          Go Julex
-        </p>
+      <footer className="relative z-10 border-t border-[#EFE2BC] bg-white dark:bg-obsidian-900 py-8 text-center text-xs text-[#475569] dark:text-slate-400 space-y-2 snap-start">
+        <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-14 w-auto mx-auto" />
         <p className="text-[11px] text-amber-800 uppercase tracking-widest font-bold">
           Multi-Tenant Commerce Cloud
         </p>
@@ -840,7 +712,7 @@ export const AdminLoginPage = () => {
       {/* UNIFIED SIGN IN / SIGN UP MODAL (Light Theme Glass) */}
       {isAuthOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md bg-white border border-[#FBCBCB] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="relative w-full max-w-md bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             {/* Close Button */}
             <button
               type="button"
@@ -848,17 +720,15 @@ export const AdminLoginPage = () => {
                 setIsAuthOpen(false);
                 setError('');
               }}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-[#fedddd] hover:bg-slate-100 text-[#475569] hover:text-[#0F172A] border border-[#FBCBCB] transition cursor-pointer"
+              className="absolute top-5 right-5 p-2 rounded-xl bg-[#FBF0D2] dark:bg-obsidian-800 hover:bg-slate-100 text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100 border border-[#EFE2BC] transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Top Branding in Modal */}
             <div className="text-center space-y-1">
-              <span className="brand-gojulex-logo text-3xl tracking-normal block leading-tight">
-                Go Julex
-              </span>
-              <p className="text-xs text-[#475569]">
+              <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-14 w-auto mx-auto" />
+              <p className="text-xs text-[#475569] dark:text-slate-400">
                 {authMode === 'signin'
                   ? 'Unified entry for Super Admin and Merchant Store Owners'
                   : 'Launch your 0% commission direct-to-consumer store'}
@@ -866,25 +736,25 @@ export const AdminLoginPage = () => {
             </div>
 
             {/* Tab Mode Toggle */}
-            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#fedddd] border border-[#F8B4B4] text-xs font-bold">
+            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E] text-sm font-bold">
               <button
                 type="button"
                 onClick={() => { setAuthMode('signin'); setError(''); }}
-                className={'py-2 rounded-xl transition cursor-pointer ' + (authMode === 'signin' ? 'bg-white text-[#881337] shadow-xs' : 'text-[#475569] hover:text-[#0F172A]')}
+                className={'py-2 rounded-xl transition cursor-pointer ' + (authMode === 'signin' ? 'bg-white text-[#8A6200] shadow-xs' : 'text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100')}
               >
                 Sign In
               </button>
               <button
                 type="button"
                 onClick={() => { setAuthMode('signup'); setError(''); }}
-                className={'py-2 rounded-xl transition cursor-pointer ' + (authMode === 'signup' ? 'bg-white text-[#881337] shadow-xs' : 'text-[#475569] hover:text-[#0F172A]')}
+                className={'py-2 rounded-xl transition cursor-pointer ' + (authMode === 'signup' ? 'bg-white text-[#8A6200] shadow-xs' : 'text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100')}
               >
                 Create Store
               </button>
             </div>
 
             {error && (
-              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 animate-shake">
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-amber-800 text-xs flex items-center gap-2 animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -894,7 +764,7 @@ export const AdminLoginPage = () => {
             {authMode === 'signin' ? (
               <form onSubmit={handleSignIn} className="space-y-4 text-left">
                 <div>
-                  <label className="text-xs font-semibold text-[#475569] block mb-1.5">
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1.5">
                     Email Address / Store ID
                   </label>
                   <div className="relative">
@@ -905,13 +775,13 @@ export const AdminLoginPage = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="e.g. abinayaramasamy502@gmail.com or admin@gojulex.com"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100 font-medium transition"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100 font-medium transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#475569] block mb-1.5">
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1.5">
                     Password
                   </label>
                   <div className="relative">
@@ -922,7 +792,7 @@ export const AdminLoginPage = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100 transition"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100 transition"
                     />
                   </div>
                 </div>
@@ -930,7 +800,7 @@ export const AdminLoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs shadow-lg shadow-rose-900/20 transition transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  className="w-full py-3.5 rounded-xl bg-[#A87A00] hover:bg-[#8A6200] text-white font-bold text-sm shadow-lg shadow-amber-900/20 transition transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -946,7 +816,7 @@ export const AdminLoginPage = () => {
                 {/* Social Login Divider */}
                 <div className="relative my-3">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#FBCBCB]" />
+                    <div className="w-full border-t border-[#EFE2BC]" />
                   </div>
                   <div className="relative flex justify-center text-xs">
                     <span className="bg-white px-3 text-[#94A3B8] text-[10px] font-bold uppercase tracking-widest">
@@ -969,7 +839,7 @@ export const AdminLoginPage = () => {
                       }
                     }}
                     disabled={loading}
-                    className="p-2.5 rounded-xl bg-[#FFF5F5] hover:bg-slate-100 border border-[#FBCBCB] text-xs font-semibold text-[#0F172A] flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#FDFAEE] dark:bg-obsidian-800 hover:bg-slate-100 border border-[#EFE2BC] text-xs font-semibold text-[#0F172A] dark:text-slate-100 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -992,7 +862,7 @@ export const AdminLoginPage = () => {
                       }
                     }}
                     disabled={loading}
-                    className="p-2.5 rounded-xl bg-[#FFF5F5] hover:bg-slate-100 border border-[#FBCBCB] text-xs font-semibold text-[#0F172A] flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#FDFAEE] dark:bg-obsidian-800 hover:bg-slate-100 border border-[#EFE2BC] text-xs font-semibold text-[#0F172A] dark:text-slate-100 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 23 23">
                       <rect fill="#F25022" x="1" y="1" width="10" height="10" />
@@ -1008,7 +878,7 @@ export const AdminLoginPage = () => {
               /* TAB 2: SIGN UP FORM */
               <form onSubmit={handleSignUp} className="space-y-3.5 text-left">
                 <div>
-                  <label className="text-xs font-semibold text-[#475569] block mb-1">
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1">
                     Your Full Name
                   </label>
                   <div className="relative">
@@ -1019,13 +889,13 @@ export const AdminLoginPage = () => {
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
                       placeholder="e.g. Abinaya"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#475569] block mb-1">
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1">
                     Store / Brand Name
                   </label>
                   <div className="relative">
@@ -1036,13 +906,13 @@ export const AdminLoginPage = () => {
                       value={regStoreName}
                       onChange={(e) => setRegStoreName(e.target.value)}
                       placeholder="e.g. Abi's Jewelry Boutique"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#475569] block mb-1">
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1">
                     Business Email Address
                   </label>
                   <div className="relative">
@@ -1053,13 +923,13 @@ export const AdminLoginPage = () => {
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
                       placeholder="e.g. owner@abisjewel.com"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#475569] block mb-1">
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1">
                     Password
                   </label>
                   <div className="relative">
@@ -1070,7 +940,7 @@ export const AdminLoginPage = () => {
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>
                 </div>
@@ -1078,7 +948,7 @@ export const AdminLoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs shadow-lg shadow-rose-900/20 transition transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  className="w-full py-3.5 rounded-xl bg-[#A87A00] hover:bg-[#8A6200] text-white font-bold text-sm shadow-lg shadow-amber-900/20 transition transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {loading ? (
                     <>

@@ -12,6 +12,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { StoreThemeSwitcher } from '../../components/admin/StoreThemeSwitcher';
 
 const BRAND_SUGGESTIONS = [
   'Jaeger-LeCoultre',
@@ -107,6 +108,11 @@ export const AdminBrands = () => {
           <Watch className="w-4 h-4" style={{ color: 'var(--accent)' }} /> View Catalog
         </Link>
       </div>
+
+      {/* Theme Switcher */}
+      <StoreThemeSwitcher
+        onApplied={(theme) => setSuccess(`Storefront theme switched to "${theme.name}" and published live.`)}
+      />
 
       {/* Notifications */}
       {error && (

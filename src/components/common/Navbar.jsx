@@ -58,14 +58,9 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-20 gap-4">
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-3 group shrink-0">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-black font-script font-bold text-2xl shadow-md group-hover:scale-105 transition-transform duration-300" style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}>
-              GJ
-            </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="brand-gojulex-logo text-3xl tracking-normal leading-tight">
-                  Go Julex
-                </span>
+                <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-12 w-auto" />
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.30)' }}>
                   0% FEE
                 </span>

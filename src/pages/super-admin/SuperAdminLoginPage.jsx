@@ -56,12 +56,7 @@ export const SuperAdminLoginPage = () => {
     <div className="min-h-screen bg-[#fedddd] text-[#0F172A] flex items-center justify-center p-4 font-sans selection:bg-rose-200 selection:text-rose-900">
       <div className="w-full max-w-md relative z-10 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-3xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 mx-auto flex items-center justify-center text-slate-950 font-script font-bold text-3xl shadow-lg shadow-amber-500/20">
-            GJ
-          </div>
-          <h1 className="brand-gojulex-logo text-4xl sm:text-5xl tracking-normal">
-            Go Julex
-          </h1>
+          <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-20 w-auto mx-auto" />
           <p className="text-xs uppercase tracking-widest text-amber-800 font-bold">
             Master Super Admin Gateway
           </p>

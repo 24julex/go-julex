@@ -394,27 +394,13 @@ export const AdminInvoiceSettings = () => {
                     borderColor: isSelected ? 'var(--accent)' : 'var(--border-card)',
                   }}
                 >
-                  <div>
-                    <div className="relative h-44 w-full flex items-center justify-center p-3 overflow-hidden border-b" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}>
-                      <InvoiceDocumentIllustration
-                        templateId={tpl.id}
-                        accentColor={tpl.defaultLayout?.accentColor || '#D4A017'}
-                      />
-                      <div className="absolute top-3 left-3 flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-xs" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.25)' }}>
-                          {tpl.tierAccess === 'PRO_EXCLUSIVE' ? '👑 Pro Exclusive' : '✨ Free Tier'}
-                        </span>
-                      </div>
-                      {isSelected && (
-                        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-xl bg-emerald-500 text-white text-[10px] font-bold shadow-md flex items-center gap-1">
-                          <Check className="w-3.5 h-3.5 stroke-[3]" /> Active Template
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-5 space-y-2">
-                      <h3 className="font-serif text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{tpl.name}</h3>
-                    </div>
+                  <div className="p-6 flex items-center justify-between gap-3">
+                    <h3 className="font-serif text-2xl font-bold leading-snug" style={{ color: 'var(--text-primary)' }}>{tpl.name}</h3>
+                    {isSelected && (
+                      <span className="shrink-0 px-2.5 py-1 rounded-xl bg-emerald-500 text-white text-[10px] font-bold shadow-md flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" /> Active
+                      </span>
+                    )}
                   </div>
 
                   <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>

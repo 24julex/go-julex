@@ -122,9 +122,11 @@ export const ThemesPage = () => {
   });
 
   const getStoresUsingTheme = (theme) => {
-    // Match on the real recorded assignment (activeThemeId), falling back to
-    // the tenant's activeThemeId only — no fake defaults
-    return tenants.filter((t) => t.activeThemeId === theme.id || t.activeThemeId === theme.presetId);
+    // Match on the real recorded assignment (tenant.activeThemeId from the
+    // backend). Normalize ids so "preset_x", "theme_x" and "x" all match.
+    const norm = (v) => String(v || '').replace(/^(preset_|theme_)/, '');
+    const themeKeys = [norm(theme.id), norm(theme.presetId)].filter(Boolean);
+    return tenants.filter((t) => themeKeys.includes(norm(t.activeThemeId)));
   };
 
   const handleDuplicate = (theme) => {

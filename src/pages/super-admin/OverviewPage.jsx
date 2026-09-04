@@ -94,7 +94,7 @@ export const OverviewPage = () => {
         {/* KPI 1: Total Stores */}
         <div className="p-5 rounded-2xl border transition shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               Total Stores
             </span>
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,160,23,0.12)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.25)' }}>
@@ -110,22 +110,22 @@ export const OverviewPage = () => {
             </span>
           </div>
 
-          <div className="mt-3 pt-3 grid grid-cols-4 gap-1 text-center text-[10px]" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <div className="mt-3 pt-3 grid grid-cols-4 gap-1 text-center text-[11px]" style={{ borderTop: '1px solid var(--border-subtle)' }}>
             <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-500 font-medium border border-emerald-500/20">
               <div className="font-bold">{(metrics?.activeStores ?? 0)}</div>
-              <div className="text-[9px]">Active</div>
+              <div className="text-[10px]">Active</div>
             </div>
             <div className="p-1 rounded-lg bg-amber-500/10 text-amber-500 font-medium border border-amber-500/20">
               <div className="font-bold">{(metrics?.trialingStores ?? 0)}</div>
-              <div className="text-[9px]">Trial</div>
+              <div className="text-[10px]">Trial</div>
             </div>
             <div className="p-1 rounded-lg" style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-card)' }}>
               <div className="font-bold">{(metrics?.freeStores ?? 0)}</div>
-              <div className="text-[9px]">Free</div>
+              <div className="text-[10px]">Free</div>
             </div>
             <div className="p-1 rounded-lg bg-rose-500/10 text-rose-500 font-medium border border-rose-500/20">
               <div className="font-bold">{(metrics?.suspendedStores ?? 0)}</div>
-              <div className="text-[9px]">Susp.</div>
+              <div className="text-[10px]">Susp.</div>
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export const OverviewPage = () => {
         {/* KPI 2: Estimated MRR */}
         <div className="p-5 rounded-2xl border transition shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               Normalized MRR
             </span>
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,160,23,0.12)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.25)' }}>
@@ -146,7 +146,7 @@ export const OverviewPage = () => {
             </span>
             <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>/month</span>
           </div>
-          <div className="mt-3 pt-3 flex items-center justify-between text-[10px]" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
+          <div className="mt-3 pt-3 flex items-center justify-between text-[11px]" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
             <span>Monthly + (6Mo/6) + (1Yr/12)</span>
             <span className="font-bold" style={{ color: 'var(--accent)' }}>100% Retained</span>
           </div>
@@ -155,7 +155,7 @@ export const OverviewPage = () => {
         {/* KPI 3: Estimated ARR */}
         <div className="p-5 rounded-2xl border transition shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               Annualized ARR
             </span>
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,160,23,0.12)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.25)' }}>
@@ -168,7 +168,7 @@ export const OverviewPage = () => {
             </span>
             <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>ARR Run-Rate</span>
           </div>
-          <div className="mt-3 pt-3 flex items-center justify-between text-[10px]" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
+          <div className="mt-3 pt-3 flex items-center justify-between text-[11px]" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
             <span>MRR × 12 Multiplier</span>
             <span className="font-bold text-emerald-500">+28% YoY</span>
           </div>
@@ -177,7 +177,7 @@ export const OverviewPage = () => {
         {/* KPI 4: Platform GMV */}
         <div className="p-5 rounded-2xl border transition shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               Platform GMV
             </span>
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,160,23,0.12)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.25)' }}>
@@ -190,10 +190,6 @@ export const OverviewPage = () => {
             </span>
             <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>({(metrics?.totalPlatformOrders ?? 0)} Orders)</span>
           </div>
-          <div className="mt-3 pt-3 flex items-center justify-between text-[10px]" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
-            <span className="font-medium" style={{ color: 'var(--accent)' }}>₹{((metrics?.totalFeeSavedINR ?? 0) / 100000).toFixed(1)}L Merchant Savings</span>
-            <span className="font-bold" style={{ color: 'var(--accent)' }}>0% Commission</span>
-          </div>
         </div>
       </div>
 
@@ -203,7 +199,7 @@ export const OverviewPage = () => {
         <div className="lg:col-span-8 p-5 rounded-2xl border flex flex-col justify-between space-y-4 shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>7-Day Tenant Signup & Conversion Velocity</h3>
+              <h3 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>7-Day Tenant Signup & Conversion Velocity</h3>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Daily store onboarding vs paid plan activations</p>
             </div>
             <div className="flex items-center gap-3 text-xs">
@@ -218,23 +214,23 @@ export const OverviewPage = () => {
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={signupVelocity7Days} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={signupVelocity7Days} margin={{ top: 10, right: 10, left: -16, bottom: 0 }} barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(150,150,150,0.15)" vertical={false} />
-                <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} allowDecimals={false} />
+                <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={{ stroke: 'rgba(150,150,150,0.25)' }} tickFormatter={(v) => String(v).split(',')[0]} interval="preserve-start-end" />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} width={40} label={{ value: 'Stores', angle: -90, position: 'insideLeft', offset: 18, style: { fontSize: 11, fill: 'var(--text-muted)' } }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'var(--bg-surface)',
                     borderColor: 'var(--border-card)',
-                    borderRadius: '16px',
-                    fontSize: '11px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
                     color: 'var(--text-primary)',
                     boxShadow: 'var(--shadow-card)'
                   }}
                   cursor={{ fill: 'rgba(212, 160, 23, 0.08)' }}
                 />
-                <Bar dataKey="signups" fill="#D4A017" radius={[6, 6, 0, 0]} name="New Store Signups" />
-                <Bar dataKey="conversions" fill="#10B981" radius={[6, 6, 0, 0]} name="Paid Conversions" />
+                <Bar dataKey="signups" fill="#D4A017" radius={[4, 4, 0, 0]} name="New Store Signups" maxBarSize={26} />
+                <Bar dataKey="conversions" fill="#10B981" radius={[4, 4, 0, 0]} name="Paid Conversions" maxBarSize={26} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -243,7 +239,7 @@ export const OverviewPage = () => {
         {/* Right: Store Status Donut Chart */}
         <div className="lg:col-span-4 p-5 rounded-2xl border flex flex-col justify-between space-y-4 shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
           <div>
-            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Store Status Distribution</h3>
+            <h3 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>Store Status Distribution</h3>
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Active vs Trialing vs Suspended ratios</p>
           </div>
 
@@ -267,8 +263,8 @@ export const OverviewPage = () => {
                   contentStyle={{
                     backgroundColor: 'var(--bg-surface)',
                     borderColor: 'var(--border-card)',
-                    borderRadius: '16px',
-                    fontSize: '11px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
                     color: 'var(--text-primary)'
                   }}
                 />
@@ -302,7 +298,7 @@ export const OverviewPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-              <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>At-Risk Accounts Watchlist</h3>
+              <h3 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>At-Risk Accounts Watchlist</h3>
             </div>
             <Link
               to="/super-admin/revenue"
@@ -347,7 +343,7 @@ export const OverviewPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-              <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Live Master Audit Stream</h3>
+              <h3 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>Live Master Audit Stream</h3>
             </div>
             <Link
               to="/super-admin/audit-logs"
