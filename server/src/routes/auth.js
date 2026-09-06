@@ -339,13 +339,12 @@ router.post('/oauth/:provider', async (req, res) => {
       url.searchParams.set('state', randomBytes(12).toString('hex'));
       return res.json({ success: true, mode: 'redirect', url: url.toString() });
     }
-    // Demo mode (no OAuth app keys configured): find-or-create the demo merchant
-    const user = await findOrCreateOAuthMerchant({
-      email: cfg.demoEmail,
-      name: cfg.demoName,
-      provider: req.params.provider
+    // No OAuth app keys configured — never fabricate accounts or stores.
+    const label = req.params.provider === 'google' ? 'Google' : 'Microsoft';
+    return res.status(503).json({
+      success: false,
+      message: `${label} sign-in is not configured yet. Please use email and password.`
     });
-    return res.json(oauthSession(user));
   } catch (error) {
     console.error('OAuth error:', error);
     return res.status(500).json({ success: false, message: 'OAuth sign-in failed.' });
