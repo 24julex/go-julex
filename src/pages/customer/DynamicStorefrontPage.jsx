@@ -421,9 +421,14 @@ export const DynamicStorefrontPage = () => {
       .then((res) => {
         if (cancelled || !res?.success || !res?.data) return;
         const cfg = res.data;
+        // Only accept a fully valid section list — a malformed/partial publish
+        // must never take the live storefront down.
+        const validSections = Array.isArray(cfg.sections)
+          && cfg.sections.length > 0
+          && cfg.sections.every((s) => s && typeof s.type === 'string' && s.data && typeof s.data === 'object');
         setThemeConfig((prev) => ({
-          styles: cfg.styles || prev.styles,
-          sections: Array.isArray(cfg.sections) && cfg.sections.length > 0 ? cfg.sections : prev.sections,
+          styles: cfg.styles && Object.keys(cfg.styles).length > 0 ? cfg.styles : prev.styles,
+          sections: validSections ? cfg.sections : prev.sections,
           presetId: cfg.presetId || prev.presetId
         }));
       })
