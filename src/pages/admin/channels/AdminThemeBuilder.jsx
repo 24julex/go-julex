@@ -1131,8 +1131,15 @@ export const AdminThemeBuilder = () => {
       localStorage.setItem(`gojulex_store_active_theme_${cleanSubdomain}`, activePresetId);
     } catch (e) {}
 
-    api.themes.saveConfig(payload).catch(() => {});
-    showToast('Theme layout & all custom sections published live! 🚀', 'success');
+    api.themes.saveConfig(payload, cleanSubdomain)
+      .then((res) => {
+        if (res?.success) {
+          showToast(`Theme published live to ${res.data?.subdomain || cleanSubdomain}! 🚀`, 'success');
+        } else {
+          showToast(res?.message || 'Publish failed. Please try again.', 'error');
+        }
+      })
+      .catch(() => showToast('Could not reach the server. Theme not published.', 'error'));
   };
 
   const handleDiscard = () => {

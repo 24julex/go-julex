@@ -11,15 +11,45 @@ const router = Router();
  */
 router.put('/config', requireMerchantAdmin, async (req, res) => {
   try {
-    const { config } = req.body;
+    const { config, subdomain } = req.body;
     if (!config || typeof config !== 'object') {
       return res.status(400).json({ success: false, message: 'Missing theme config payload.' });
     }
-    await prisma.tenant.update({
-      where: { id: req.tenantId },
+
+    // Resolve the tenant the config belongs to. Priority: impersonation scope,
+    // then the store subdomain being customized (super admin switching stores),
+    // then the logged-in merchant's own tenant.
+    const norm = (v) => String(v || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    let tenantId = req.impersonatedTenantId || null;
+
+    if (!tenantId && subdomain) {
+      const clean = norm(subdomain);
+      const all = await prisma.tenant.findMany();
+      const match = all.find((t) => norm(t.subdomain) === clean || norm(t.id) === clean);
+      if (!match) {
+        return res.status(404).json({ success: false, message: `No store found for subdomain "${clean}".` });
+      }
+      const isSuperAdmin = req.user.role === 'SUPER_ADMIN';
+      if (!isSuperAdmin && match.id !== req.user.tenantId) {
+        return res.status(403).json({ success: false, message: 'You can only publish themes to your own store.' });
+      }
+      tenantId = match.id;
+    }
+
+    if (!tenantId) tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, message: 'No store selected. Switch to a store first.' });
+    }
+
+    const updated = await prisma.tenant.update({
+      where: { id: tenantId },
       data: { themeConfig: JSON.stringify(config) }
     });
-    return res.json({ success: true, message: 'Theme config published.' });
+    return res.json({
+      success: true,
+      message: 'Theme config published.',
+      data: { tenantId: updated.id, subdomain: updated.subdomain }
+    });
   } catch (error) {
     console.error('Save theme config error:', error);
     return res.status(500).json({ success: false, message: 'Failed to save theme config.' });

@@ -101,10 +101,10 @@ export const api = {
   // Theme Catalog (public read; super-admin writes) — shared by both dashboards
   themes: {
     getOverrides: () => request('/themes'),
-    saveConfig: (config) =>
+    saveConfig: (config, subdomain) =>
       request('/themes/config', {
         method: 'PUT',
-        body: JSON.stringify({ config })
+        body: JSON.stringify({ config, subdomain })
       }),
     getPublicConfig: (subdomain) =>
       request(`/themes/public/${encodeURIComponent(subdomain)}`),

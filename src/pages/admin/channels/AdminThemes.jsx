@@ -148,7 +148,7 @@ export const AdminThemes = () => {
     setActiveTheme(theme);
     // Record the real store->theme mapping in the backend (super-admin portal reads it)
     api.themes.assign(currentStore?.id, theme.presetId).catch(() => {});
-    api.themes.saveConfig(newThemePayload).catch(() => {});
+    api.themes.saveConfig(newThemePayload, cleanSubdomain).catch(() => {});
     showToast(`"${theme.name}" applied & published live to your storefront! 🚀`, 'success');
 
     if (redirect) {

@@ -43,9 +43,9 @@ const readCfg = (keys) => {
   return null;
 };
 
-const writeCfg = (keys, cfg) => {
+const writeCfg = (keys, cfg, subdomain) => {
   try { keys.forEach((k) => localStorage.setItem(k, JSON.stringify(cfg))); } catch (e) {}
-  api.themes.saveConfig(cfg).catch(() => {});
+  api.themes.saveConfig(cfg, subdomain).catch(() => {});
 };
 
 const norm = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
@@ -101,7 +101,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       s.id === sid ? { ...s, data: { ...s.data, [field]: value } } : s
     );
     cfg.updatedAt = new Date().toISOString();
-    writeCfg(keys, cfg);
+    writeCfg(keys, cfg, subdomain);
   };
 
   const saveStyle = (sid, field, stylePatch) => {
@@ -109,7 +109,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     const i = (cfg.inlineStyles || []).findIndex((x) => x.sid === sid && x.field === field);
     const next = { ...(i >= 0 ? cfg.inlineStyles[i] : { sid, field }), ...stylePatch };
     if (i >= 0) cfg.inlineStyles[i] = next; else cfg.inlineStyles.push(next);
-    writeCfg(keys, cfg);
+    writeCfg(keys, cfg, subdomain);
   };
 
   const resolveTextField = (el, sec) => {
