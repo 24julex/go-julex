@@ -1,4 +1,4 @@
-import { JuxInlineEditor, applyJuxInlineStyles } from '../../components/customer/JuxInlineEditor';
+import { JuxInlineEditor, applyJuxInlineStyles, applyJuxConfig } from '../../components/customer/JuxInlineEditor';
 import { StoreCustomerAuthModal } from '../../components/customer/StoreCustomerAuthModal';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -431,6 +431,9 @@ export const DynamicStorefrontPage = () => {
           sections: validSections ? cfg.sections : prev.sections,
           presetId: cfg.presetId || prev.presetId
         }));
+        // Published customisations (inline styles + floating boxes) show for
+        // EVERY visitor — apply the backend config once sections have rendered.
+        if (!cancelled) setTimeout(() => applyJuxConfig(cfg), 400);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -440,6 +443,8 @@ export const DynamicStorefrontPage = () => {
   useEffect(() => {
     if (matchedStore?.id) applyJuxInlineStyles(matchedStore.id, cleanSubdomain);
   }, [matchedStore?.id, cleanSubdomain]);
+
+
 
   const handleQuickAdd = (product) => {
     const isOutOfStock = (Number(product.stockQuantity ?? product.stock ?? 0) <= 0) || product.status === 'No' || product.status === false || product.available === false;

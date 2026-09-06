@@ -1115,10 +1115,25 @@ export const AdminThemeBuilder = () => {
   };
 
   const handlePublish = () => {
+    // Merge in the newest edits saved by the Canva-style inline editor
+    // (it writes directly to the stored config from inside the preview
+    // iframe — publishing must never overwrite those with stale sections).
+    let stored = null;
+    try {
+      stored = JSON.parse(
+        localStorage.getItem(`gojulex_store_theme_${currentStore?.id || ''}`) ||
+        localStorage.getItem(`gojulex_store_theme_store_${cleanSubdomain}`) ||
+        localStorage.getItem(`gojulex_store_theme_${cleanSubdomain}`) || 'null'
+      );
+    } catch (e) {}
+    const storedNewer = stored?.updatedAt && (!sections || new Date(stored.updatedAt) >= new Date(sections.updatedAt || 0));
+    const mergedSections = (storedNewer && Array.isArray(stored.sections) && stored.sections.length > 0) ? stored.sections : sections;
     const payload = {
       presetId: activePresetId,
       styles,
-      sections,
+      sections: mergedSections,
+      inlineStyles: stored?.inlineStyles || [],
+      floating: stored?.floating || [],
       updatedAt: new Date().toISOString()
     };
     try {
