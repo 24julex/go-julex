@@ -1,4 +1,5 @@
 import express from 'express';
+import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../db.js';
 import { generateToken, requireAuth, requireSuperAdmin } from '../middleware/auth.js';
@@ -293,7 +294,7 @@ const findOrCreateOAuthMerchant = async ({ email, name, avatarUrl, provider }) =
       data: {
         email: cleanEmail,
         // Random password — this account can only sign in via OAuth
-        passwordHash: await bcrypt.hash(require('crypto').randomBytes(24).toString('hex'), 10),
+        passwordHash: await bcrypt.hash(randomBytes(24).toString('hex'), 10),
         name: name || provider,
         role: 'MERCHANT_OWNER',
         tenantId: tenant.id,
@@ -335,7 +336,7 @@ router.post('/oauth/:provider', async (req, res) => {
       url.searchParams.set('redirect_uri', redirectUri);
       url.searchParams.set('response_type', 'code');
       url.searchParams.set('scope', cfg.scope);
-      url.searchParams.set('state', require('crypto').randomBytes(12).toString('hex'));
+      url.searchParams.set('state', randomBytes(12).toString('hex'));
       return res.json({ success: true, mode: 'redirect', url: url.toString() });
     }
     // Demo mode (no OAuth app keys configured): find-or-create the demo merchant
