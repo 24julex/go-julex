@@ -40,6 +40,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(userData)
       }),
+    oauthLogin: (provider) =>
+      request(`/auth/oauth/${provider}`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      }),
     me: () => request('/auth/me'),
     impersonate: (tenantId) =>
       request('/auth/impersonate', {

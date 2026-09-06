@@ -237,6 +237,148 @@ router.post('/register', async (req, res) => {
 });
 
 // ----------------------------------------------------
+// OAuth (Google & Microsoft)
+// ----------------------------------------------------
+const OAUTH_PROVIDERS = {
+  google: {
+    clientId: () => process.env.GOOGLE_CLIENT_ID,
+    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    userInfoUrl: 'https://www.googleapis.com/oauth2/v3/userinfo',
+    scope: 'openid email profile',
+    demoEmail: 'merchant.google@mybrand.com',
+    demoName: 'Google Merchant'
+  },
+  microsoft: {
+    clientId: () => process.env.MICROSOFT_CLIENT_ID,
+    authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+    tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+    userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
+    scope: 'openid email profile',
+    demoEmail: 'merchant.microsoft@mybrand.com',
+    demoName: 'Microsoft Merchant'
+  }
+};
+
+const originUrl = (req) => process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+
+const findOrCreateOAuthMerchant = async ({ email, name, avatarUrl, provider }) => {
+  const cleanEmail = email.toLowerCase().trim();
+  let user = await prisma.user.findUnique({ where: { email: cleanEmail }, include: { tenant: true } });
+  if (user) return user;
+
+  const subdomain = ('oauth' + cleanEmail.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'oauthstore';
+  const tenant = await prisma.tenant.create({
+    data: {
+      id: `store_${subdomain}`,
+      name: `${(name || 'My Brand').split(' ')[0]}'s Store`,
+      subdomain,
+      customDomain: `${subdomain}.in`,
+      category: 'Custom E-Commerce Store',
+      planTier: 'SIX_MONTH',
+      status: 'ACTIVE'
+    }
+  });
+  user = await prisma.user.create({
+    data: {
+      email: cleanEmail,
+      // Random password — this account can only sign in via OAuth
+      passwordHash: await bcrypt.hash(require('crypto').randomBytes(24).toString('hex'), 10),
+      name: name || provider,
+      role: 'MERCHANT_OWNER',
+      tenantId: tenant.id,
+      avatarUrl: avatarUrl || null
+    },
+    include: { tenant: true }
+  });
+  return user;
+};
+
+const oauthSession = (user) => ({
+  success: true,
+  token: generateToken(user),
+  user: {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    avatarUrl: user.avatarUrl,
+    tenantId: user.tenantId,
+    tenant: user.tenant || null
+  }
+});
+
+// Button click — real redirect when configured, instant demo session otherwise
+router.post('/oauth/:provider', async (req, res) => {
+  const cfg = OAUTH_PROVIDERS[(req.params.provider || '').toLowerCase()];
+  if (!cfg) return res.status(400).json({ success: false, message: 'Unsupported provider.' });
+
+  try {
+    if (cfg.clientId()) {
+      const redirectUri = `${originUrl(req)}/api/auth/oauth/${req.params.provider}/callback`;
+      const url = new URL(cfg.authUrl);
+      url.searchParams.set('client_id', cfg.clientId());
+      url.searchParams.set('redirect_uri', redirectUri);
+      url.searchParams.set('response_type', 'code');
+      url.searchParams.set('scope', cfg.scope);
+      url.searchParams.set('state', require('crypto').randomBytes(12).toString('hex'));
+      return res.json({ success: true, mode: 'redirect', url: url.toString() });
+    }
+    // Demo mode (no OAuth app keys configured): find-or-create the demo merchant
+    const user = await findOrCreateOAuthMerchant({
+      email: cfg.demoEmail,
+      name: cfg.demoName,
+      provider: req.params.provider
+    });
+    return res.json(oauthSession(user));
+  } catch (error) {
+    console.error('OAuth error:', error);
+    return res.status(500).json({ success: false, message: 'OAuth sign-in failed.' });
+  }
+});
+
+// Real OAuth callback — exchange code, fetch profile, create/find merchant, bounce to app
+router.get('/oauth/:provider/callback', async (req, res) => {
+  const provider = (req.params.provider || '').toLowerCase();
+  const cfg = OAUTH_PROVIDERS[provider];
+  if (!cfg || !cfg.clientId() || !req.query.code) {
+    return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
+  }
+  try {
+    const redirectUri = `${originUrl(req)}/api/auth/oauth/${provider}/callback`;
+    const tokenRes = await fetch(cfg.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: cfg.clientId(),
+        client_secret: process.env[provider === 'google' ? 'GOOGLE_CLIENT_SECRET' : 'MICROSOFT_CLIENT_SECRET'] || '',
+        code: req.query.code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri
+      })
+    });
+    const tokens = await tokenRes.json();
+    if (!tokens.access_token) throw new Error('token exchange failed');
+    const profileRes = await fetch(cfg.userInfoUrl, { headers: { Authorization: `Bearer ${tokens.access_token}` } });
+    const profile = await profileRes.json();
+    const email = profile.email;
+    if (!email) throw new Error('no email in profile');
+    const user = await findOrCreateOAuthMerchant({
+      email,
+      name: profile.name || profile.given_name || email.split('@')[0],
+      avatarUrl: profile.picture || null,
+      provider
+    });
+    const session = oauthSession(user);
+    const params = new URLSearchParams({ oauth_token: session.token, role: session.user.role });
+    return res.redirect(`${originUrl(req)}/login?${params.toString()}`);
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
+  }
+});
+
+// ----------------------------------------------------
 // 6. Update User Profile
 // ----------------------------------------------------
 router.put('/profile', requireAuth, async (req, res) => {

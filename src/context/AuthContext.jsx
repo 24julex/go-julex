@@ -80,6 +80,34 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+  // Social OAuth sign-in (Google / Microsoft).
+  // Real OAuth redirect when the backend has app keys; instant demo session otherwise.
+  const oauthLogin = async (provider) => {
+    setLoading(true);
+    try {
+      const res = await api.auth.oauthLogin(provider);
+      if (res?.mode === 'redirect' && res?.url) {
+        window.location.href = res.url;
+        return { success: true, redirecting: true };
+      }
+      if (res?.success && res?.user) {
+        localStorage.setItem('gojulex_jwt_token', res.token);
+        const userObj = {
+          ...res.user,
+          avatar: res.user.avatarUrl || MERCHANT_CREDENTIALS.avatar
+        };
+        setCurrentUser(userObj);
+        setLoading(false);
+        return { success: true, user: userObj };
+      }
+      setLoading(false);
+      return { success: false, message: (res && res.message) || 'Social sign-in failed.' };
+    } catch (err) {
+      setLoading(false);
+      return { success: false, message: 'Cannot reach the server. Please try again.' };
+    }
+  };
+
   // Dual Login Handler (Super Admin vs Merchant vs Customer)
   const login = async (email, password) => {
     setLoading(true);
@@ -360,6 +388,7 @@ export const AuthProvider = ({ children }) => {
         impersonateMerchant,
         stopImpersonation,
         login,
+        oauthLogin,
         loginAdmin: login,
         loginUser: login,
         registerMerchant,

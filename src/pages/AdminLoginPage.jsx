@@ -37,9 +37,31 @@ import {
 } from 'lucide-react';
 
 export const AdminLoginPage = () => {
-  const { loginAdmin, registerMerchant } = useAuth();
+  const { loginAdmin, registerMerchant, oauthLogin } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+
+  // Real-OAuth callback: backend redirects back with ?oauth_token=...
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const t = q.get('oauth_token');
+    if (t) {
+      localStorage.setItem('gojulex_jwt_token', t);
+      fetch('/api/auth/me', { headers: { Authorization: `Bearer ${t}` } })
+        .then((r) => r.json())
+        .then((res) => {
+          const u = res.user || res.data;
+          if (u) {
+            const userObj = { ...u, avatar: u.avatarUrl };
+            localStorage.setItem('gojulex_auth_user', JSON.stringify(userObj));
+            window.location.href = u.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin';
+          } else {
+            window.location.href = '/login?oauth_error=1';
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   // Modal / Drawer state for Login / Register
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -865,10 +887,12 @@ export const AdminLoginPage = () => {
                     type="button"
                     onClick={async () => {
                       setLoading(true);
-                      const res = await loginAdmin(email || 'merchant.google@mybrand.com', 'oauth_google_verified');
+                      const res = await oauthLogin('google');
+                      if (res?.redirecting) return;
                       if (res?.success) {
                         navigate(res.user?.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin');
                       } else {
+                        setError(res?.message || 'Google sign-in failed.');
                         setLoading(false);
                       }
                     }}
@@ -888,10 +912,12 @@ export const AdminLoginPage = () => {
                     type="button"
                     onClick={async () => {
                       setLoading(true);
-                      const res = await loginAdmin(email || 'merchant.microsoft@mybrand.com', 'oauth_ms_verified');
+                      const res = await oauthLogin('microsoft');
+                      if (res?.redirecting) return;
                       if (res?.success) {
                         navigate(res.user?.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin');
                       } else {
+                        setError(res?.message || 'Microsoft sign-in failed.');
                         setLoading(false);
                       }
                     }}
