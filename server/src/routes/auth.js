@@ -268,29 +268,43 @@ const findOrCreateOAuthMerchant = async ({ email, name, avatarUrl, provider }) =
   if (user) return user;
 
   const subdomain = ('oauth' + cleanEmail.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'oauthstore';
-  const tenant = await prisma.tenant.create({
-    data: {
-      id: `store_${subdomain}`,
-      name: `${(name || 'My Brand').split(' ')[0]}'s Store`,
-      subdomain,
-      customDomain: `${subdomain}.in`,
-      category: 'Custom E-Commerce Store',
-      planTier: 'SIX_MONTH',
-      status: 'ACTIVE'
+  const tenantId = `store_${subdomain}`;
+  let tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+  if (!tenant) {
+    try {
+      tenant = await prisma.tenant.create({
+        data: {
+          id: tenantId,
+          name: `${(name || 'My Brand').split(' ')[0]}'s Store`,
+          subdomain,
+          customDomain: `${subdomain}.in`,
+          category: 'Custom E-Commerce Store',
+          planTier: 'SIX_MONTH',
+          status: 'ACTIVE'
+        }
+      });
+    } catch (e) {
+      if (e.code !== 'P2002') throw e;
+      tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
     }
-  });
-  user = await prisma.user.create({
-    data: {
-      email: cleanEmail,
-      // Random password — this account can only sign in via OAuth
-      passwordHash: await bcrypt.hash(require('crypto').randomBytes(24).toString('hex'), 10),
-      name: name || provider,
-      role: 'MERCHANT_OWNER',
-      tenantId: tenant.id,
-      avatarUrl: avatarUrl || null
-    },
-    include: { tenant: true }
-  });
+  }
+  try {
+    user = await prisma.user.create({
+      data: {
+        email: cleanEmail,
+        // Random password — this account can only sign in via OAuth
+        passwordHash: await bcrypt.hash(require('crypto').randomBytes(24).toString('hex'), 10),
+        name: name || provider,
+        role: 'MERCHANT_OWNER',
+        tenantId: tenant.id,
+        avatarUrl: avatarUrl || null
+      },
+      include: { tenant: true }
+    });
+  } catch (e) {
+    console.error('OAuth user create failed:', e.code, e.meta || e.message);
+    throw e;
+  }
   return user;
 };
 
