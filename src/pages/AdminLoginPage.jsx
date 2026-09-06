@@ -44,6 +44,16 @@ export const AdminLoginPage = () => {
   // Real-OAuth callback: backend redirects back with ?oauth_token=...
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
+    if (q.get('oauth_cancelled')) {
+      // User closed the account chooser — quietly back to the login form
+      window.history.replaceState({}, '', '/login');
+      return;
+    }
+    if (q.get('oauth_error')) {
+      setError('Sign-in was cancelled or could not be completed. Please try again or use email and password.');
+      window.history.replaceState({}, '', '/login');
+      return;
+    }
     const t = q.get('oauth_token');
     if (t) {
       localStorage.setItem('gojulex_jwt_token', t);

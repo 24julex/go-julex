@@ -336,6 +336,8 @@ router.post('/oauth/:provider', async (req, res) => {
       url.searchParams.set('redirect_uri', redirectUri);
       url.searchParams.set('response_type', 'code');
       url.searchParams.set('scope', cfg.scope);
+      // Always show the real account chooser, never silently reuse a session
+      url.searchParams.set('prompt', 'select_account');
       url.searchParams.set('state', randomBytes(12).toString('hex'));
       return res.json({ success: true, mode: 'redirect', url: url.toString() });
     }
@@ -355,7 +357,14 @@ router.post('/oauth/:provider', async (req, res) => {
 router.get('/oauth/:provider/callback', async (req, res) => {
   const provider = (req.params.provider || '').toLowerCase();
   const cfg = OAUTH_PROVIDERS[provider];
-  if (!cfg || !cfg.clientId() || !req.query.code) {
+  if (!cfg || !cfg.clientId()) {
+    return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
+  }
+  // User closed the chooser or clicked "Cancel" — not an error
+  if (req.query.error === 'access_denied' || req.query.error === 'consent_required' || req.query.error === 'login_required') {
+    return res.redirect(`${originUrl(req)}/login?oauth_cancelled=1`);
+  }
+  if (!req.query.code) {
     return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
   }
   try {

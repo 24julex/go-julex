@@ -79,6 +79,11 @@ export const AdminDashboard = () => {
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
             Managing <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{currentStore?.name || 'My Store'}</span> on Go Julex Merchant Cloud.
           </p>
+          {/* TEMP OAuth setup shortcuts — removed after setup */}
+          <div className="flex gap-2 pt-1">
+            <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">GCP: New Project</a>
+            <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-lg text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">Azure: App Registrations</a>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
