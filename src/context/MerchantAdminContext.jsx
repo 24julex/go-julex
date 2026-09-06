@@ -65,7 +65,8 @@ export const MerchantAdminProvider = ({ children }) => {
 
     // 2. If Super Admin is switching stores in dropdown
     if (isSuperAdmin && selectedStoreId) {
-      const storeObj = DEMO_STORES.find(s => s.id === selectedStoreId);
+      const storeObj = DEMO_STORES.find(s => s.id === selectedStoreId)
+        || (backendStores || []).find(s => s.id === selectedStoreId);
       if (storeObj) return storeObj;
     }
 
@@ -136,9 +137,37 @@ export const MerchantAdminProvider = ({ children }) => {
     return DEMO_STORES.find(s => s.id === selectedStoreId) || DEMO_STORES[0];
   };
 
+  // Real stores from the backend (super admin sees every tenant in the switcher).
+  // Falls back to the static demo list only if the API is unreachable.
+  const [backendStores, setBackendStores] = useState(null);
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    let cancelled = false;
+    api.superAdmin.getTenants()
+      .then((res) => {
+        if (cancelled || !res?.success) return;
+        const list = Array.isArray(res.data) ? res.data : res.data?.tenants || [];
+        const mapped = list.map((t) => ({
+          id: t.id || t.tenantId,
+          name: t.name || t.tenant?.name || 'Store',
+          subdomain: String(t.subdomain || t.id || '').toLowerCase().replace(/^store_/, '').replace(/\.gojulex\.com$/, ''),
+          customDomain: t.customDomain || t.tenant?.customDomain,
+          vertical: (t.category || t.tenant?.category || '').toLowerCase().includes('jewel') ? 'jewelry' : (t.category || '').toLowerCase().includes('book') ? 'books' : 'clothes',
+          categoryLabel: t.category || t.tenant?.category || 'Bespoke D2C Store',
+          status: (t.status || 'active').toLowerCase(),
+          logo: t.logoUrl || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=120&q=80'
+        })).filter((x) => x.id);
+        if (mapped.length > 0) setBackendStores(mapped);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isSuperAdmin]);
+  const demoStores = backendStores || DEMO_STORES;
+
   const currentStore = resolveCurrentStore();
   const currentStoreId = currentStore?.id || 'store_luxestudio';
-  const demoStores = DEMO_STORES;
+
+
 
   // 2. Multi-Store Products State
   const [productsByStore, setProductsByStore] = useState(() => {
@@ -396,7 +425,7 @@ export const MerchantAdminProvider = ({ children }) => {
   // Switch Store Handler (Works for Super Admin & Merchants with multiple stores)
   const switchStore = (storeId) => {
     setSelectedStoreId(storeId);
-    const storeObj = DEMO_STORES.find(s => s.id === storeId);
+    const storeObj = demoStores.find(s => s.id === storeId);
     try {
       localStorage.setItem('gojulex_merchant_store_id', storeId);
     } catch {}
@@ -635,7 +664,7 @@ export const MerchantAdminProvider = ({ children }) => {
     <MerchantAdminContext.Provider
       value={{
         // Stores
-        demoStores: DEMO_STORES,
+        demoStores,
         currentStore,
         currentStoreId,
         switchStore,
