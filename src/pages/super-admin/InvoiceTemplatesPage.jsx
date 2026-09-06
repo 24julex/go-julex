@@ -327,32 +327,20 @@ export const InvoiceTemplatesPage = () => {
                 }`}>
                   {template.tierAccess === 'PRO_EXCLUSIVE' ? '👑 Pro Exclusive' : '✨ Free Tier'}
                 </span>
-                <button
-                  onClick={() => setSelectedTemplateForPreview(template)}
-                  className="px-3 py-1.5 rounded-xl border text-xs font-bold shadow-xs flex items-center gap-1.5 transition text-black cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
-                >
-                  <Eye className="w-3.5 h-3.5" /> Full Live Preview
-                </button>
               </div>
             </div>
 
             {/* Bottom Actions */}
-            <div className="px-4 py-2 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--border-subtle)' }}>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => toggleTemplatePublish(template.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
-                    template.isPublished
-                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                      : 'bg-stone-500/10 text-stone-400 border-stone-500/30'
-                  }`}
-                >
-                  {template.isPublished ? '● Published' : '○ Draft'}
-                </button>
-              </div>
-
+            <div className="px-4 py-2 border-t flex items-center justify-end gap-2" style={{ borderColor: 'var(--border-subtle)' }}>
               <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setSelectedTemplateForPreview(template)}
+                  className="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                  style={{ borderColor: 'var(--border-input)', color: 'var(--text-primary)' }}
+                  title="See the actual printed invoice with this template"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Full Live Preview
+                </button>
                 <button
                   onClick={() => openEditModal(template)}
                   className="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition cursor-pointer text-black"

@@ -1,4 +1,5 @@
 import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
+import { useTheme } from '../context/ThemeContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -37,45 +38,11 @@ import {
 
 export const AdminLoginPage = () => {
   const { loginAdmin, registerMerchant } = useAuth();
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
   // Modal / Drawer state for Login / Register
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [flippedCard, setFlippedCard] = useState(null);
-
-  // ----------------------------------------------------
-  // LUXURY 3D COVERFLOW CAROUSEL (Aceternity-style)
-  // ----------------------------------------------------
-  const [luxuryIndex, setLuxuryIndex] = useState(0);
-  const luxuryDragStart = useRef(null);
-
-  const luxurySlides = [
-    { title: 'Signature Luxury Packaging', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-1.png' },
-    { title: 'Editorial Brand Photoshoots', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-3.jpg' },
-    { title: 'Boutique Digital Storefronts', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-5.jpg' },
-    { title: 'Premium Unboxing Experience', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-2.jpg' },
-    { title: 'Tailored Brand Stationery', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-4.png' },
-    { title: 'Heritage Craft Detailing', button: 'Build Your Luxury Storefront', src: '/theme-images/bags-6.jpg' },
-  ];
-
-  const luxuryNext = () => setLuxuryIndex((i) => (i + 1) % luxurySlides.length);
-  const luxuryPrev = () => setLuxuryIndex((i) => (i - 1 + luxurySlides.length) % luxurySlides.length);
-
-  const handleCarouselDragStart = (e) => {
-    luxuryDragStart.current = e.touches ? e.touches[0].clientX : e.clientX;
-  };
-  const handleCarouselDragMove = (e) => {
-    if (luxuryDragStart.current === null) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const diff = luxuryDragStart.current - x;
-    if (Math.abs(diff) > 60) {
-      diff > 0 ? luxuryNext() : luxuryPrev();
-      luxuryDragStart.current = x;
-    }
-  };
-  const handleCarouselDragEnd = () => {
-    luxuryDragStart.current = null;
-  };
   const [authMode, setAuthMode] = useState('signin'); // 'signin' | 'signup'
 
   // Sign In Form State
@@ -92,16 +59,44 @@ export const AdminLoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   // ----------------------------------------------------
-  // INTERACTIVE STATE FOR SHOWCASE SLIDES
+  // PILLAR 3D CAROUSEL (Aceternity-style effects)
   // ----------------------------------------------------
-  const [calcSales, setCalcSales] = useState(75000); // Slide 1: Interactive calculator
-  const [previewTheme, setPreviewTheme] = useState('blush'); // Slide 2: Interactive theme
-  const [activeDomainTab, setActiveDomainTab] = useState('subdomain'); // Slide 3: Interactive domain
-  const [activeInvoiceFormat, setActiveInvoiceFormat] = useState('A4'); // Slide 4: Interactive invoice
+  const [pillarIndex, setPillarIndex] = useState(0);
+  const pillarDragStart = useRef(null);
 
-  // ----------------------------------------------------
-  // CAROUSEL STATE & TOUCH / DRAG / CLICK HANDLERS
-  // ----------------------------------------------------
+  const pillarSlides = [
+    { icon: Percent, bubble: 'bg-amber-50 border-amber-200 text-amber-600', bubbleDark: 'bg-amber-500/10 border-amber-500/40 text-amber-300', bg: 'linear-gradient(160deg, #FFFBEB 0%, #FFF9E8 100%)', bgDark: 'linear-gradient(160deg, #1C1C1C 0%, #161616 100%)', title: '0% Platform Commission', desc: 'No intermediary marketplace cut. You retain 100% of your retail sales with direct merchant bank settlement.' },
+    { icon: Palette, bubble: 'bg-[#FFF1F2] border-[#FECDD3] text-[#9F1239]', bubbleDark: 'bg-rose-500/10 border-rose-500/40 text-rose-300', bg: 'linear-gradient(160deg, #FFF1F2 0%, #FFF9E8 100%)', bgDark: 'linear-gradient(160deg, #1C1C1C 0%, #161616 100%)', title: 'Visual Theme Customizer', desc: 'Full control over hero banners, announcement ribbons, trust badges, typography, and color palettes in real-time.' },
+    { icon: Globe, bubble: 'bg-purple-50 border-purple-200 text-purple-600', bubbleDark: 'bg-purple-500/10 border-purple-500/40 text-purple-300', bg: 'linear-gradient(160deg, #FAF5FF 0%, #FFF9E8 100%)', bgDark: 'linear-gradient(160deg, #1C1C1C 0%, #161616 100%)', title: 'Instant Subdomain & Custom Domains', desc: 'Instantly live at yourbrand.gojulex.com with 1-click custom domain mapping for your brand.' },
+    { icon: FileText, bubble: 'bg-emerald-50 border-emerald-200 text-emerald-600', bubbleDark: 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300', bg: 'linear-gradient(160deg, #ECFDF5 0%, #FFF9E8 100%)', bgDark: 'linear-gradient(160deg, #1C1C1C 0%, #161616 100%)', title: 'GST Tax Invoices & Print', desc: 'Dual CGST/SGST breakdowns, HSN codes, printable tax invoices, and automated WhatsApp order confirmations.' },
+    { icon: CreditCard, bubble: 'bg-rose-50 border-rose-200 text-rose-600', bubbleDark: 'bg-rose-500/10 border-rose-500/40 text-rose-300', bg: 'linear-gradient(160deg, #FFF1F2 0%, #FFF9E8 100%)', bgDark: 'linear-gradient(160deg, #1C1C1C 0%, #161616 100%)', title: '1-Click Checkout, UPI & COD', desc: 'Frictionless checkout with instant Google Pay, PhonePe, Paytm QR, cards, net banking, and cash on delivery.' },
+    { icon: ShieldCheck, bubble: 'bg-yellow-50 border-yellow-200 text-yellow-600', bubbleDark: 'bg-yellow-500/10 border-yellow-500/40 text-yellow-300', bg: 'linear-gradient(160deg, #FEFCE8 0%, #FFF9E8 100%)', bgDark: 'linear-gradient(160deg, #1C1C1C 0%, #161616 100%)', title: 'Escrow & Tenant Isolation', desc: 'Multi-tenant architecture guarantees complete store privacy, zero cross-store data leakage, and master admin oversight.' },
+  ];
+
+  const pillarNext = () => setPillarIndex((i) => (i + 1) % pillarSlides.length);
+  const pillarPrev = () => setPillarIndex((i) => (i - 1 + pillarSlides.length) % pillarSlides.length);
+
+  const handleCarouselDragStart = (e) => {
+    pillarDragStart.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+  const handleCarouselDragMove = (e) => {
+    if (pillarDragStart.current === null) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const diff = pillarDragStart.current - x;
+    if (Math.abs(diff) > 60) {
+      diff > 0 ? pillarNext() : pillarPrev();
+      pillarDragStart.current = x;
+    }
+  };
+  const handleCarouselDragEnd = () => {
+    pillarDragStart.current = null;
+  };
+
+  const [calcSales, setCalcSales] = useState(75000);
+  const [previewTheme, setPreviewTheme] = useState('blush');
+  const [activeDomainTab, setActiveDomainTab] = useState('subdomain');
+  const [activeInvoiceFormat, setActiveInvoiceFormat] = useState('A4');
+
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState('next');
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -109,6 +104,52 @@ export const AdminLoginPage = () => {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const isDragging = useRef(false);
+
+  // ----------------------------------------------------
+  // HERO THEME CARDS — uniform grid coverage with smooth
+  // looping wander (every zone always has a card; no
+  // clustering, no empty regions, rims reachable, no cuts)
+  // ----------------------------------------------------
+  const heroRoamRef = useRef(null);
+  useEffect(() => {
+    const container = heroRoamRef.current;
+    if (!container || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cards = [...container.querySelectorAll('[data-roam]')];
+    const W = container.clientWidth, H = container.clientHeight;
+    const COLS = 3, ROWS = 3;
+    const state = cards.map((el, i) => {
+      const w = el.offsetWidth || 200, h = el.offsetHeight || 200;
+      const col = i % COLS, row = Math.floor(i / COLS);
+      const cw = W / COLS, ch = H / ROWS;
+      return {
+        el, w, h,
+        homeX: cw * col + cw / 2 + (Math.random() - 0.5) * cw * 0.18 - w / 2,
+        homeY: ch * row + ch / 2 + (Math.random() - 0.5) * ch * 0.18 - h / 2,
+        ax: cw * 0.34,
+        ay: ch * 0.34,
+        tx: 42 + Math.random() * 22,
+        ty: 50 + Math.random() * 26,
+        px: Math.random() * Math.PI * 2,
+        py: Math.random() * Math.PI * 2,
+        rp: Math.random() * Math.PI * 2,
+      };
+    });
+    let raf;
+    const tick = (now) => {
+      const t = now / 1000;
+      for (const c of state) {
+        let x = c.homeX + c.ax * Math.sin((2 * Math.PI * t) / c.tx + c.px);
+        let y = c.homeY + c.ay * Math.sin((2 * Math.PI * t) / c.ty + c.py);
+        x = Math.max(0, Math.min(W - c.w, x));
+        y = Math.max(0, Math.min(H - c.h, y));
+        const rot = 8 * Math.sin((2 * Math.PI * t) / 34 + c.rp);
+        c.el.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px) rotate(' + rot.toFixed(2) + 'deg)';
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const totalSlides = 4;
 
@@ -477,6 +518,21 @@ export const AdminLoginPage = () => {
 
   return (
     <div className="relative h-screen overflow-y-auto overflow-x-hidden snap-y snap-mandatory julex-landing-bg text-[#0F172A] dark:text-slate-100 selection:bg-amber-200 selection:text-amber-900 font-sans">
+      {/* Faint circular theme cards wandering the FULL first viewport, edge to edge, never clipped */}
+      <div ref={heroRoamRef} className="absolute left-0 right-0 top-[73px] h-[calc(100vh-73px)] hidden lg:block pointer-events-none z-0">
+        {[
+          '/hero-images/theme-1.png','/hero-images/theme-2.png','/hero-images/theme-3.png','/hero-images/theme-4.png',
+          '/hero-images/theme-5.png','/hero-images/theme-6.png','/hero-images/theme-7.png','/hero-images/theme-8.png',
+          '/hero-images/theme-9.png',
+        ].map((src) => (
+          <div key={src} data-roam className="absolute left-0 top-0 will-change-transform">
+            <div className="h-52 w-52 xl:h-60 xl:w-60 rounded-full overflow-hidden border-2 border-[#E7D7AE]/70 dark:border-gold-400/40 shadow-xl shadow-black/10 [filter:blur(1px)] opacity-[0.18] pointer-events-auto cursor-pointer transition-all duration-300 hover:opacity-40 hover:[filter:blur(0px)] hover:scale-110 hover:border-[#B8860B] dark:hover:border-gold-300 hover:shadow-[0_0_35px_rgba(184,134,11,0.45)]">
+              <img src={src} alt="" aria-hidden className="w-full h-full object-cover" draggable={false} />
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Interactive Floating Constellation & Glow Animation Canvas */}
       {/* TOP NAVIGATION BAR — fixed so each screen below aligns exactly to the viewport */}
       <header className="fixed top-0 left-0 right-0 z-40 border-b border-[#EFE2BC] dark:border-obsidian-700 bg-white/90 dark:bg-obsidian-900/90 dark:bg-obsidian-900/90 backdrop-blur-xl px-4 sm:px-8 py-2 flex items-center justify-between shadow-xs">
@@ -492,7 +548,10 @@ export const AdminLoginPage = () => {
         <div className="hidden lg:flex items-center gap-8 text-sm text-[#475569] dark:text-slate-400 font-semibold">
           <a href="#showcase" className="hover:text-[#A87A00] transition">Platform Showcase</a>
           <a href="#tenants-get" className="hover:text-[#A87A00] transition">What Tenants Get</a>
-          <a href="#tenants-get" className="hover:text-[#A87A00] transition">0% Fee Architecture</a>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-semibold whitespace-nowrap" style={{ borderColor: '#D4AF37', color: '#B8860B' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B] dark:bg-gold-300" />
+            0% Commission Fee
+          </span>
         </div>
 
         {/* Right: Theme Switch, Sign In & Launch Buttons */}
@@ -517,19 +576,15 @@ export const AdminLoginPage = () => {
             className="px-4 sm:px-5 py-2 rounded-xl bg-[#A87A00] hover:bg-[#8A6200] text-white font-bold text-sm shadow-md shadow-amber-900/20 transition transform hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <Store className="w-4 h-4" />
-            <span>Start Your Store Free</span>
+            <span>Start Your Store</span>
           </button>
         </div>
       </header>
 
       {/* HERO — fills exactly the first viewport below the fixed header */}
       <section id="showcase" className="relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 pt-[73px] snap-start">
-        <div className="text-center space-y-5 max-w-4xl mx-auto h-[calc(100vh-73px)] flex flex-col items-center justify-center py-8">
-          <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#9F1239] animate-ping" />
-            <span className="text-sm sm:text-base font-bold uppercase tracking-[0.25em] text-[#8A6200]">✦ 0% COMMISSION • 100% PROFIT</span>
-          </div>
-
+        <div className="relative w-full h-[calc(100vh-73px)] flex items-center justify-center overflow-hidden">
+          <div className="relative z-10 text-center space-y-5 max-w-4xl mx-auto flex flex-col items-center justify-center py-8 px-4">
           <h1 className="font-serif text-[2.75rem] sm:text-6xl lg:text-7xl font-black tracking-tight text-[#0F172A] dark:text-slate-100 leading-tight">
             Launch Your Independent Brand Storefront.{' '}
             <span className="text-[#A87A00] inline-block">
@@ -538,6 +593,7 @@ export const AdminLoginPage = () => {
           </h1>
 
           <p className="text-lg sm:text-xl lg:text-2xl text-[#475569] dark:text-slate-400 font-normal max-w-3xl mx-auto leading-relaxed">Launch a high-converting luxury storefront in minutes. 0% take-rate. Instant checkout. Keep 100% of every rupee.</p>
+        </div>
         </div>
 
       </section>
@@ -556,66 +612,9 @@ export const AdminLoginPage = () => {
           </p>
         </div>
 
-        {/* Framer-style flip cards: front = heading, back = explanation */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { icon: Percent, bubble: 'bg-amber-50 border-amber-200 text-amber-600', title: '0% Platform Commission', desc: 'No intermediary marketplace cut. You retain 100% of your retail sales with direct merchant bank settlement.' },
-            { icon: Palette, bubble: 'bg-[#FFF1F2] border-[#FECDD3] text-[#9F1239]', title: 'Visual Drag & Drop Theme Customizer', desc: 'Full control over hero banners, announcement ribbons, trust badges, typography, and color palettes in real-time.' },
-            { icon: Globe, bubble: 'bg-purple-50 border-purple-200 text-purple-600', title: 'Instant Subdomain & Custom Domains', desc: 'Instantly live at yourbrand.gojulex.com with 1-click custom domain mapping for your brand.' },
-            { icon: FileText, bubble: 'bg-emerald-50 border-emerald-200 text-emerald-600', title: 'GST Tax Invoices & A4/Thermal Print', desc: 'Dual CGST/SGST breakdowns, HSN codes, printable tax invoices, and automated WhatsApp order confirmations.' },
-            { icon: CreditCard, bubble: 'bg-rose-50 border-rose-200 text-rose-600', title: '1-Click Checkout, UPI & COD', desc: 'Frictionless checkout experience with instant Google Pay, PhonePe, Paytm QR, cards, net banking, and cash on delivery.' },
-            { icon: ShieldCheck, bubble: 'bg-yellow-50 border-yellow-200 text-yellow-600', title: 'Master Admin Escrow & Tenant Isolation', desc: 'Multi-tenant architecture guarantees complete store privacy, zero cross-store data leakage, and master super admin oversight.' },
-          ].map((card) => {
-            const IconComp = card.icon;
-            return (
-              <div
-                key={card.title}
-                className={'flip-scene h-[260px] cursor-pointer ' + (flippedCard === card.title ? 'flipped' : '')}
-                onClick={() => setFlippedCard(flippedCard === card.title ? null : card.title)}
-              >
-                <div className="flip-inner">
-                  {/* FRONT: heading */}
-                  <div className="flip-face rounded-3xl bg-white dark:bg-obsidian-850 border border-[#EFE2BC] dark:border-obsidian-700 p-8 flex flex-col items-center justify-center text-center gap-5 shadow-sm">
-                    <div className={'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border ' + card.bubble}>
-                      <IconComp className="w-7 h-7" />
-                    </div>
-                    <h3 className="font-serif text-xl font-bold text-[#0F172A] dark:text-slate-100">
-                      {card.title}
-                    </h3>
-                  </div>
-                  {/* BACK: explanation */}
-                  <div className="flip-face flip-back rounded-3xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E] dark:border-gold-400/40 p-8 flex flex-col items-center justify-center text-center gap-4 shadow-md">
-                    <h4 className="font-serif text-base font-bold text-[#8A6200] dark:text-gold-300">
-                      {card.title}
-                    </h4>
-                    <p className="text-sm text-[#475569] dark:text-slate-300 leading-relaxed">
-                      {card.desc}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* LUXURY BRANDING & PACKAGING — Aceternity-style 3D coverflow carousel */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 snap-start overflow-hidden">
-        <div className="text-center space-y-3 mb-10">
-          <span className="text-[10px] uppercase tracking-[0.25em] text-[#9F1239] font-bold block">
-            ✦ LUXURY PACKAGING & BRANDING
-          </span>
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A] dark:text-slate-100">
-            Elevate Your Store with Signature Luxury Appeal
-          </h2>
-          <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-400 max-w-2xl mx-auto">
-            Drag or use the arrows — from high-end packaging to tailored digital storefronts, Go Julex gives your independent brand an elite, recognizable identity with 0% take-rate.
-          </p>
-        </div>
-
-        {/* 3D coverflow stage */}
+        {/* Aceternity-style 3D carousel: drag, arrows, dots */}
         <div
-          className="relative h-[460px] select-none cursor-grab active:cursor-grabbing"
+          className="relative h-[480px] select-none cursor-grab active:cursor-grabbing"
           style={{ perspective: '1600px' }}
           onMouseDown={handleCarouselDragStart}
           onMouseMove={handleCarouselDragMove}
@@ -626,71 +625,106 @@ export const AdminLoginPage = () => {
           onTouchEnd={handleCarouselDragEnd}
         >
           <div className="absolute inset-0" style={{ transformStyle: 'preserve-3d' }}>
-            {luxurySlides.map((slide, i) => {
-              // shortest signed distance around the ring
-              let offset = i - luxuryIndex;
-              const half = luxurySlides.length / 2;
-              if (offset > half) offset -= luxurySlides.length;
-              if (offset < -half) offset += luxurySlides.length;
+            {pillarSlides.map((slide, i) => {
+              let offset = i - pillarIndex;
+              const half = pillarSlides.length / 2;
+              if (offset > half) offset -= pillarSlides.length;
+              if (offset < -half) offset += pillarSlides.length;
               if (Math.abs(offset) > 2) return null;
+              const IconComp = slide.icon;
               return (
                 <div
                   key={slide.title}
-                  onClick={() => offset !== 0 && setLuxuryIndex(i)}
-                  className="absolute left-1/2 top-1/2 w-[280px] sm:w-[340px] h-[400px] sm:h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-3xl overflow-hidden border border-[#EFE2BC] dark:border-obsidian-700 shadow-2xl"
+                  onClick={() => offset !== 0 && setPillarIndex(i)}
+                  className="absolute left-1/2 top-1/2 w-[300px] sm:w-[360px] h-[420px] rounded-3xl overflow-hidden border shadow-2xl flex flex-col items-center justify-center text-center p-8 gap-5"
                   style={{
-                    transform: `translateX(${offset * 55}%) translateZ(${-Math.abs(offset) * 220}px) rotateY(${offset * -32}deg) scale(${offset === 0 ? 1 : 0.92})`,
+                    background: isDarkMode ? slide.bgDark : slide.bg,
+                    borderColor: offset === 0 ? '#A87A00' : '#EFE2BC',
+                    transform: 'translate(-50%, -50%) translateX(' + (offset * 55) + '%) translateZ(' + (-Math.abs(offset) * 220) + 'px) rotateY(' + (offset * -32) + 'deg) scale(' + (offset === 0 ? 1 : 0.92) + ')',
                     zIndex: 10 - Math.abs(offset),
                     opacity: Math.abs(offset) > 1 ? 0.35 : 1,
                     transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease',
                     pointerEvents: offset === 0 ? 'auto' : 'none',
                   }}
                 >
-                  <img src={slide.src} alt={slide.title} draggable={false} className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="font-serif text-xl font-bold text-white">{slide.title}</h3>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAuthMode('signup');
-                        setIsAuthOpen(true);
-                      }}
-                      className="mt-3 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white text-xs font-bold transition cursor-pointer"
-                    >
-                      {slide.button}
-                    </button>
+                  <div className={'w-16 h-16 rounded-2xl flex items-center justify-center border-2 ' + (isDarkMode ? slide.bubbleDark : slide.bubble)}>
+                    <IconComp className="w-8 h-8" />
                   </div>
+                  <h3 className="font-serif text-2xl font-bold text-[#0F172A] dark:text-slate-100 leading-snug">
+                    {slide.title}
+                  </h3>
+                  <p className="text-sm text-[#475569] dark:text-slate-400 leading-relaxed max-w-[260px]">
+                    {slide.desc}
+                  </p>
                 </div>
               );
             })}
           </div>
 
-          {/* Arrows */}
           <button
-            onClick={luxuryPrev}
+            onClick={pillarPrev}
             className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 dark:bg-obsidian-800/80 border border-[#EFE2BC] dark:border-obsidian-600 shadow-md flex items-center justify-center text-[#8A6200] hover:scale-110 transition cursor-pointer"
             aria-label="Previous"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
-            onClick={luxuryNext}
+            onClick={pillarNext}
             className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 dark:bg-obsidian-800/80 border border-[#EFE2BC] dark:border-obsidian-600 shadow-md flex items-center justify-center text-[#8A6200] hover:scale-110 transition cursor-pointer"
             aria-label="Next"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Dots */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-            {luxurySlides.map((_, dIdx) => (
+            {pillarSlides.map((_, dIdx) => (
               <button
                 key={dIdx}
-                onClick={() => setLuxuryIndex(dIdx)}
-                className={'h-2 rounded-full transition-all duration-300 cursor-pointer ' + (dIdx === luxuryIndex ? 'w-7 bg-[#A87A00]' : 'w-2 bg-[#E7D49E] hover:bg-[#A87A00]')}
+                onClick={() => setPillarIndex(dIdx)}
+                className={'h-2 rounded-full transition-all duration-300 cursor-pointer ' + (dIdx === pillarIndex ? 'w-7 bg-[#A87A00]' : 'w-2 bg-[#E7D49E] hover:bg-[#A87A00]')}
               />
             ))}
+          </div>
+        </div>
+
+      </section>
+
+      {/* LUXURY BRANDING & PACKAGING SHOWCASE */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 snap-start">
+        <div className="relative rounded-3xl overflow-hidden border border-[#EFE2BC] shadow-xl bg-white dark:bg-obsidian-850">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
+            <div className="lg:col-span-7 relative h-72 sm:h-96">
+              <img
+                src="/images/gojulex_luxury_bags.jpg"
+                alt="Go Julex Luxury Brand Packaging"
+                className="w-full h-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white dark:to-obsidian-850 hidden lg:block" />
+            </div>
+            <div className="lg:col-span-5 p-6 sm:p-10 space-y-4 text-left">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-[#9F1239] font-bold block">
+                ✦ LUXURY PACKAGING & BRANDING
+              </span>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A] dark:text-slate-100">
+                Elevate Your Store with Signature Luxury Appeal
+              </h2>
+              <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-400 leading-relaxed">
+                From high-end packaging to tailored digital storefronts, Go Julex gives your independent brand an elite, recognizable identity with 0% take-rate.
+              </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setIsAuthOpen(true);
+                  }}
+                  className="px-5 py-3 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-sm shadow-md transition flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Build Your Luxury Storefront</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>

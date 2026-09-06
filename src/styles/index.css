@@ -600,9 +600,60 @@ textarea:focus {
 .julex-landing-bg { background-color: #FFF9E8; }
 html.dark .julex-landing-bg { background-color: #0A0A0A; }
 
-/* Framer-style 3D flip cards */
-.flip-scene { perspective: 1200px; }
-.flip-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.1, 0.2, 1); }
-.flip-scene:hover .flip-inner, .flip-scene.flipped .flip-inner { transform: rotateY(180deg); }
-.flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.flip-back { transform: rotateY(180deg); }
+
+
+/* Canva-style inline editing (Visual Customizer) */
+.jx-edit-wrap { position: relative; }
+.jx-edit-wrap:hover { outline: 1.5px dashed rgba(168, 122, 0, 0.55); outline-offset: -1.5px; }
+.jx-editing { outline: 2px solid #A87A00 !important; outline-offset: 2px; cursor: text; box-shadow: 0 0 0 4px rgba(168,122,0,0.15) !important; }
+.jx-edit-badge {
+  position: fixed; bottom: 16px; left: 16px; z-index: 9999;
+  background: #111; color: #fff; font: 600 11px/1.2 'Work Sans', sans-serif;
+  padding: 9px 14px; border-radius: 999px; box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+.jux-toolbar {
+  position: fixed; z-index: 10000; display: flex; align-items: center; gap: 4px;
+  background: #111; padding: 6px 8px; border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+}
+.jux-tool-select {
+  background: #111; color: #fff; border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px; font: 600 11px 'Work Sans', sans-serif; padding: 4px 6px; cursor: pointer; max-width: 130px;
+}
+.jux-tool-btn {
+  background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 8px;
+  font: 700 12px 'Work Sans', sans-serif; padding: 5px 9px; cursor: pointer;
+}
+.jux-tool-btn:hover { background: rgba(255,255,255,0.22); }
+.jux-tool-active { background: #A87A00; }
+.jux-tool-done {
+  background: linear-gradient(135deg, #A87A00, #D4A017); color: #fff; border: none;
+  border-radius: 8px; font: 700 11px 'Work Sans', sans-serif; padding: 6px 12px; cursor: pointer; margin-left: 4px;
+}
+.jux-imgpicker {
+  position: fixed; z-index: 10000; width: 220px;
+  background: #fff; border-radius: 14px; padding: 12px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.28); border: 1px solid #E5E7EB;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.jux-imgpicker-title { font: 800 12px 'Work Sans', sans-serif; color: #111; }
+.jux-imgpicker-btn {
+  display: block; text-align: center; padding: 9px; border-radius: 10px;
+  background: linear-gradient(135deg, #A87A00, #D4A017); color: #fff;
+  font: 700 12px 'Work Sans', sans-serif; cursor: pointer;
+}
+.jux-imgpicker-url {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #E5E7EB;
+  border-radius: 10px; font: 400 11px 'Work Sans', sans-serif; outline: none;
+}
+.jux-imgpicker-cancel {
+  background: none; border: none; color: #6B7280; font: 600 11px 'Work Sans', sans-serif; cursor: pointer;
+}
+
+/* Touch devices have no hover — always show the slide-up Add-to-Bag buttons */
+@media (hover: none) {
+  [class*="translate-y-14"][class*="group-hover:translate-y-0"] {
+    transform: translateX(-50%) !important;
+  }
+}

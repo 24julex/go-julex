@@ -47,17 +47,17 @@ export const SuperAdminLayout = () => {
 
   const navItems = [
     { label: 'Overview', path: '/super-admin/overview', icon: LayoutDashboard, badge: null },
-    { label: 'Tenants (Stores)', path: '/super-admin/tenants', icon: Store, badge: `${tenants?.length ?? 0}` },
-    { label: 'Plans & Tiers', path: '/super-admin/plans', icon: CreditCard, badge: '0% Fee' },
-    { label: 'Revenue & MRR', path: '/super-admin/revenue', icon: TrendingUp, badge: (metrics?.estimatedMRR > 0 ? `₹${(metrics.estimatedMRR / 1000).toFixed(0)}k` : '₹0') },
-    { label: 'Themes & Distribution', path: '/super-admin/themes', icon: Palette, badge: '21 Themes' },
-    { label: 'Invoices & Distribution', path: '/super-admin/invoices', icon: FileText, badge: '6 Formats' },
+    { label: 'Tenants (Stores)', path: '/super-admin/tenants', icon: Store, badge: null },
+    { label: 'Plans & Tiers', path: '/super-admin/plans', icon: CreditCard, badge: null },
+    { label: 'Revenue & MRR', path: '/super-admin/revenue', icon: TrendingUp, badge: null },
+    { label: 'Themes & Distribution', path: '/super-admin/themes', icon: Palette, badge: null },
+    { label: 'Invoices & Distribution', path: '/super-admin/invoices', icon: FileText, badge: null },
     { label: 'Analytics Engine', path: '/super-admin/analytics', icon: BarChart3, badge: null },
-    { label: 'Orders & GMV', path: '/super-admin/gmv', icon: ShoppingBag, badge: (metrics?.totalPlatformGMV > 0 ? `₹${metrics.totalPlatformGMV.toLocaleString('en-IN')}` : `${metrics?.totalPlatformOrders ?? 0} Orders`) },
-    { label: 'Audit Logs', path: '/super-admin/audit-logs', icon: ShieldCheck, badge: 'Live' },
+    { label: 'Orders & GMV', path: '/super-admin/gmv', icon: ShoppingBag, badge: null },
+    { label: 'Audit Logs', path: '/super-admin/audit-logs', icon: ShieldCheck, badge: null },
     { label: 'Merchants & Users', path: '/super-admin/merchants', icon: Users, badge: null },
     { label: 'Broadcasts', path: '/super-admin/notifications', icon: Bell, badge: null },
-    { label: 'Feature Flags', path: '/super-admin/settings', icon: Sliders, badge: '7 Active' },
+    { label: 'Feature Flags', path: '/super-admin/settings', icon: Sliders, badge: null },
   ];
 
   return (
@@ -136,27 +136,6 @@ export const SuperAdminLayout = () => {
           })}
         </div>
 
-        {/* Telemetry Card */}
-        <div className="p-3 shrink-0" style={{ borderTop: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-sidebar)' }}>
-          <div className="p-3 rounded-2xl space-y-2" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-card)' }}>
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Platform Health
-              </span>
-              <span className="text-emerald-500 font-mono text-[10px] font-bold">99.99%</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Estimated MRR:</span>
-              <span className="font-bold font-mono" style={{ color: 'var(--accent)' }}>
-                ₹{metrics.estimatedMRR.toLocaleString('en-IN')}/mo
-              </span>
-            </div>
-            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-subtle)' }}>
-              <div className="bg-gradient-to-r from-amber-500 to-yellow-400 h-full w-[88%]" />
-            </div>
-          </div>
-        </div>
       </aside>
 
       {/* Mobile Drawer Overlay */}

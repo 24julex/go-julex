@@ -1,3 +1,4 @@
+import { JuxInlineEditor, applyJuxInlineStyles } from '../../components/customer/JuxInlineEditor';
 import { StoreCustomerAuthModal } from '../../components/customer/StoreCustomerAuthModal';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -33,7 +34,11 @@ import {
   User,
   ShoppingBasket,
   Trash2,
-  X
+  X,
+  Phone,
+  MessageCircle,
+  MapPin,
+  RefreshCw
 } from 'lucide-react';
 import { DEMO_STORES, INITIAL_PRODUCTS_BY_STORE } from '../../data/multiVerticalMockData';
 import { api } from '../../services/api';
@@ -81,6 +86,14 @@ export const DynamicStorefrontPage = () => {
   };
 
   const [isBagDrawerOpen, setIsBagDrawerOpen] = useState(false);
+  // Olive & Linen template: working storefront search
+  const [isOliveSearchOpen, setIsOliveSearchOpen] = useState(false);
+  const [oliveSearchQuery, setOliveSearchQuery] = useState('');
+  // Rose Bloom Beauty template: working category filter
+  const [bloomCategory, setBloomCategory] = useState('All');
+  // Camel Editorial Fashion template: working category filter
+  const [camelCategory, setCamelCategory] = useState('All');
+  const [newsletterDone, setNewsletterDone] = useState(false);
   const [isCustomerAuthOpen, setIsCustomerAuthOpen] = useState(false);
   const [activeShowcaseTab, setActiveShowcaseTab] = useState('checkout');
   const [activeCustomer, setActiveCustomer] = useState(() => {
@@ -116,6 +129,8 @@ export const DynamicStorefrontPage = () => {
   // 2. Load Saved or Default Theme Configuration
   const [searchParams] = useSearchParams();
   const previewPresetId = searchParams.get('theme'); // live-preview override (?theme=preset_id)
+  // Canva-style in-template editing, enabled inside the merchant Visual Customizer iframe
+  const isJulexEditMode = searchParams.get('julex_edit') === '1';
   const [themeConfig, setThemeConfig] = useState(() => {
     let savedStyles = null;
     let savedSections = null;
@@ -252,7 +267,17 @@ export const DynamicStorefrontPage = () => {
             badge: 'Verified Buyer, Mumbai'
           }
         },
-        {
+{
+          id: 'sec_story',
+          type: 'story',
+          name: 'About Us',
+          enabled: true,
+          data: {
+            title: `Our Story`,
+            text: `${matchedStore.name} sells direct — no middlemen, no marketplace commissions. Every piece is crafted in limited runs and shipped straight from our studio to you.`
+          }
+        },
+                {
           id: 'sec_footer',
           type: 'footer',
           name: 'Footer',
@@ -386,6 +411,30 @@ export const DynamicStorefrontPage = () => {
     window.addEventListener('hashchange', handleHashScroll);
     return () => window.removeEventListener('hashchange', handleHashScroll);
   }, []);
+
+  // Load the PUBLISHED theme config from the backend so every visitor
+  // sees the store exactly as the merchant designed it (localStorage is
+  // only a local draft fallback).
+  useEffect(() => {
+    let cancelled = false;
+    api.themes.getPublicConfig(cleanSubdomain)
+      .then((res) => {
+        if (cancelled || !res?.success || !res?.data) return;
+        const cfg = res.data;
+        setThemeConfig((prev) => ({
+          styles: cfg.styles || prev.styles,
+          sections: Array.isArray(cfg.sections) && cfg.sections.length > 0 ? cfg.sections : prev.sections,
+          presetId: cfg.presetId || prev.presetId
+        }));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [cleanSubdomain]);
+
+  // Re-apply merchant inline font/bold/size edits saved from the Visual Customizer
+  useEffect(() => {
+    if (matchedStore?.id) applyJuxInlineStyles(matchedStore.id, cleanSubdomain);
+  }, [matchedStore?.id, cleanSubdomain]);
 
   const handleQuickAdd = (product) => {
     const isOutOfStock = (Number(product.stockQuantity ?? product.stock ?? 0) <= 0) || product.status === 'No' || product.status === false || product.available === false;
@@ -549,11 +598,13 @@ export const DynamicStorefrontPage = () => {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
                   Craft Specifications:
                 </span>
-                {Object.entries(selectedProductForVariant.specs).map(([k, v]) => (
-                  <p key={k} className="text-stone-600 text-[11px]">
-                    <strong className="text-stone-800">{k}:</strong> {v}
-                  </p>
-                ))}
+                {Object.entries(selectedProductForVariant.specs)
+                  .filter(([k, v]) => v !== null && v !== undefined && typeof v !== 'object')
+                  .map(([k, v]) => (
+                    <p key={k} className="text-stone-600 text-[11px]">
+                      <strong className="text-stone-800">{k}:</strong> {String(v)}
+                    </p>
+                  ))}
               </div>
             )}
 
@@ -592,7 +643,9 @@ export const DynamicStorefrontPage = () => {
       )}
 
       {/* Dynamic Sections Loop with Template-Specific Layout Architectures */}
-      {sections.filter(s => s.enabled).map((section) => {
+      {(() => {
+      const __enabled = sections.filter(s => s.enabled);
+      const __rendered = __enabled.map((section) => {
         const layoutStyle = styles?.layoutStyle || HARMONIOUS_THEME_PRESETS.find(p => p.id === styles?.presetId || p.id === themeConfig.presetId)?.layoutStyle || 'haute_atelier';
 
         // ----------------------------------------------------
@@ -601,6 +654,24 @@ export const DynamicStorefrontPage = () => {
         if (section.type === 'announcement') {
           const bg = section.data.overrideBg || styles?.announcementBg || '#FAD4C0';
           const text = section.data.overrideText || styles?.announcementText || '#4A281E';
+
+          if (layoutStyle === 'olive_linen') {
+            return (
+              <div
+                key={section.id}
+                className="py-2.5 px-4 text-center text-[12px] tracking-wide flex items-center justify-center gap-2"
+                style={{ backgroundColor: '#3B4A2F', color: '#F5F3EE' }}
+              >
+                <span className="opacity-70">✦</span>
+                <span>{section.data.text || 'Complimentary shipping on all orders — direct from our studio'}</span>
+                {section.data.linkText && (
+                  <a href={section.data.linkUrl || '#products'} className="underline underline-offset-2 hover:opacity-80">
+                    {section.data.linkText}
+                  </a>
+                )}
+              </div>
+            );
+          }
 
           if (layoutStyle === 'modern_editorial') {
             return (
@@ -817,6 +888,306 @@ export const DynamicStorefrontPage = () => {
         if (section.type === 'header') {
           const displayLogoText = (isPreviewMode && activeThemeMeta?.brandName) || section.data.logoText || matchedStore.name;
           const displayTagline = (isPreviewMode && activeThemeMeta?.tagline) || section.data.tagline || matchedStore.categoryLabel;
+
+          if (layoutStyle === 'camel_edit') {
+            return (
+              <header
+                key={section.id}
+                className="sticky top-0 z-40 border-b backdrop-blur-md transition"
+                style={{ backgroundColor: '#FCFAF7F5', borderColor: '#E9E2D9' }}
+              >
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-6">
+                  <h1
+                    className="text-xl sm:text-2xl leading-none whitespace-nowrap uppercase tracking-[0.12em]"
+                    style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}
+                  >
+                    {displayLogoText}
+                  </h1>
+                  <nav className="hidden md:flex items-center gap-7 text-[13.5px] font-medium" style={{ color: '#4A423B' }}>
+                    <a href="#categories" className="hover:text-black transition">Categories</a>
+                    <a href="#offer" className="hover:text-black transition">Offer</a>
+                    <a href="#best-sellers" className="hover:text-black transition">Best Sellers</a>
+                    <a href="#about" className="hover:text-black transition">About & Contact</a>
+                  </nav>
+                  <div className="flex items-center gap-4" style={{ color: '#111111' }}>
+                    <button
+                      onClick={() => { setIsOliveSearchOpen(!isOliveSearchOpen); setOliveSearchQuery(''); }}
+                      className="hover:opacity-70 transition cursor-pointer"
+                      aria-label="Search products"
+                    >
+                      <Search className="w-[18px] h-[18px] stroke-[1.5]" />
+                    </button>
+                    <button onClick={() => setIsCustomerAuthOpen(true)} className="flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer">
+                      <User className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">{activeCustomer ? activeCustomer.name.split(' ')[0] : 'Account'}</span>
+                    </button>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="relative flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer">
+                      <ShoppingBag className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">Bag</span>
+                      <span className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full text-[10px] font-semibold text-white flex items-center justify-center" style={{ backgroundColor: '#111111' }}>
+                        {totalStoreItemsCount}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {isOliveSearchOpen && (
+                  <div className="border-t" style={{ borderColor: '#E9E2D9', backgroundColor: '#FCFAF7' }}>
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
+                      <input
+                        autoFocus
+                        value={oliveSearchQuery}
+                        onChange={(e) => setOliveSearchQuery(e.target.value)}
+                        placeholder="Search blazers, denim, sneakers..."
+                        className="w-full px-4 py-2.5 rounded-full text-sm outline-none border"
+                        style={{ borderColor: '#111111', backgroundColor: '#FFFFFF', color: '#111111' }}
+                      />
+                      {oliveSearchQuery.trim().length > 0 && (() => {
+                        const pool = (isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts;
+                        const q = oliveSearchQuery.trim().toLowerCase();
+                        const results = pool.filter((pr) => String(pr.name || '').toLowerCase().includes(q) || String(pr.category || '').toLowerCase().includes(q)).slice(0, 6);
+                        if (results.length === 0) return <p className="text-sm" style={{ color: '#4A423B' }}>Nothing matches “{oliveSearchQuery}”.</p>;
+                        return (
+                          <ul className="divide-y" style={{ borderColor: '#E9E2D9' }}>
+                            {results.map((pr) => {
+                              const thumb = (pr.images && pr.images[0]) || pr.imageUrl || pr.image || '/theme-images/fashion-1.png';
+                              const priceVal = Number(pr.sellingPriceINR || pr.price || 0);
+                              return (
+                                <li key={pr.id}>
+                                  <button
+                                    onClick={() => { setIsOliveSearchOpen(false); setCamelCategory(String(pr.category || 'All')); document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' }); }}
+                                    className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-75 transition cursor-pointer"
+                                  >
+                                    <img src={thumb} alt={pr.name} className="w-11 h-14 object-cover rounded-md" />
+                                    <span className="flex-1">
+                                      <span className="block text-sm font-medium" style={{ color: '#111111' }}>{pr.name}</span>
+                                      <span className="block text-xs" style={{ color: '#4A423B' }}>{pr.category || 'Collection'} · ₹{priceVal.toLocaleString('en-IN')}</span>
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </header>
+            );
+          }
+
+          if (layoutStyle === 'bloom_beauty') {
+            const wine = '#8E4356';
+            return (
+              <header
+                key={section.id}
+                className="sticky top-0 z-40 border-b backdrop-blur-md transition"
+                style={{ backgroundColor: '#FFFFFFF5', borderColor: '#F0DBDD' }}
+              >
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-6">
+                  <h1
+                    className="text-2xl leading-none whitespace-nowrap"
+                    style={{ color: '#3A1B2A', fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700, fontStyle: 'italic' }}
+                  >
+                    {displayLogoText}
+                  </h1>
+
+                  <nav className="hidden md:flex items-center gap-7 text-[14px] font-medium" style={{ color: '#6B4A55' }}>
+                    <a href="#products" className="hover:text-[#8E4356] transition">Shop</a>
+                    <a href="#categories" className="hover:text-[#8E4356] transition">Categories</a>
+                    <a href="#offer" className="hover:text-[#8E4356] transition">Offers</a>
+                    <a href="#about" className="hover:text-[#8E4356] transition">About Us</a>
+                  </nav>
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => { setIsOliveSearchOpen(!isOliveSearchOpen); setOliveSearchQuery(''); }}
+                      className="flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer"
+                      style={{ color: wine }}
+                      aria-label="Search products"
+                    >
+                      <Search className="w-[18px] h-[18px] stroke-[1.5]" />
+                    </button>
+                    <button
+                      onClick={() => setIsCustomerAuthOpen(true)}
+                      className="flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer"
+                      style={{ color: wine }}
+                    >
+                      <User className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">{activeCustomer ? activeCustomer.name.split(' ')[0] : 'Account'}</span>
+                    </button>
+                    <button
+                      onClick={() => setIsBagDrawerOpen(true)}
+                      className="relative flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer"
+                      style={{ color: wine }}
+                    >
+                      <ShoppingBag className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">Bag</span>
+                      <span
+                        className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full text-[10px] font-semibold text-white flex items-center justify-center"
+                        style={{ backgroundColor: wine }}
+                      >
+                        {totalStoreItemsCount}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {isOliveSearchOpen && (
+                  <div className="border-t" style={{ borderColor: '#F0DBDD', backgroundColor: '#FDF8F6' }}>
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
+                      <input
+                        autoFocus
+                        value={oliveSearchQuery}
+                        onChange={(e) => setOliveSearchQuery(e.target.value)}
+                        placeholder="Search lip tints, serums, fragrances..."
+                        className="w-full px-4 py-2.5 rounded-full text-sm outline-none border"
+                        style={{ borderColor: wine, backgroundColor: '#FFFFFF', color: '#3A1B2A' }}
+                      />
+                      {oliveSearchQuery.trim().length > 0 && (() => {
+                        const pool = (isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts;
+                        const q = oliveSearchQuery.trim().toLowerCase();
+                        const results = pool.filter((pr) => String(pr.name || '').toLowerCase().includes(q) || String(pr.category || '').toLowerCase().includes(q)).slice(0, 6);
+                        if (results.length === 0) return <p className="text-sm" style={{ color: '#6B4A55' }}>No products match “{oliveSearchQuery}”.</p>;
+                        return (
+                          <ul className="divide-y" style={{ borderColor: '#F0DBDD' }}>
+                            {results.map((pr) => {
+                              const thumb = (pr.images && pr.images[0]) || pr.imageUrl || pr.image || '/theme-images/beauty-1.jpeg';
+                              const priceVal = Number(pr.sellingPriceINR || pr.price || 0);
+                              return (
+                                <li key={pr.id}>
+                                  <button
+                                    onClick={() => { setIsOliveSearchOpen(false); setBloomCategory(String(pr.category || 'All')); document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' }); }}
+                                    className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-75 transition cursor-pointer"
+                                  >
+                                    <img src={thumb} alt={pr.name} className="w-11 h-14 object-cover rounded-lg" />
+                                    <span className="flex-1">
+                                      <span className="block text-sm font-medium" style={{ color: '#3A1B2A' }}>{pr.name}</span>
+                                      <span className="block text-xs" style={{ color: '#6B4A55' }}>{pr.category || 'Collection'} · ₹{priceVal.toLocaleString('en-IN')}</span>
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </header>
+            );
+          }
+
+          if (layoutStyle === 'olive_linen') {
+            const ink = '#232A1D';
+            return (
+              <header
+                key={section.id}
+                className="sticky top-0 z-40 border-b backdrop-blur-md transition"
+                style={{ backgroundColor: `${styles?.headerBg || '#F5F3EE'}F2`, borderColor: '#E3E0D6' }}
+              >
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-6">
+                  <h1
+                    className="text-[22px] sm:text-2xl leading-none whitespace-nowrap uppercase"
+                    style={{ color: ink, fontFamily: styles?.headingFont || 'Fraunces', fontWeight: 600, letterSpacing: '0.08em' }}
+                  >
+                    {displayLogoText}
+                  </h1>
+
+                  <nav className="hidden md:flex items-center gap-8">
+                    <a href="#products" className="text-[14px] border-b border-transparent hover:border-current pb-0.5 transition" style={{ color: styles?.textColor || '#4A5240' }}>
+                      {section.data.navLink1 || 'Shop'}
+                    </a>
+                    <a href="#story" className="text-[14px] border-b border-transparent hover:border-current pb-0.5 transition" style={{ color: styles?.textColor || '#4A5240' }}>
+                      {section.data.navLink2 || 'About'}
+                    </a>
+                    <a href="#footer" className="text-[14px] border-b border-transparent hover:border-current pb-0.5 transition" style={{ color: styles?.textColor || '#4A5240' }}>
+                      {section.data.navLink3 || 'Contact'}
+                    </a>
+                  </nav>
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => { setIsOliveSearchOpen(!isOliveSearchOpen); setOliveSearchQuery(''); }}
+                      className="flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer"
+                      style={{ color: ink }}
+                      aria-label="Search products"
+                    >
+                      <Search className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">Search</span>
+                    </button>
+                    <button
+                      onClick={() => setIsCustomerAuthOpen(true)}
+                      className="flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer"
+                      style={{ color: ink }}
+                    >
+                      <User className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">{activeCustomer ? activeCustomer.name.split(' ')[0] : 'Account'}</span>
+                    </button>
+                    <button
+                      onClick={() => setIsBagDrawerOpen(true)}
+                      className="relative flex items-center gap-1.5 text-[13.5px] hover:opacity-70 transition cursor-pointer"
+                      style={{ color: ink }}
+                    >
+                      <ShoppingBag className="w-[18px] h-[18px] stroke-[1.5]" />
+                      <span className="hidden sm:inline">Bag</span>
+                      <span
+                        className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full text-[10px] font-semibold text-white flex items-center justify-center"
+                        style={{ backgroundColor: '#3B4A2F' }}
+                      >
+                        {totalStoreItemsCount}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {isOliveSearchOpen && (
+                  <div className="border-t" style={{ borderColor: '#E3E0D6', backgroundColor: '#F5F3EE' }}>
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
+                      <input
+                        autoFocus
+                        value={oliveSearchQuery}
+                        onChange={(e) => setOliveSearchQuery(e.target.value)}
+                        placeholder="Search products..."
+                        className="w-full px-4 py-2.5 rounded-md text-sm outline-none border"
+                        style={{ borderColor: '#3B4A2F', backgroundColor: '#FFFFFF', color: '#232A1D' }}
+                      />
+                      {oliveSearchQuery.trim().length > 0 && (() => {
+                        const pool = (isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts;
+                        const q = oliveSearchQuery.trim().toLowerCase();
+                        const results = pool.filter((pr) => String(pr.name || '').toLowerCase().includes(q) || String(pr.category || '').toLowerCase().includes(q)).slice(0, 6);
+                        if (results.length === 0) return <p className="text-sm" style={{ color: '#4A5240' }}>No products match “{oliveSearchQuery}”.</p>;
+                        return (
+                          <ul className="divide-y" style={{ borderColor: '#E3E0D6' }}>
+                            {results.map((pr) => {
+                              const thumb = (pr.images && pr.images[0]) || pr.imageUrl || pr.image || '/theme-images/beige-1.jpg';
+                              const priceVal = Number(pr.sellingPriceINR || pr.price || 0);
+                              return (
+                                <li key={pr.id}>
+                                  <button
+                                    onClick={() => { setIsOliveSearchOpen(false); document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' }); }}
+                                    className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-75 transition cursor-pointer"
+                                  >
+                                    <img src={thumb} alt={pr.name} className="w-11 h-14 object-cover rounded-sm" style={{ borderColor: '#E3E0D6' }} />
+                                    <span className="flex-1">
+                                      <span className="block text-sm font-medium" style={{ color: '#232A1D' }}>{pr.name}</span>
+                                      <span className="block text-xs" style={{ color: '#4A5240' }}>{pr.category || 'Collection'} · ₹{priceVal.toLocaleString('en-IN')}</span>
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </header>
+            );
+          }
 
           if (layoutStyle === 'modern_editorial') {
             return (
@@ -1344,6 +1715,164 @@ export const DynamicStorefrontPage = () => {
           const badgeText = (isPreviewMode && activeThemeMeta?.aesthetic) || section.data.badgeText || section.data.badge || '✨ Pure D2C Craftsmanship';
           const ctaBtnText = section.data.ctaText || section.data.primaryBtnText || 'Explore Catalog';
           const heroImg = (isPreviewMode && activeThemeMeta?.heroImage) || section.data.imageUrl || section.data.heroImage || activeThemeMeta?.heroImage || '/theme-images/fashion-2.jpg';
+
+          if (layoutStyle === 'camel_edit') {
+            return (
+              <section key={section.id} className="relative overflow-hidden" style={{ backgroundColor: '#FCFAF7' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-6 space-y-6">
+                    <span className="inline-block text-[11px] uppercase tracking-[0.3em] font-bold px-3 py-1 border" style={{ color: '#A97C50', borderColor: '#A97C50' }}>
+                      {badgeText}
+                    </span>
+                    <h2
+                      className="text-4xl sm:text-5xl lg:text-6xl uppercase leading-[1.02]"
+                      style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}
+                    >
+                      {headlineText}
+                    </h2>
+                    <p className="text-base sm:text-lg max-w-md" style={{ color: '#4A423B', fontFamily: styles?.bodyFont || 'Work Sans' }}>
+                      {subText}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <a
+                        href="#categories"
+                        className="px-8 py-3.5 rounded-full text-sm font-bold text-white transition hover:opacity-85"
+                        style={{ backgroundColor: '#111111' }}
+                      >
+                        {ctaBtnText}
+                      </a>
+                      <a
+                        href="#best-sellers"
+                        className="px-8 py-3.5 rounded-full text-sm font-bold border transition hover:opacity-80"
+                        style={{ color: '#111111', borderColor: '#111111' }}
+                      >
+                        Best Sellers
+                      </a>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-6 grid grid-cols-2 gap-3 sm:gap-4">
+                    <img src={heroImg} alt={headlineText} className="w-full h-72 sm:h-96 object-cover rounded-2xl" />
+                    <div className="space-y-3 sm:space-y-4">
+                      <img src="/theme-images/street-3.jpg" alt="Editorial look" className="w-full h-32 sm:h-44 object-cover rounded-2xl" />
+                      <div className="rounded-2xl p-5 text-center flex flex-col justify-center h-32 sm:h-44" style={{ backgroundColor: '#A97C50', color: '#FCFAF7' }}>
+                        <p className="text-3xl font-bold" style={{ fontFamily: styles?.headingFont || 'Archivo Black' }}>NEW</p>
+                        <p className="text-[11px] uppercase tracking-[0.2em] mt-1">Season Drop 2026</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          if (layoutStyle === 'bloom_beauty') {
+            return (
+              <section key={section.id} className="relative overflow-hidden" style={{ backgroundColor: '#F9EDEB' }}>
+                <div className="absolute top-20 -left-24 w-72 h-72 rounded-full opacity-40 blur-3xl pointer-events-none" style={{ backgroundColor: '#F3CFCB' }} />
+                <div className="absolute bottom-0 -right-16 w-80 h-80 rounded-full opacity-40 blur-3xl pointer-events-none" style={{ backgroundColor: '#EFD9DC' }} />
+                <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                  <div className="space-y-5">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] text-white" style={{ backgroundColor: '#8E4356' }}>
+                      <Sparkles className="w-3.5 h-3.5" /> {badgeText}
+                    </span>
+                    <h2
+                      className="text-4xl sm:text-5xl lg:text-[3.4rem] leading-[1.08]"
+                      style={{ color: '#3A1B2A', fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}
+                    >
+                      {headlineText}
+                    </h2>
+                    <p className="text-base sm:text-lg max-w-md" style={{ color: '#6B4A55' }}>
+                      {subText}
+                    </p>
+                    <div className="pt-2 flex items-center gap-3">
+                      <a
+                        href="#products"
+                        className="px-7 py-3 rounded-full text-sm font-semibold text-white shadow-md hover:opacity-90 transition"
+                        style={{ backgroundColor: '#8E4356' }}
+                      >
+                        {ctaBtnText}
+                      </a>
+                      <a
+                        href="#offer"
+                        className="px-7 py-3 rounded-full text-sm font-semibold border hover:opacity-80 transition"
+                        style={{ color: '#8E4356', borderColor: '#8E4356' }}
+                      >
+                        View Offers
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-6 pt-4">
+                      {[
+                        { n: '500+', l: 'Happy Customers' },
+                        { n: '100%', l: 'Cruelty Free' },
+                        { n: '4.9★', l: 'Avg Rating' },
+                      ].map((st) => (
+                        <div key={st.l}>
+                          <p className="text-xl font-bold" style={{ color: '#8E4356', fontFamily: styles?.headingFont || 'Playfair Display' }}>{st.n}</p>
+                          <p className="text-[11px] uppercase tracking-wider" style={{ color: '#6B4A55' }}>{st.l}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <img
+                      src={heroImg}
+                      alt={headlineText}
+                      className="w-full h-[380px] sm:h-[460px] object-cover rounded-t-[10rem] rounded-b-[2rem] shadow-xl"
+                    />
+                    <div className="absolute -bottom-5 left-6 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 border" style={{ borderColor: '#F0DBDD' }}>
+                      <img src="/theme-images/beauty-2.jpg" alt="Featured product" className="w-10 h-12 object-cover rounded-lg" />
+                      <div>
+                        <p className="text-xs font-semibold" style={{ color: '#3A1B2A' }}>Rose Quartz Elixir</p>
+                        <p className="text-xs font-bold" style={{ color: '#8E4356' }}>₹1,899</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          if (layoutStyle === 'olive_linen') {
+            return (
+              <section key={section.id} className="relative overflow-hidden" style={{ backgroundColor: '#F5F3EE' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 text-center space-y-5">
+                  <span className="inline-block text-[11px] uppercase tracking-[0.25em] font-semibold px-3 py-1 border" style={{ color: '#3B4A2F', borderColor: '#3B4A2F' }}>
+                    {badgeText}
+                  </span>
+                  <h2
+                    className="text-4xl sm:text-5xl lg:text-6xl leading-[1.1] max-w-3xl mx-auto"
+                    style={{ color: '#232A1D', fontFamily: styles?.headingFont || 'Fraunces', fontWeight: 560 }}
+                  >
+                    {headlineText}
+                  </h2>
+                  <p className="text-base sm:text-lg max-w-xl mx-auto" style={{ color: '#4A5240', fontFamily: styles?.bodyFont || 'Work Sans' }}>
+                    {subText}
+                  </p>
+                  <div className="pt-2 flex items-center justify-center gap-3">
+                    <a
+                      href="#products"
+                      className="px-7 py-3 rounded-md text-sm font-semibold text-white shadow-sm hover:opacity-90 transition"
+                      style={{ backgroundColor: '#3B4A2F' }}
+                    >
+                      {ctaBtnText}
+                    </a>
+                    {section.data.secondaryBtnText && (
+                      <a
+                        href="#story"
+                        className="px-7 py-3 rounded-md text-sm font-semibold border hover:opacity-80 transition"
+                        style={{ color: '#232A1D', borderColor: '#3B4A2F' }}
+                      >
+                        {section.data.secondaryBtnText}
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 sm:pb-20">
+                  <img src={heroImg} alt={headlineText} className="w-full h-[300px] sm:h-[420px] object-cover rounded-sm" />
+                </div>
+              </section>
+            );
+          }
 
           if (layoutStyle === 'modern_editorial') {
             return (
@@ -2089,6 +2618,294 @@ export const DynamicStorefrontPage = () => {
         // 5. PRODUCT GRID (4 Distinct Card & Layout Styles)
         // ----------------------------------------------------
         if (section.type === 'product_grid' || section.type === 'products') {
+          if (layoutStyle === 'camel_edit') {
+            const cItems = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
+              .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            const cCats = ['All', ...Array.from(new Set(cItems.map((pr) => String(pr.category || 'Collection'))))];
+            const catImg = (cat) => {
+              const f = cItems.find((pr) => String(pr.category) === cat);
+              return (f && ((f.images && f.images[0]) || f.imageUrl || f.image)) || '/theme-images/fashion-2.jpg';
+            };
+            const cVisible = camelCategory === 'All' ? cItems : cItems.filter((pr) => String(pr.category) === camelCategory);
+            return (
+              <section id="products" key={section.id} className="py-14" style={{ backgroundColor: '#FCFAF7' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#A97C50' }}>Curated For You</span>
+                    <h3 className="text-3xl sm:text-4xl uppercase" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>
+                      {section.data.title || 'Shop By Category'}
+                    </h3>
+                  </div>
+
+                  {/* CATEGORY CARDS (working filter) */}
+                  <div id="categories" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {cCats.filter((c) => c !== 'All').map((cat) => {
+                      const active = camelCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setCamelCategory(cat)}
+                          className={'group relative overflow-hidden rounded-2xl border transition cursor-pointer ' + (active ? 'ring-2 ring-offset-2' : 'hover:opacity-90')}
+                          style={{ borderColor: active ? '#111111' : '#E9E2D9' }}
+                        >
+                          <img src={catImg(cat)} alt={cat} className="w-full h-40 sm:h-48 object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+                          <span className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(17,17,17,0.65), transparent 55%)' }} />
+                          <span className="absolute bottom-3 left-4 text-white text-sm font-bold uppercase tracking-wider" style={{ fontFamily: styles?.bodyFont || 'Work Sans' }}>
+                            {cat}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* FILTER CHIPS */}
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {cCats.map((cat) => {
+                      const active = camelCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setCamelCategory(cat)}
+                          className={'px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition cursor-pointer border ' + (active ? 'text-white' : 'hover:border-black')}
+                          style={{ backgroundColor: active ? '#111111' : 'transparent', borderColor: active ? '#111111' : '#E9E2D9', color: active ? '#FFFFFF' : '#4A423B' }}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* GRID */}
+                  {cVisible.length === 0 ? (
+                    <p className="text-center text-sm py-8" style={{ color: '#4A423B' }}>
+                      No products in “{camelCategory}”. <button onClick={() => setCamelCategory('All')} className="underline cursor-pointer" style={{ color: '#A97C50' }}>View all</button>
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {cVisible.slice(0, section.data.columns || section.data.itemsCount || 6).map((product) => {
+                        const priceVal = Number(product.sellingPriceINR || product.price || 0);
+                        const oos = Number(product.stockQuantity) <= 0;
+                        const img = (product.images && product.images[0]) || product.imageUrl || product.image || '/theme-images/fashion-1.png';
+                        return (
+                          <div key={product.id} className="group">
+                            <div className="relative overflow-hidden rounded-2xl border" style={{ borderColor: '#E9E2D9', backgroundColor: '#FFFFFF' }}>
+                              {product.tag && (
+                                <span className="absolute top-3 left-3 z-10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white rounded-full" style={{ backgroundColor: '#111111' }}>
+                                  {product.tag}
+                                </span>
+                              )}
+                              <img src={img} alt={product.name} className="w-full h-64 sm:h-80 object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+                              <button
+                                onClick={() => handleQuickAdd(product)}
+                                disabled={oos}
+                                className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-14 group-hover:translate-y-0 w-[85%] py-2.5 rounded-full text-[13px] font-bold text-white shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ backgroundColor: '#111111' }}
+                              >
+                                {oos ? 'Sold Out' : 'Add to Bag'}
+                              </button>
+                            </div>
+                            <div className="pt-3 space-y-1 text-center">
+                              <p className="text-[11px] uppercase tracking-wider" style={{ color: '#A97C50' }}>{product.category}</p>
+                              <h4 className="text-[15px] font-medium leading-snug" style={{ color: '#111111' }}>{product.name}</h4>
+                              <p className="text-[14px] font-bold" style={{ color: '#111111' }}>
+                                ₹{priceVal.toLocaleString('en-IN')}
+                                {Number(product.discountPercent) > 0 && (
+                                  <span className="ml-2 text-xs font-normal line-through opacity-50" style={{ color: '#4A423B' }}>
+                                    ₹{Math.round(priceVal * (1 + Number(product.discountPercent) / 100)).toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          }
+          if (layoutStyle === 'bloom_beauty') {
+            const allItems = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
+              .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            const categories = ['All', ...Array.from(new Set(allItems.map((pr) => String(pr.category || 'Collection'))))];
+            const catThumb = (cat) => {
+              const found = allItems.find((pr) => String(pr.category) === cat);
+              return (found && ((found.images && found.images[0]) || found.imageUrl || found.image)) || '/theme-images/beauty-1.jpeg';
+            };
+            const visibleItems = bloomCategory === 'All' ? allItems : allItems.filter((pr) => String(pr.category) === bloomCategory);
+            return (
+              <section id="products" key={section.id} className="py-14 sm:py-18" style={{ backgroundColor: '#FDF8F6' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+                  {/* BEST SELLERS header */}
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#8E4356' }}>
+                      Shop by Category
+                    </span>
+                    <h3 className="text-3xl sm:text-4xl" style={{ color: '#3A1B2A', fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}>
+                      {section.data.title || 'The Full Collection'}
+                    </h3>
+                    <p className="text-sm max-w-md mx-auto" style={{ color: '#6B4A55' }}>
+                      {section.data.subtitle || 'Browse every product by category — handpicked, small-batch, 0% platform commission.'}
+                    </p>
+                  </div>
+
+                  {/* SHOP BY CATEGORY (working filter) */}
+                  <div id="categories" className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                    {categories.map((cat) => {
+                      const active = bloomCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setBloomCategory(cat)}
+                          className="group flex flex-col items-center gap-2 cursor-pointer"
+                        >
+                          <span
+                            className={'block w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 transition ' + (active ? 'scale-105' : 'opacity-80 hover:opacity-100 hover:scale-105')}
+                            style={{ borderColor: active ? '#8E4356' : '#F0DBDD' }}
+                          >
+                            <img src={cat === 'All' ? '/theme-images/beauty-4.jpg' : catThumb(cat)} alt={cat} className="w-full h-full object-cover" />
+                          </span>
+                          <span
+                            className={'text-[12px] font-semibold transition ' + (active ? '' : 'opacity-70')}
+                            style={{ color: active ? '#8E4356' : '#6B4A55' }}
+                          >
+                            {cat}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* PRODUCT GRID */}
+                  {visibleItems.length === 0 ? (
+                    <p className="text-center text-sm py-8" style={{ color: '#6B4A55' }}>
+                      No products in “{bloomCategory}”. <button onClick={() => setBloomCategory('All')} className="underline cursor-pointer" style={{ color: '#8E4356' }}>View all</button>
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {visibleItems.slice(0, section.data.columns || section.data.itemsCount || 6).map((product) => {
+                        const priceVal = Number(product.sellingPriceINR || product.price || 0);
+                        const oos = Number(product.stockQuantity) <= 0;
+                        const img = (product.images && product.images[0]) || product.imageUrl || product.image || '/theme-images/beauty-1.jpeg';
+                        return (
+                          <div key={product.id} className="group">
+                            <div className="relative overflow-hidden rounded-2xl border" style={{ borderColor: '#F0DBDD', backgroundColor: '#FFFFFF' }}>
+                              {product.tag && (
+                                <span className="absolute top-3 left-3 z-10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white rounded-full" style={{ backgroundColor: '#8E4356' }}>
+                                  {product.tag}
+                                </span>
+                              )}
+                              <img
+                                src={img}
+                                alt={product.name}
+                                className="w-full h-64 sm:h-80 object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                              />
+                              <button
+                                onClick={() => handleQuickAdd(product)}
+                                disabled={oos}
+                                className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-14 group-hover:translate-y-0 w-[85%] py-2.5 rounded-full text-[13px] font-semibold text-white shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ backgroundColor: '#8E4356' }}
+                              >
+                                {oos ? 'Sold Out' : 'Add to Bag'}
+                              </button>
+                            </div>
+                            <div className="pt-3 space-y-1 text-center">
+                              <p className="text-[11px] uppercase tracking-wider" style={{ color: '#B08A95' }}>{product.category}</p>
+                              <h4 className="text-[15px] font-medium leading-snug" style={{ color: '#3A1B2A' }}>
+                                {product.name}
+                              </h4>
+                              <p className="text-[14px] font-bold" style={{ color: '#8E4356' }}>
+                                ₹{priceVal.toLocaleString('en-IN')}
+                                {Number(product.discountPercent) > 0 && (
+                                  <span className="ml-2 text-xs font-normal line-through opacity-60" style={{ color: '#6B4A55' }}>
+                                    ₹{Math.round(priceVal * (1 + Number(product.discountPercent) / 100)).toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          }
+          if (layoutStyle === 'olive_linen') {
+            const items = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
+              .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            return (
+              <section id="products" key={section.id} className="py-16 sm:py-20" style={{ backgroundColor: '#F5F3EE' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.25em] font-semibold block" style={{ color: '#3B4A2F' }}>
+                      Collection
+                    </span>
+                    <h3 className="text-3xl sm:text-4xl" style={{ color: '#232A1D', fontFamily: styles?.headingFont || 'Fraunces', fontWeight: 560 }}>
+                      {section.data.title || 'Shop the Edit'}
+                    </h3>
+                    <p className="text-sm max-w-md mx-auto" style={{ color: '#4A5240' }}>
+                      {section.data.subtitle || 'Considered pieces, made to last — 0% platform commission.'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {items.slice(0, section.data.columns || section.data.itemsCount || 6).map((product) => {
+                      const priceVal = Number(product.sellingPriceINR || product.price || 0);
+                      const img =
+                        (product.images && product.images[0]) ||
+                        product.imageUrl ||
+                        product.image ||
+                        '/theme-images/olive-1.jpg';
+                      return (
+                        <Link
+                          key={product.id}
+                          to={product.slug ? `/store/${matchedStore.subdomain}/product/${product.slug}` : '#products'}
+                          className="group block"
+                        >
+                          <div className="relative overflow-hidden rounded-sm border" style={{ borderColor: '#E3E0D6', backgroundColor: '#FFFFFF' }}>
+                            {product.tag && (
+                              <span className="absolute top-3 left-3 z-10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white rounded-sm" style={{ backgroundColor: '#3B4A2F' }}>
+                                {product.tag}
+                              </span>
+                            )}
+                            <img
+                              src={img}
+                              alt={product.name}
+                              className="w-full h-64 sm:h-80 object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                            />
+                          </div>
+                          <div className="pt-3 space-y-1.5 text-center">
+                            <h4 className="text-[15px] font-medium leading-snug" style={{ color: '#232A1D', fontFamily: styles?.bodyFont || 'Work Sans' }}>
+                              {product.name}
+                            </h4>
+                            <p className="text-[14px] font-semibold" style={{ color: '#3B4A2F' }}>
+                              ₹{priceVal.toLocaleString('en-IN')}
+                              {Number(product.discountPercent) > 0 && (
+                                <span className="ml-2 text-xs font-normal line-through opacity-60" style={{ color: '#4A5240' }}>
+                                  ₹{Math.round(priceVal * (1 + Number(product.discountPercent) / 100)).toLocaleString('en-IN')}
+                                </span>
+                              )}
+                            </p>
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleQuickAdd(product); }}
+                              disabled={(Number(product.stockQuantity ?? product.stock ?? 1) <= 0)}
+                              className="mt-1 w-full py-2 rounded-md text-[13px] font-semibold transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-85"
+                              style={{ backgroundColor: '#3B4A2F', color: '#F5F3EE' }}
+                            >
+                              {(Number(product.stockQuantity ?? product.stock ?? 1) <= 0) ? 'Sold Out' : 'Add to Bag'}
+                            </button>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          }
           return (
             <section id="products" key={section.id} className="py-16 sm:py-20">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -2314,6 +3131,75 @@ export const DynamicStorefrontPage = () => {
         // 6. PROMOTIONAL BANNER
         // ----------------------------------------------------
         if (section.type === 'promo_banner') {
+          if (layoutStyle === 'camel_edit') {
+            return (
+              <section id="offer" key={section.id} className="py-6 sm:py-8" style={{ backgroundColor: '#FCFAF7' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="relative overflow-hidden rounded-3xl grid grid-cols-1 lg:grid-cols-2" style={{ backgroundColor: '#F6EFE8' }}>
+                    <div className="p-8 sm:p-12 space-y-4 flex flex-col justify-center">
+                      <span className="inline-block w-fit px-4 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.25em] text-white" style={{ backgroundColor: '#A97C50' }}>
+                        Season Sale
+                      </span>
+                      <h3 className="text-3xl sm:text-4xl lg:text-5xl uppercase leading-tight" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>
+                        {section.data.title || section.data.headline || 'Up To 40% Off Winter Edit'}
+                      </h3>
+                      <p className="text-sm sm:text-base" style={{ color: '#4A423B' }}>
+                        {section.data.subtitle || section.data.text || 'End-of-season reductions across blazers, denim and knitwear. Use code CAMEL40 at checkout.'}
+                      </p>
+                      <div className="pt-2">
+                        <a
+                          href="#products"
+                          className="inline-block px-8 py-3 rounded-full text-sm font-bold text-white transition hover:opacity-85"
+                          style={{ backgroundColor: '#111111' }}
+                        >
+                          {section.data.ctaText || 'Shop the Sale'}
+                        </a>
+                      </div>
+                    </div>
+                    <div className="relative min-h-[240px]">
+                      <img
+                        src={(isPreviewMode && activeThemeMeta?.bannerImage) || section.data.imageUrl || activeThemeMeta?.bannerImage || '/theme-images/street-2.jpg'}
+                        alt="Season sale"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          if (layoutStyle === 'bloom_beauty') {
+            return (
+              <section id="offer" key={section.id} className="py-6 sm:py-8" style={{ backgroundColor: '#FDF8F6' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="relative overflow-hidden rounded-3xl px-6 sm:px-12 py-10 sm:py-14 text-center text-white" style={{ background: 'linear-gradient(120deg, #6E3244 0%, #8E4356 55%, #A55A6C 100%)' }}>
+                    <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full opacity-20 blur-2xl" style={{ backgroundColor: '#F3CFCB' }} />
+                    <div className="absolute -bottom-12 -right-10 w-56 h-56 rounded-full opacity-20 blur-2xl" style={{ backgroundColor: '#F3CFCB' }} />
+                    <div className="relative space-y-4">
+                      <span className="inline-block px-4 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.25em] bg-white/15 border border-white/30">
+                        Limited Time
+                      </span>
+                      <h3 className="text-3xl sm:text-4xl lg:text-5xl" style={{ fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}>
+                        {section.data.title || section.data.headline || 'Flat 25% Off the Entire Collection'}
+                      </h3>
+                      <p className="text-sm sm:text-base text-white/85 max-w-xl mx-auto">
+                        {section.data.subtitle || section.data.text || 'Celebrate clean beauty — every lipstick, serum and masque. Use code BLOOM25 at checkout.'}
+                      </p>
+                      <div className="pt-2">
+                        <a
+                          href="#products"
+                          className="inline-block px-8 py-3 rounded-full text-sm font-bold transition hover:opacity-90 cursor-pointer"
+                          style={{ backgroundColor: '#FFFFFF', color: '#8E4356' }}
+                        >
+                          {section.data.ctaText || 'Shop the Offer'}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
           // Markly: full-bleed photographic newsletter hero (per reference screenshots)
           if (layoutStyle === 'markly_luxe') {
             return (
@@ -2385,6 +3271,107 @@ export const DynamicStorefrontPage = () => {
         // 7. VIDEO REELS
         // ----------------------------------------------------
         if (section.type === 'video_reels') {
+          // Camel Editorial Fashion: reels become a Best Sellers fashion grid
+          if (layoutStyle === 'camel_edit') {
+            const cReelItems = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
+              .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            return (
+              <section id="best-sellers" key={section.id} className="py-14" style={{ backgroundColor: '#F6EFE8' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#A97C50' }}>Most Wanted</span>
+                    <h3 className="text-3xl sm:text-4xl uppercase" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>
+                      {section.data.title || 'Best Sellers'}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {cReelItems.slice(0, section.data.columns || 4).map((product) => {
+                      const priceVal = Number(product.sellingPriceINR || product.price || 0);
+                      const oos = Number(product.stockQuantity) <= 0;
+                      const img = (product.images && product.images[0]) || product.imageUrl || product.image || '/theme-images/fashion-1.png';
+                      return (
+                        <div key={product.id} className="group">
+                          <div className="relative overflow-hidden rounded-2xl border" style={{ borderColor: '#E9E2D9', backgroundColor: '#FFFFFF' }}>
+                            {product.tag && (
+                              <span className="absolute top-3 left-3 z-10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white rounded-full" style={{ backgroundColor: '#111111' }}>
+                                {product.tag}
+                              </span>
+                            )}
+                            <img src={img} alt={product.name} className="w-full h-64 sm:h-72 object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+                            <button
+                              onClick={() => handleQuickAdd(product)}
+                              disabled={oos}
+                              className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-14 group-hover:translate-y-0 w-[85%] py-2.5 rounded-full text-[13px] font-bold text-white shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={{ backgroundColor: '#111111' }}
+                            >
+                              {oos ? 'Sold Out' : 'Add to Bag'}
+                            </button>
+                          </div>
+                          <div className="pt-3 space-y-1 text-center">
+                            <p className="text-[11px] uppercase tracking-wider" style={{ color: '#A97C50' }}>{product.category}</p>
+                            <h4 className="text-[14px] font-medium leading-snug" style={{ color: '#111111' }}>{product.name}</h4>
+                            <p className="text-[14px] font-bold" style={{ color: '#111111' }}>₹{priceVal.toLocaleString('en-IN')}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          // Rose Bloom Beauty: reels become a Best Sellers beauty grid
+          if (layoutStyle === 'bloom_beauty') {
+            const reelItems = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
+              .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            return (
+              <section id="best-sellers" key={section.id} className="py-14" style={{ backgroundColor: '#FDF8F6' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#8E4356' }}>Loved by Hundreds</span>
+                    <h3 className="text-3xl sm:text-4xl" style={{ color: '#3A1B2A', fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}>
+                      {section.data.title || 'Best Sellers'}
+                    </h3>
+                    <p className="text-sm max-w-md mx-auto" style={{ color: '#6B4A55' }}>
+                      {section.data.subtitle || 'The most-loved picks from the Rose Bloom collection.'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {reelItems.slice(0, section.data.columns || 4).map((product) => {
+                      const priceVal = Number(product.sellingPriceINR || product.price || 0);
+                      const oos = Number(product.stockQuantity) <= 0;
+                      const img = (product.images && product.images[0]) || product.imageUrl || product.image || '/theme-images/beauty-1.jpeg';
+                      return (
+                        <div key={product.id} className="group">
+                          <div className="relative overflow-hidden rounded-2xl border" style={{ borderColor: '#F0DBDD', backgroundColor: '#FFFFFF' }}>
+                            {product.tag && (
+                              <span className="absolute top-3 left-3 z-10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white rounded-full" style={{ backgroundColor: '#8E4356' }}>
+                                {product.tag}
+                              </span>
+                            )}
+                            <img src={img} alt={product.name} className="w-full h-64 sm:h-72 object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+                            <button
+                              onClick={() => handleQuickAdd(product)}
+                              disabled={oos}
+                              className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-14 group-hover:translate-y-0 w-[85%] py-2.5 rounded-full text-[13px] font-semibold text-white shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={{ backgroundColor: '#8E4356' }}
+                            >
+                              {oos ? 'Sold Out' : 'Add to Bag'}
+                            </button>
+                          </div>
+                          <div className="pt-3 space-y-1 text-center">
+                            <p className="text-[11px] uppercase tracking-wider" style={{ color: '#B08A95' }}>{product.category}</p>
+                            <h4 className="text-[14px] font-medium leading-snug" style={{ color: '#3A1B2A' }}>{product.name}</h4>
+                            <p className="text-[14px] font-bold" style={{ color: '#8E4356' }}>₹{priceVal.toLocaleString('en-IN')}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          }
           return (
             <div
               key={section.id}
@@ -2428,6 +3415,76 @@ export const DynamicStorefrontPage = () => {
         // 8. TESTIMONIALS
         // ----------------------------------------------------
         if (section.type === 'testimonials') {
+          if (layoutStyle === 'camel_edit') {
+            const cPillars = section.data.items || [
+              { icon: 'truck', title: 'Free Express Shipping', desc: 'Free 2-day delivery on every order above ₹999.' },
+              { icon: 'refresh', title: '30-Day Easy Returns', desc: 'Wrong size? Swap or return within 30 days, free.' },
+              { icon: 'sparkles', title: 'Certified Authentic', desc: 'Every piece sourced directly from the design house.' },
+              { icon: 'heart', title: 'Stylist Support', desc: 'Free 1-on-1 styling help on chat, 7 days a week.' },
+            ];
+            const cIconMap = { truck: Truck, refresh: RefreshCw, sparkles: Sparkles, heart: Heart };
+            return (
+              <section key={section.id} className="py-14" style={{ backgroundColor: '#FCFAF7' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#A97C50' }}>The House Promise</span>
+                    <h3 className="text-3xl sm:text-4xl uppercase" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>
+                      {section.data.title || 'What We Provide Our Customers'}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {cPillars.map((pl, i) => {
+                      const IconComp = cIconMap[String(pl.icon || '').toLowerCase()] || Heart;
+                      return (
+                        <div key={i} className="rounded-2xl p-6 text-center space-y-3 border bg-white transition hover:shadow-lg" style={{ borderColor: '#E9E2D9' }}>
+                          <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: '#F6EFE8', color: '#A97C50' }}>
+                            <IconComp className="w-6 h-6" />
+                          </div>
+                          <h4 className="text-[14px] font-bold uppercase tracking-wide" style={{ color: '#111111' }}>{pl.title}</h4>
+                          <p className="text-xs leading-relaxed" style={{ color: '#4A423B' }}>{pl.desc}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          if (layoutStyle === 'bloom_beauty') {
+            const pillars = section.data.items || [
+              { icon: 'truck', title: 'Free Shipping', desc: 'On every order above ₹499, delivered across India.' },
+              { icon: 'leaf', title: '100% Vegan', desc: 'Cruelty-free formulas with clean, botanical ingredients.' },
+              { icon: 'sparkles', title: 'Dermat Approved', desc: 'Every product is tested and approved by certified dermatologists.' },
+              { icon: 'heart', title: 'Easy 15-Day Returns', desc: 'Changed your mind? Return any product, no questions asked.' },
+            ];
+            const iconMap = { truck: Truck, leaf: Heart, sparkles: Sparkles, heart: Heart };
+            return (
+              <section key={section.id} className="py-14 sm:py-20" style={{ backgroundColor: '#F9EDEB' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                  <div className="text-center space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#8E4356' }}>Why Shop With Us</span>
+                    <h3 className="text-3xl sm:text-4xl" style={{ color: '#3A1B2A', fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}>
+                      {section.data.title || 'What We Provide To Our Customers'}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {pillars.map((pl, i) => {
+                      const IconComp = iconMap[String(pl.icon || '').toLowerCase()] || Heart;
+                      return (
+                        <div key={i} className="rounded-2xl p-6 text-center space-y-3 border bg-white transition hover:shadow-lg" style={{ borderColor: '#F0DBDD' }}>
+                          <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: '#F9EDEB', color: '#8E4356' }}>
+                            <IconComp className="w-6 h-6" />
+                          </div>
+                          <h4 className="text-[15px] font-bold" style={{ color: '#3A1B2A' }}>{pl.title}</h4>
+                          <p className="text-xs leading-relaxed" style={{ color: '#6B4A55' }}>{pl.desc}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          }
           return (
             <section id="story" key={section.id} className="py-16 sm:py-20 border-t border-black/5" style={{ backgroundColor: styles?.surfaceColor }}>
               <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
@@ -2499,6 +3556,122 @@ export const DynamicStorefrontPage = () => {
         // 5. BRAND STORY & ATELIER
         // ----------------------------------------------------
         if (section.type === 'story') {
+          if (layoutStyle === 'camel_edit') {
+            const cAboutImg = (isPreviewMode && activeThemeMeta?.storyImage) || section.data.imageUrl || section.data.image || activeThemeMeta?.storyImage || '/theme-images/fashion-5.jpg';
+            return (
+              <section id="about" key={section.id} className="py-14 sm:py-20" style={{ backgroundColor: '#141414' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
+                  {/* About */}
+                  <div className="lg:col-span-7 space-y-5">
+                    <span className="inline-block text-[11px] uppercase tracking-[0.3em] font-bold" style={{ color: '#A97C50' }}>About Us</span>
+                    <h3 className="text-3xl sm:text-4xl uppercase leading-tight text-white" style={{ fontFamily: styles?.headingFont || 'Archivo Black' }}>
+                      {section.data.title || section.data.headline || `Independent Fashion, Direct From ${matchedStore.name}`}
+                    </h3>
+                    <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'rgba(252,250,247,0.75)' }}>
+                      {section.data.text || section.data.story || 'We are an independent fashion house selling direct — no middlemen, no marketplace commissions. Every piece is designed in-house, produced in limited runs, and shipped straight from our studio to your wardrobe.'}
+                    </p>
+                    <div className="grid grid-cols-3 gap-4 pt-3 border-t" style={{ borderColor: 'rgba(252,250,247,0.15)' }}>
+                      {[
+                        { n: '120+', l: 'Limited Drops' },
+                        { n: '50K+', l: 'Wardrobes' },
+                        { n: '0%', l: 'Platform Fee' },
+                      ].map((st) => (
+                        <div key={st.l} className="pt-3">
+                          <p className="text-2xl font-bold text-white" style={{ fontFamily: styles?.headingFont || 'Archivo Black' }}>{st.n}</p>
+                          <p className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(252,250,247,0.55)' }}>{st.l}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <img src={cAboutImg} alt="Our studio" className="w-full h-56 sm:h-64 object-cover rounded-2xl pt-1" />
+                  </div>
+
+                  {/* Contact — working links */}
+                  <div className="lg:col-span-5">
+                    <div className="rounded-2xl p-6 sm:p-8 space-y-5 h-full" style={{ backgroundColor: '#FCFAF7' }}>
+                      <h4 className="text-xl uppercase" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>Get In Touch</h4>
+                      <div className="space-y-3 text-sm" style={{ color: '#4A423B' }}>
+                        <a href={`mailto:${matchedStore.ownerEmail || 'hello@' + (matchedStore.subdomain || 'store') + '.com'}`} className="flex items-start gap-3 hover:text-black transition">
+                          <Mail className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>{matchedStore.ownerEmail || 'hello@maisoncamel.com'}</span>
+                        </a>
+                        <a href="tel:+919876543210" className="flex items-start gap-3 hover:text-black transition">
+                          <Phone className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>+91 98765 43210 (Mon–Sat, 10am–7pm)</span>
+                        </a>
+                        <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-black transition">
+                          <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>WhatsApp us — replies within minutes</span>
+                        </a>
+                        <div className="flex items-start gap-3">
+                          <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>{section.data.address || 'Studio 7, Design District, Bengaluru 560001'}</span>
+                        </div>
+                      </div>
+                      <div className="pt-4 border-t space-y-3" style={{ borderColor: '#E9E2D9' }}>
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#111111' }}>Newsletter</p>
+                        <p className="text-xs" style={{ color: '#4A423B' }}>Early access to every drop. No spam, ever.</p>
+                        <form
+                          onSubmit={(e) => { e.preventDefault(); setNewsletterDone(true); }}
+                          className="flex gap-2"
+                        >
+                          <input
+                            type="email"
+                            required
+                            placeholder="your@email.com"
+                            className="flex-1 px-4 py-2.5 rounded-full text-sm outline-none border"
+                            style={{ borderColor: '#E9E2D9', color: '#111111' }}
+                          />
+                          <button type="submit" className="px-5 py-2.5 rounded-full text-xs font-bold text-white cursor-pointer transition hover:opacity-85" style={{ backgroundColor: '#111111' }}>
+                            Join
+                          </button>
+                        </form>
+                        {newsletterDone && (
+                          <p className="text-xs font-bold" style={{ color: '#8E4356' }}>✓ Subscribed! Watch your inbox for early access.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          if (layoutStyle === 'bloom_beauty') {
+            const aboutImg = (isPreviewMode && activeThemeMeta?.storyImage) || section.data.imageUrl || section.data.image || activeThemeMeta?.storyImage || '/theme-images/beauty-2.jpg';
+            return (
+              <section id="about" key={section.id} className="py-14 sm:py-20" style={{ backgroundColor: '#481830' }}>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                  <div className="relative">
+                    <img src={aboutImg} alt="About our brand" className="w-full h-[340px] sm:h-[420px] object-cover rounded-3xl shadow-2xl" />
+                    <div className="absolute -bottom-5 -right-3 sm:right-6 bg-white rounded-2xl shadow-xl px-5 py-4 text-center">
+                      <p className="text-2xl font-bold" style={{ color: '#8E4356', fontFamily: styles?.headingFont || 'Playfair Display' }}>10+</p>
+                      <p className="text-[10px] uppercase tracking-wider" style={{ color: '#6B4A55' }}>Years of Craft</p>
+                    </div>
+                  </div>
+                  <div className="space-y-5 text-white">
+                    <span className="inline-block text-[11px] uppercase tracking-[0.3em] font-bold text-white/70">About Us</span>
+                    <h3 className="text-3xl sm:text-4xl leading-tight" style={{ fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}>
+                      {section.data.title || section.data.headline || `Beauty Made Honest, at ${matchedStore.name}`}
+                    </h3>
+                    <p className="text-sm sm:text-base text-white/80 leading-relaxed">
+                      {section.data.text || section.data.story || 'We craft small-batch, botanical-first beauty with complete transparency — no hidden fillers, no cruelty, no platform markups. Every rupee you spend goes toward better ingredients, not middlemen.'}
+                    </p>
+                    <div className="grid grid-cols-3 gap-4 pt-2 border-t border-white/15">
+                      {[
+                        { n: '100%', l: 'Vegan Formula' },
+                        { n: '500+', l: '5-Star Reviews' },
+                        { n: '0%', l: 'Platform Fee' },
+                      ].map((st) => (
+                        <div key={st.l} className="pt-3">
+                          <p className="text-xl font-bold" style={{ fontFamily: styles?.headingFont || 'Playfair Display' }}>{st.n}</p>
+                          <p className="text-[11px] text-white/60 uppercase tracking-wide">{st.l}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
           return (
             <section
               id="story"
@@ -2710,12 +3883,46 @@ export const DynamicStorefrontPage = () => {
         }
 
         return null;
-      })}
+      });
+      return __rendered.map((el, i) => {
+        if (!el) return el;
+        const sec = __enabled[i];
+        return (
+          <div
+            key={'jxw_' + (sec.id || i)}
+            className={isJulexEditMode ? 'jx-edit-wrap' : undefined}
+            data-sid={sec.id}
+            title={isJulexEditMode ? 'Click to edit ' + (sec.name || sec.type) : undefined}
+          >
+            {el}
+          </div>
+        );
+      });
+      })()}
+
+      {/* CANVA-STYLE INLINE EDITOR (only inside the Visual Customizer iframe) */}
+      {isJulexEditMode && (
+        <JuxInlineEditor
+          storeId={matchedStore.id}
+          subdomain={cleanSubdomain}
+          getSections={() => sections}
+          getStyles={() => themeConfig.styles}
+        />
+      )}
 
       {/* ---------------------------------------------------- */}
-      {/* SLIDE-OVER SHOPPING BAG DRAWER */}
+      {/* SLIDE-OVER SHOPPING BAG DRAWER — styled by the store's active theme */}
       {/* ---------------------------------------------------- */}
-      {isBagDrawerOpen && (
+      {isBagDrawerOpen && (() => {
+        const tBg = styles?.backgroundColor || '#FFFFFF';
+        const tAccent = styles?.accentColor || '#9F1239';
+        const tHeading = styles?.headingColor || '#0F172A';
+        const tText = styles?.textColor || '#374151';
+        const tBorderRaw = (styles?.cardBorder || 'border-[#FBCBCB]').match(/#([0-9A-Fa-f]{6})/);
+        const tBorder = tBorderRaw ? tBorderRaw[0] : '#E9E2D9';
+        const tHeadBg = styles?.surfaceColor || styles?.headerBg || '#FFF6F2';
+
+        return (
         <div className="fixed inset-0 z-50 overflow-hidden text-[#0F172A]">
           {/* Backdrop */}
           <div
@@ -2724,18 +3931,18 @@ export const DynamicStorefrontPage = () => {
           />
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-[#FBCBCB] animate-slide-left">
+            <div className="w-full max-w-md shadow-2xl flex flex-col justify-between animate-slide-left" style={{ backgroundColor: '#FFFFFF', borderLeft: `1px solid ${tBorder}` }}>
               {/* Drawer Header */}
-              <div className="p-5 border-b border-[#FBCBCB] flex items-center justify-between bg-[#fedddd]">
+              <div className="p-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${tBorder}`, backgroundColor: tHeadBg }}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#9F1239] text-white flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl text-white flex items-center justify-center" style={{ backgroundColor: tAccent }}>
                     <ShoppingBag className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-sm text-[#0F172A] font-serif">
+                    <h2 className="font-bold text-sm font-serif" style={{ color: tHeading }}>
                       Your Shopping Bag
                     </h2>
-                    <p className="text-[10px] text-[#374151]">
+                    <p className="text-[10px]" style={{ color: tText }}>
                       {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} • Direct from {matchedStore.name}
                     </p>
                   </div>
@@ -2753,8 +3960,9 @@ export const DynamicStorefrontPage = () => {
               {/* Drawer Body: Cart Items List */}
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {storeCartItems.length === 0 ? (
-                    <div className="p-8 rounded-3xl bg-white border border-[#FBCBCB] text-center space-y-4 shadow-xs">
-                      <div className="w-16 h-16 rounded-2xl bg-[#fedddd] text-[#9F1239] mx-auto flex items-center justify-center border border-[#F8B4B4]">
+                    <div className="p-8 rounded-3xl bg-white text-center space-y-4 shadow-xs">
+                      <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
+                        style={{ backgroundColor: tHeadBg, color: tAccent }}>
                         <ShoppingBag className="w-8 h-8 stroke-[2]" />
                       </div>
                       <div className="space-y-1">
@@ -2785,37 +3993,40 @@ export const DynamicStorefrontPage = () => {
                         return (
                           <div
                             key={item.id}
-                            className="p-3.5 rounded-2xl border border-[#FBCBCB] bg-white hover:border-[#F8B4B4] transition flex items-center gap-3.5 shadow-xs"
+                            className="p-3.5 rounded-2xl bg-white transition flex items-center gap-3.5 shadow-xs"
+                            style={{ border: `1px solid ${tBorder}` }}
                           >
                             <img
                               src={itemImg}
                               alt={item.name}
-                              className="w-16 h-16 rounded-xl object-cover border border-[#FBCBCB] bg-stone-50 shrink-0"
+                              className="w-16 h-16 rounded-xl object-cover bg-stone-50 shrink-0"
+                              style={{ border: `1px solid ${tBorder}` }}
                             />
 
                             <div className="flex-1 min-w-0 space-y-1">
-                              <h3 className="font-bold text-xs text-[#0F172A] truncate">
+                              <h3 className="font-bold text-xs truncate" style={{ color: tHeading }}>
                                 {item.name}
                               </h3>
-                              <p className="font-mono font-black text-xs text-[#9F1239]">
+                              <p className="font-mono font-black text-xs" style={{ color: tAccent }}>
                                 ₹{itemPrice.toLocaleString('en-IN')}
                               </p>
 
                               {/* Quantity Stepper */}
                               <div className="flex items-center gap-2 pt-1">
-                                <div className="flex items-center border border-[#FBCBCB] rounded-lg bg-white overflow-hidden">
+                                <div className="flex items-center rounded-lg bg-white overflow-hidden"
+                                  style={{ border: `1px solid ${tBorder}` }}>
                                   <button
                                     onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
-                                    className="px-2 py-0.5 hover:bg-[#fedddd] text-[#374151] font-bold text-xs"
+                                    className="px-2 py-0.5 hover:bg-black/5 text-[#374151] font-bold text-xs"
                                   >
                                     -
                                   </button>
-                                  <span className="px-2.5 py-0.5 text-xs font-mono font-bold text-[#0F172A]">
+                                  <span className="px-2.5 py-0.5 text-xs font-mono font-bold" style={{ color: tHeading }}>
                                     {item.quantity || 1}
                                   </span>
                                   <button
                                     onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
-                                    className="px-2 py-0.5 hover:bg-[#fedddd] text-[#374151] font-bold text-xs"
+                                    className="px-2 py-0.5 hover:bg-black/5 text-[#374151] font-bold text-xs"
                                   >
                                     +
                                   </button>
@@ -2864,7 +4075,8 @@ export const DynamicStorefrontPage = () => {
                     <Link
                       to="/checkout"
                       onClick={() => setIsBagDrawerOpen(false)}
-                      className="w-full py-3 rounded-2xl bg-[#9F1239] hover:bg-[#881337] text-white text-xs font-bold text-center block shadow-md shadow-rose-900/20 transition transform active:scale-98"
+                      className="w-full py-3 rounded-2xl text-white text-xs font-bold text-center block shadow-md transition transform active:scale-98 cursor-pointer hover:opacity-90"
+                      style={{ backgroundColor: tAccent }}
                     >
                       Proceed to 1-Click Checkout ↗
                     </Link>
@@ -2892,7 +4104,8 @@ export const DynamicStorefrontPage = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Store Customer Authentication & Account Orders Modal */}
       <StoreCustomerAuthModal

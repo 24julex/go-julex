@@ -541,6 +541,7 @@ export const SuperAdminProvider = ({ children }) => {
   const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [is2FAModalOpen, set2FAModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const refreshTenantsRef = React.useRef(null);
 
   // Current Active Super Admin Profile
   const [activeAdmin, setActiveAdmin] = useState(() => {
@@ -648,7 +649,26 @@ export const SuperAdminProvider = ({ children }) => {
     // The first attempt can race the session token (auto-login is async) —
     // retry shortly so the authoritative backend list always lands
     const t = setTimeout(fetchBackendData, 2500);
-    return () => clearTimeout(t);
+    // Keep retrying in the background: if the session token was stale or the
+    // API hiccuped, the real tenant list (incl. newly created stores) still
+    // lands instead of leaving an old cached list on screen.
+    let tries = 0;
+    const retry = setInterval(() => {
+      tries += 1;
+      fetchBackendData();
+      if (tries >= 6) clearInterval(retry);
+    }, 10000);
+    // Keep the tenant list live: re-sync whenever the tab regains focus so
+    // theme changes made by merchants reflect here without a manual reload
+    const onFocus = () => fetchBackendData();
+    window.addEventListener('focus', onFocus);
+    refreshTenantsRef.current = fetchBackendData;
+    return () => {
+      clearTimeout(t);
+      clearInterval(retry);
+      window.removeEventListener('focus', onFocus);
+      refreshTenantsRef.current = null;
+    };
   }, []);
 
   // Sync state to localStorage
@@ -1095,6 +1115,7 @@ export const SuperAdminProvider = ({ children }) => {
       value={{
         // State
         tenants,
+        refreshTenants: () => refreshTenantsRef.current && refreshTenantsRef.current(),
         plans,
         mrrHistory,
         atRiskSubscriptions,

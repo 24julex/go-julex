@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
 import { HARMONIOUS_THEME_PRESETS } from './AdminThemeBuilder';
-import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, THEME_META } from '../../../data/themeRegistry';
+import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, THEME_META, buildThemeSectionsForApply } from '../../../data/themeRegistry';
 import { ThemePreviewModal } from '../../../components/common/ThemePreviewModal';
 import { api } from '../../../services/api';
 
@@ -132,7 +132,9 @@ export const AdminThemes = () => {
         ...presetStyles,
         presetId: theme.presetId
       },
-      sections: currentThemeObj?.sections || [],
+      // Install the SAME sections the live preview renders, so the published
+      // store is identical to the preview (brand copy, imagery, order).
+      sections: buildThemeSectionsForApply(theme.presetId, currentStore),
       updatedAt: new Date().toISOString()
     };
 
@@ -146,6 +148,7 @@ export const AdminThemes = () => {
     setActiveTheme(theme);
     // Record the real store->theme mapping in the backend (super-admin portal reads it)
     api.themes.assign(currentStore?.id, theme.presetId).catch(() => {});
+    api.themes.saveConfig(newThemePayload).catch(() => {});
     showToast(`"${theme.name}" applied & published live to your storefront! 🚀`, 'success');
 
     if (redirect) {

@@ -43,6 +43,7 @@ model Tenant {
   planTier                 String                  @default("SIX_MONTH") // "SIX_MONTH", "ONE_YEAR", "TRIAL", "FREE"
   status                   String                  @default("ACTIVE")    // "ACTIVE", "TRIALING", "SUSPENDED"
   activeThemeId            String                  @default("theme_aura_soft_peach")
+  themeConfig             String?
   activeInvoiceTemplateId  String                  @default("tpl_classic_a4")
   users                    User[]
   products                 Product[]

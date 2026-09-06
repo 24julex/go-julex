@@ -5,6 +5,49 @@ import { requireSuperAdmin, requireMerchantAdmin } from '../middleware/auth.js';
 const router = Router();
 
 /**
+ * PUT /api/themes/config — Merchant: persist the full published theme config
+ * (preset, styles, sections, inline edits) on the tenant so EVERY visitor
+ * sees the store as designed, not just the merchant's browser.
+ */
+router.put('/config', requireMerchantAdmin, async (req, res) => {
+  try {
+    const { config } = req.body;
+    if (!config || typeof config !== 'object') {
+      return res.status(400).json({ success: false, message: 'Missing theme config payload.' });
+    }
+    await prisma.tenant.update({
+      where: { id: req.tenantId },
+      data: { themeConfig: JSON.stringify(config) }
+    });
+    return res.json({ success: true, message: 'Theme config published.' });
+  } catch (error) {
+    console.error('Save theme config error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to save theme config.' });
+  }
+});
+
+/**
+ * GET /api/themes/public/:subdomain — public: the published theme config
+ * for a store (used by the storefront for every visitor).
+ */
+router.get('/public/:subdomain', async (req, res) => {
+  try {
+    const clean = String(req.params.subdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '');
+    const all = await prisma.tenant.findMany();
+    const norm = (v) => String(v || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const matches = all.filter((t) => norm(t.subdomain) === clean || norm(t.id) === clean);
+    const tenant = matches.find((t) => t.themeConfig) || matches[0] || null;
+    if (!tenant || !tenant.themeConfig) {
+      return res.json({ success: true, data: null });
+    }
+    return res.json({ success: true, data: JSON.parse(tenant.themeConfig) });
+  } catch (error) {
+    console.error('Fetch public theme config error:', error);
+    return res.json({ success: true, data: null });
+  }
+});
+
+/**
  * GET /api/themes — public: all theme catalog overrides (edits + deletions).
  * Both the merchant gallery and the super admin portal read from here so
  * template customizations are consistent everywhere.

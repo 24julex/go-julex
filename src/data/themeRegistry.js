@@ -314,6 +314,57 @@ export const THEME_META = {
       { id: 'noir_obsidian_4', name: 'Dark Dial Steel Bracelet', price: 76999, discountPercent: 8, image: '/theme-images/watch-4.jpg', tag: 'Everyday Luxe', category: 'Watches', brand: 'NOIR' }
     ]
   },
+  preset_camel_edit: {
+    brandName: 'MAISON CAMEL',
+    tagline: 'Modern Editorial Fashion House',
+    aesthetic: 'Editorial Fashion & Streetwear',
+    thumbnail: '/theme-images/fashion-1.png',
+    heroImage: '/theme-images/fashion-1.png',
+    storyImage: '/theme-images/fashion-5.jpg',
+    bannerImage: '/theme-images/street-2.jpg',
+    products: [
+      { id: 'camel_1', name: 'Oversized Wool Blazer', price: 5999, discountPercent: 15, image: '/theme-images/fashion-1.png', tag: 'Best Seller', category: 'Womenswear', brand: 'MAISON CAMEL' },
+      { id: 'camel_2', name: 'Relaxed Straight Denim', price: 3499, discountPercent: 0, image: '/theme-images/fashion-2.jpg', tag: 'Icon', category: 'Womenswear', brand: 'MAISON CAMEL' },
+      { id: 'camel_3', name: 'Sculpted Evening Gown', price: 12999, discountPercent: 10, image: '/theme-images/fashion-3.jpg', tag: 'Runway', category: 'Occasion', brand: 'MAISON CAMEL' },
+      { id: 'camel_4', name: 'Graphic Drop-Shoulder Tee', price: 1499, discountPercent: 5, image: '/theme-images/street-1.png', tag: 'New', category: 'Menswear', brand: 'MAISON CAMEL' },
+      { id: 'camel_5', name: 'Retro Court Sneakers', price: 4299, discountPercent: 0, image: '/theme-images/street-3.jpg', tag: 'Hype', category: 'Footwear', brand: 'MAISON CAMEL' },
+      { id: 'camel_6', name: 'Camel Leather Crossbody', price: 7899, discountPercent: 20, image: '/theme-images/bags-3.jpg', tag: 'Deal', category: 'Accessories', brand: 'MAISON CAMEL' }
+    ]
+  },
+  preset_bloom_beauty: {
+    brandName: 'ROSE BLOOM',
+    tagline: 'Clean Beauty, Crafted with Love',
+    aesthetic: 'Modern Beauty Boutique',
+    thumbnail: '/theme-images/beauty-1.jpeg',
+    heroImage: '/theme-images/beauty-1.jpeg',
+    storyImage: '/theme-images/beauty-2.jpg',
+    bannerImage: '/theme-images/beauty-3.jpeg',
+    products: [
+      { id: 'bloom_1', name: 'Petal Dew Serum Foundation', price: 1499, discountPercent: 15, image: '/theme-images/beauty-1.jpeg', tag: 'Best Seller', category: 'Makeup', brand: 'ROSE BLOOM' },
+      { id: 'bloom_2', name: 'Rose Quartz Face Elixir', price: 1899, discountPercent: 10, image: '/theme-images/beauty-2.jpg', tag: 'Loved', category: 'Skincare', brand: 'ROSE BLOOM' },
+      { id: 'bloom_3', name: 'Velvet Peony Eau de Parfum', price: 2499, discountPercent: 0, image: '/theme-images/beauty-3.jpeg', tag: 'New', category: 'Fragrance', brand: 'ROSE BLOOM' },
+      { id: 'bloom_4', name: 'Silk Repair Hair Masque', price: 999, discountPercent: 20, image: '/theme-images/beauty-4.jpg', tag: 'Deal', category: 'Hair Care', brand: 'ROSE BLOOM' },
+      { id: 'bloom_5', name: 'Blushing Cream Lip Tint', price: 699, discountPercent: 5, image: '/theme-images/beauty-3.jpeg', tag: 'Everyday', category: 'Makeup', brand: 'ROSE BLOOM' },
+      { id: 'bloom_6', name: 'Botanical Cleansing Balm', price: 1199, discountPercent: 0, image: '/theme-images/beauty-2.jpg', tag: 'Gentle', category: 'Skincare', brand: 'ROSE BLOOM' }
+    ]
+  },
+  preset_olive_linen: {
+    brandName: 'OLIVE & LINEN',
+    tagline: 'Conscious Minimal Wardrobe & Home Goods',
+    aesthetic: 'Minimal Olive Boutique',
+    thumbnail: '/theme-images/beige-1.jpg',
+    heroImage: '/theme-images/beige-1.jpg',
+    storyImage: '/theme-images/beige-3.jpg',
+    bannerImage: '/theme-images/fashion-5.jpg',
+    products: [
+      { id: 'olive_linen_1', name: 'Relaxed Linen Shirt Dress', price: 3400, discountPercent: 10, image: '/theme-images/beige-1.jpg', tag: 'New', category: 'Dresses', brand: 'OLIVE & LINEN' },
+      { id: 'olive_linen_2', name: 'Neutral Cotton Midi Dress', price: 4500, discountPercent: 0, image: '/theme-images/fashion-2.jpg', tag: 'Best Seller', category: 'Dresses', brand: 'OLIVE & LINEN' },
+      { id: 'olive_linen_3', name: 'Soft Knit Olive Cardigan', price: 3800, discountPercent: 15, image: '/theme-images/fashion-3.jpg', tag: 'Warm Edit', category: 'Knitwear', brand: 'OLIVE & LINEN' },
+      { id: 'olive_linen_4', name: 'Everyday Canvas Tote', price: 1900, discountPercent: 5, image: '/theme-images/beige-4.jpg', tag: 'Everyday', category: 'Bags', brand: 'OLIVE & LINEN' },
+      { id: 'olive_linen_5', name: 'Pleated Linen Trousers', price: 3600, discountPercent: 0, image: '/theme-images/fashion-4.jpeg', tag: 'Studio', category: 'Bottoms', brand: 'OLIVE & LINEN' },
+      { id: 'olive_linen_6', name: 'Woven Cotton Scarf', price: 1200, discountPercent: 10, image: '/theme-images/beige-5.png', tag: 'Accent', category: 'Accessories', brand: 'OLIVE & LINEN' }
+    ]
+  },
   preset_coral_silk: {
     brandName: 'CORAL SILK Boutique',
     tagline: 'Gifts, Toys & Soft Pastel Goods',
@@ -358,6 +409,103 @@ const presetToMarketplaceEntry = (preset, index) => {
 };
 
 // Merchant console theme gallery (Channels → Online Store → Themes)
+// Builds the exact section set a theme's LIVE PREVIEW renders, so that
+// "Apply Theme" publishes a store identical to its preview — same brand
+// copy, imagery and section order. Merchants can still edit every field
+// afterwards in the Theme Builder.
+export const buildThemeSectionsForApply = (presetId, store) => {
+  const meta = THEME_META[presetId] || {};
+  const brand = meta.brandName || (store?.name || 'Our Store');
+  const tagline = meta.tagline || 'Direct from our studio — 0% platform commission';
+  const aesthetic = meta.aesthetic || 'Pure D2C Craftsmanship';
+  const hero = meta.heroImage || meta.thumbnail || '/theme-images/fashion-2.jpg';
+  const banner = meta.bannerImage || meta.thumbnail || hero;
+  const story = meta.storyImage || meta.thumbnail || hero;
+  const firstProduct = (meta.products && meta.products[0]) || {};
+
+  return [
+    {
+      id: 'sec_announcement',
+      type: 'announcement',
+      name: 'Announcement Bar',
+      enabled: true,
+      data: { text: `${tagline} — now live with 0% platform commission`, linkText: 'Shop Now', linkUrl: '#products' }
+    },
+    {
+      id: 'sec_header',
+      type: 'header',
+      name: 'Navigation Header',
+      enabled: true,
+      data: { logoText: brand, tagline, navLink1: 'Shop', navLink2: 'Categories', navLink3: 'About Us' }
+    },
+    {
+      id: 'sec_hero',
+      type: 'hero',
+      name: 'Hero Banner',
+      enabled: true,
+      data: {
+        badgeText: aesthetic,
+        headline: brand,
+        subtext: tagline,
+        ctaText: 'Shop the Collection',
+        secondaryBtnText: 'Best Sellers',
+        imageUrl: hero
+      }
+    },
+    {
+      id: 'sec_products',
+      type: 'product_grid',
+      name: 'Product Grid',
+      enabled: true,
+      data: { title: 'Shop By Category', subtitle: `${tagline} — every product direct, 0% commission.`, columns: 6 }
+    },
+    {
+      id: 'sec_promo',
+      type: 'promo_banner',
+      name: 'Offer Banner',
+      enabled: true,
+      data: {
+        title: `Season Offer at ${brand}`,
+        subtitle: 'Limited-time savings across the collection. Use code BLOOM25 at checkout.',
+        ctaText: 'Shop the Offer',
+        imageUrl: banner
+      }
+    },
+    {
+      id: 'sec_best_sellers',
+      type: 'video_reels',
+      name: 'Best Sellers',
+      enabled: true,
+      data: { title: 'Best Sellers', subtitle: 'The most-loved picks this season.', columns: 4 }
+    },
+    {
+      id: 'sec_pillars',
+      type: 'testimonials',
+      name: 'Customer Promise',
+      enabled: true,
+      data: { title: 'What We Provide Our Customers' }
+    },
+    {
+      id: 'sec_story',
+      type: 'story',
+      name: 'About Us',
+      enabled: true,
+      data: {
+        title: `About ${brand}`,
+        text: `${tagline}. We sell direct — no middlemen, no marketplace commissions. Every piece ships straight from our studio to you, with the full ${firstProduct.brand || brand} promise.`,
+        imageUrl: story
+      }
+    },
+    {
+      id: 'sec_footer',
+      type: 'footer',
+      name: 'Footer',
+      enabled: true,
+      data: {}
+    }
+  ];
+};
+
 export const THEME_MARKETPLACE = HARMONIOUS_THEME_PRESETS.map(presetToMarketplaceEntry);
 
 // Super Admin master themes catalog (shape used by /super-admin/themes)

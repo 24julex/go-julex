@@ -37,7 +37,50 @@ const MiniThemeStorefrontCard = ({ theme }) => {
 };
 
 export const ThemesPage = () => {
-  const { showToast, tenants, impersonateTenant } = useSuperAdmin();
+  const { showToast, tenants: contextTenants, impersonateTenant, refreshTenants } = useSuperAdmin();
+  // Always show the freshest store↔theme assignments from the backend
+  useEffect(() => {
+    refreshTenants?.();
+  }, []);
+  // The adoptions panel reads DIRECTLY from the database API (with retries)
+  // so no cached/localStorage state can ever hide a store from it.
+  const [dbTenants, setDbTenants] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async (attempt = 0) => {
+      try {
+        const res = await api.superAdmin.getTenants();
+        if (cancelled) return;
+        if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
+          const mapped = res.data.map((t) => ({
+            id: t.id,
+            name: t.name,
+            subdomain: String(t.subdomain || '').replace(/\.gojulex\.com$/, ''),
+            activeThemeId: t.activeThemeId || null,
+            status: (t.status || 'active').toLowerCase(),
+            createdAt: t.createdAt || ''
+          }));
+          // Real merchant-owned stores FIRST, newest store leading, then
+          // seeded demo tenants — so live stores always fill the top row
+          // regardless of how many columns the grid shows.
+          const isDemo = (t) => String(t.id || '').startsWith('ten_');
+          mapped.sort((a, b2) => {
+            const demoDiff = (isDemo(a) ? 1 : 0) - (isDemo(b2) ? 1 : 0);
+            if (demoDiff !== 0) return demoDiff;
+            return String(a.createdAt).localeCompare(String(b2.createdAt));
+          });
+          setDbTenants(mapped);
+        } else if (attempt < 5) {
+          setTimeout(() => load(attempt + 1), 2000);
+        }
+      } catch (e) {
+        if (!cancelled && attempt < 5) setTimeout(() => load(attempt + 1), 2000);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+  const tenants = dbTenants || contextTenants;
   // Live preview renders against a real storefront — first live tenant, else demo store
   const previewSubdomain = (tenants?.[0]?.subdomain || 'luxestudio').toLowerCase().replace(/\.gojulex\.com$/, '');
   const navigate = useNavigate();
@@ -126,7 +169,10 @@ export const ThemesPage = () => {
     // backend). Normalize ids so "preset_x", "theme_x" and "x" all match.
     const norm = (v) => String(v || '').replace(/^(preset_|theme_)/, '');
     const themeKeys = [norm(theme.id), norm(theme.presetId)].filter(Boolean);
-    return tenants.filter((t) => themeKeys.includes(norm(t.activeThemeId)));
+    return tenants.filter((t) => {
+      const keys = [norm(t.activeThemeId), norm(t.activeThemeId).replace(/^aura_/, '')];
+      return keys.some((k) => themeKeys.includes(k));
+    });
   };
 
   const handleDuplicate = (theme) => {
@@ -257,8 +303,14 @@ Stores using it will fall back to the default theme.`)) return;
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {tenants.map((store) => {
-            const activeThemeSlug = store.themeSlug || store.activeThemeSlug || 'aura-soft-peach';
-            const themeMatch = allThemes.find((t) => t.slug === activeThemeSlug) || allThemes[0];
+            // Real assignment from the backend: tenant.activeThemeId (prefix-insensitive)
+            const norm = (v) => String(v || '').replace(/^(preset_|theme_)/, '');
+            const storeKeys = [norm(store.activeThemeId), norm(store.activeThemeId).replace(/^aura_/, '')];
+            const themeMatch = allThemes.find((t) =>
+              [t.id, t.presetId].some((k) => storeKeys.includes(norm(k)))
+            );
+            const themeLabel = themeMatch ? themeMatch.name : (store.activeThemeId || 'Not set');
+            const cleanSub = String(store.subdomain || store.id).replace(/^store_/, '').replace(/\.gojulex\.com$/, '');
             return (
               <div
                 key={store.id}
@@ -272,13 +324,13 @@ Stores using it will fall back to the default theme.`)) return;
                       Active
                     </span>
                   </div>
-                  <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{(store.subdomain || store.id).replace(/^store_/, '')}.gojulex.com</p>
+                  <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{cleanSub}.gojulex.com</p>
                 </div>
 
                 <div className="pt-2 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
                   <div className="flex items-center justify-between text-[11px]">
                     <span style={{ color: 'var(--text-muted)' }}>Theme:</span>
-                    <span className="font-bold truncate max-w-[130px]" style={{ color: 'var(--accent)' }}>{themeMatch.name}</span>
+                    <span className="font-bold truncate max-w-[130px]" style={{ color: 'var(--accent)' }}>{themeLabel}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px] pt-1">
                     <span style={{ color: 'var(--text-muted)' }}>ID:</span>

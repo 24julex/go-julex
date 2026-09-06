@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -41,7 +41,8 @@ import {
   SlidersHorizontal,
   Wand2,
   Paintbrush,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
 
@@ -466,6 +467,66 @@ export const HARMONIOUS_THEME_PRESETS = [
     cardSurface: '#FFFFFF',
     buttonRadius: 'rounded-2xl',
     cardBorder: 'border-[#FECDD3]'
+  },
+  {
+    id: 'preset_olive_linen',
+    name: '🌿 Olive & Linen Minimal',
+    desc: 'Cream linen canvas, deep olive-green announcement bar and buttons, elegant serif wordmark and clean 3-column product grid',
+    layoutStyle: 'olive_linen',
+    headingFont: 'Fraunces',
+    bodyFont: 'Work Sans',
+    baseFontSize: 15,
+    backgroundColor: '#F5F3EE',
+    surfaceColor: '#EFEDE6',
+    headerBg: '#F5F3EE',
+    announcementBg: '#3B4A2F',
+    announcementText: '#F5F3EE',
+    accentColor: '#3B4A2F',
+    headingColor: '#232A1D',
+    textColor: '#4A5240',
+    cardSurface: '#FFFFFF',
+    buttonRadius: 'rounded-md',
+    cardBorder: 'border-[#E3E0D6]'
+  },
+  {
+    id: 'preset_bloom_beauty',
+    name: '🌹 Rose Bloom Beauty',
+    desc: 'Blush-pink cosmetics boutique: wine accents, category circles, offer banner, best sellers, service pillars and plum about section',
+    layoutStyle: 'bloom_beauty',
+    headingFont: 'Playfair Display',
+    bodyFont: 'Plus Jakarta Sans',
+    baseFontSize: 15,
+    backgroundColor: '#FDF8F6',
+    surfaceColor: '#F9EDEB',
+    headerBg: '#FFFFFF',
+    announcementBg: '#8E4356',
+    announcementText: '#FDF8F6',
+    accentColor: '#8E4356',
+    headingColor: '#3A1B2A',
+    textColor: '#6B4A55',
+    cardSurface: '#FFFFFF',
+    buttonRadius: 'rounded-full',
+    cardBorder: 'border-[#F0DBDD]'
+  },
+  {
+    id: 'preset_camel_edit',
+    name: ' camel Editorial Fashion',
+    desc: 'Warm-white editorial fashion store: bold black display type, camel-tan accents, category cards, offer panel, best sellers and a black about-contact block',
+    layoutStyle: 'camel_edit',
+    headingFont: 'Archivo Black',
+    bodyFont: 'Work Sans',
+    baseFontSize: 15,
+    backgroundColor: '#FCFAF7',
+    surfaceColor: '#F6EFE8',
+    headerBg: '#FCFAF7',
+    announcementBg: '#111111',
+    announcementText: '#FCFAF7',
+    accentColor: '#A97C50',
+    headingColor: '#111111',
+    textColor: '#4A423B',
+    cardSurface: '#FFFFFF',
+    buttonRadius: 'rounded-full',
+    cardBorder: 'border-[#E9E2D9]'
   }
 ];
 
@@ -729,6 +790,7 @@ export const AdminThemeBuilder = () => {
 
   // Viewport State: 'mobile' | 'desktop' | 'full'
   const [viewport, setViewport] = useState('desktop');
+  const [previewTick, setPreviewTick] = useState(0);
 
   // Sidebar Tab: 'blocks' | 'colors' | 'presets'
   const [activeTab, setActiveTab] = useState('blocks');
@@ -915,6 +977,13 @@ export const AdminThemeBuilder = () => {
     }
   ];
 });
+  // Live iframe refresh key — bumps (debounced) whenever the auto-saved
+  // draft changes, so the center canvas always mirrors the real store.
+  useEffect(() => {
+    const t = setTimeout(() => setPreviewTick((n) => n + 1), 700);
+    return () => clearTimeout(t);
+  }, [sections, styles, activePresetId]);
+
 
   // Modal / Drawer state for adding new sections from the library
   const [isAddBlockOpen, setIsAddBlockOpen] = useState(false);
@@ -1062,6 +1131,7 @@ export const AdminThemeBuilder = () => {
       localStorage.setItem(`gojulex_store_active_theme_${cleanSubdomain}`, activePresetId);
     } catch (e) {}
 
+    api.themes.saveConfig(payload).catch(() => {});
     showToast('Theme layout & all custom sections published live! 🚀', 'success');
   };
 
@@ -2723,10 +2793,12 @@ export const AdminThemeBuilder = () => {
           )}
         </aside>
 
-        {/* CENTER LIVE STOREFRONT CANVAS */}
+        {/* CENTER LIVE STOREFRONT CANVAS — the REAL storefront, identical to live preview.
+            Drafts auto-save to the store config on every edit; the iframe reloads
+            (debounced) so merchants always see exactly what is published. */}
         <main className="flex-1 bg-white overflow-y-auto p-4 sm:p-6 flex items-start justify-center">
           <div
-            className={`transition-all duration-300 rounded-3xl overflow-hidden border shadow-xl min-h-[90vh] ${
+            className={`transition-all duration-300 rounded-3xl overflow-hidden border shadow-xl bg-white ${
               styles.cardBorder || 'border-[#FBCBCB]'
             } ${
               viewport === 'mobile'
@@ -2735,612 +2807,25 @@ export const AdminThemeBuilder = () => {
                 ? 'w-[920px] max-w-full'
                 : 'w-full'
             }`}
-            style={{
-              backgroundColor: styles.backgroundColor,
-              color: styles.textColor,
-              fontFamily: styles.bodyFont,
-              fontSize: `${styles.baseFontSize}px`
-            }}
           >
-            {/* Render Storefront Blocks Sequentially with Direct Canvas Selection & Visual Inline Editing */}
-            {sections.map((sec, secIdx) => {
-              if (!sec.enabled) return null;
-              const isSelected = expandedSectionId === sec.id;
-
-              return (
-                <div
-                  key={sec.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExpandedSectionId(sec.id);
-                    setActiveTab('blocks');
-                  }}
-                  className={`relative group transition cursor-pointer ${
-                    isSelected
-                      ? 'ring-2 ring-[#D4A017] shadow-md z-10'
-                      : 'hover:ring-2 hover:ring-[#BE123C]/50'
-                  }`}
-                >
-                  {/* Floating Action Badge on Canvas */}
-                  <div
-                    className={`absolute top-2 right-2 z-30 flex items-center gap-1 transition ${
-                      isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                    }`}
-                  >
-                    <span className="px-2.5 py-1 rounded-xl bg-[#D4A017] text-white text-[10px] font-bold shadow-lg flex items-center gap-1">
-                      <span>✏️ {sec.name}</span>
-                    </span>
-                  </div>
-
-                  {/* 1. Announcement Bar */}
-                  {sec.type === 'announcement' && (
-                    <div
-                      className="py-2.5 px-4 text-center text-xs font-bold transition flex items-center justify-center gap-3"
-                      style={{
-                        backgroundColor: sec.data.overrideBg || styles.announcementBg,
-                        color: sec.data.overrideText || styles.announcementText
-                      }}
-                    >
-                      <span
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => {
-                          const updated = [...sections];
-                          updated[secIdx].data.text = e.currentTarget.textContent;
-                          setSections(updated);
-                        }}
-                        className="focus:outline-none focus:bg-white/20 px-1 rounded"
-                      >
-                        {sec.data.text}
-                      </span>
-                      {sec.data.linkText && (
-                        <span className="underline opacity-90 hover:opacity-100 font-black">
-                          {sec.data.linkText} →
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 2. Navigation Header */}
-                  {sec.type === 'header' && (
-                    <header
-                      className="p-4 border-b flex items-center justify-between transition"
-                      style={{
-                        backgroundColor: styles.headerBg,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        {sec.data.logoImg && (
-                          <img
-                            src={sec.data.logoImg}
-                            alt="Brand Logo"
-                            className="h-8 object-contain rounded-lg"
-                          />
-                        )}
-                        <div>
-                          <span
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                              const updated = [...sections];
-                              updated[secIdx].data.logoText = e.currentTarget.textContent;
-                              setSections(updated);
-                            }}
-                            className="font-bold text-sm tracking-wider block leading-tight focus:outline-none focus:bg-black/5 px-1 rounded"
-                            style={{ fontFamily: styles.headingFont, color: styles.headingColor }}
-                          >
-                            {sec.data.logoText}
-                          </span>
-                          <span
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                              const updated = [...sections];
-                              updated[secIdx].data.tagline = e.currentTarget.textContent;
-                              setSections(updated);
-                            }}
-                            className="text-[9px] opacity-70 block focus:outline-none focus:bg-black/5 px-1 rounded"
-                          >
-                            {sec.data.tagline}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-xs font-semibold">
-                        <span className="hover:opacity-75">{sec.data.navLink1 || 'Collections'}</span>
-                        <span className="hover:opacity-75">{sec.data.navLink2 || 'New Arrivals'}</span>
-                        <span className="hover:opacity-75">{sec.data.navLink3 || 'Our Story'}</span>
-                        <div
-                          className="flex items-center gap-1 font-bold px-3 py-1 rounded-full text-white text-[11px] shadow-xs"
-                          style={{ backgroundColor: styles.accentColor }}
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5" /> <span>Bag (2)</span>
-                        </div>
-                      </div>
-                    </header>
-                  )}
-
-                  {/* 3. Hero Banner */}
-                  {sec.type === 'hero' && (
-                    <div
-                      className="relative p-8 sm:p-12 overflow-hidden border-b flex flex-col justify-center min-h-[360px] transition"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="relative z-10 max-w-lg space-y-3.5">
-                        {sec.data.badgeText && (
-                          <span
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                              const updated = [...sections];
-                              updated[secIdx].data.badgeText = e.currentTarget.textContent;
-                              setSections(updated);
-                            }}
-                            className="px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white inline-block shadow-xs focus:outline-none"
-                            style={{ backgroundColor: sec.data.overrideBadgeBg || styles.accentColor }}
-                          >
-                            {sec.data.badgeText}
-                          </span>
-                        )}
-                        <h1
-                          contentEditable
-                          suppressContentEditableWarning
-                          onBlur={(e) => {
-                            const updated = [...sections];
-                            updated[secIdx].data.headline = e.currentTarget.textContent;
-                            setSections(updated);
-                          }}
-                          className="text-2xl sm:text-4xl font-black leading-tight focus:outline-none focus:bg-black/5 px-1 rounded"
-                          style={{ fontFamily: styles.headingFont, color: styles.headingColor }}
-                        >
-                          {sec.data.headline}
-                        </h1>
-                        <p
-                          contentEditable
-                          suppressContentEditableWarning
-                          onBlur={(e) => {
-                            const updated = [...sections];
-                            updated[secIdx].data.subtext = e.currentTarget.textContent;
-                            setSections(updated);
-                          }}
-                          className="text-xs leading-relaxed opacity-90 focus:outline-none focus:bg-black/5 px-1 rounded"
-                        >
-                          {sec.data.subtext}
-                        </p>
-                        <div className="pt-2 flex items-center gap-3">
-                          <button
-                            className={`px-6 py-2.5 font-bold text-xs shadow-xs transition ${styles.buttonRadius}`}
-                            style={{
-                              backgroundColor: sec.data.overrideCtaBg || styles.accentColor,
-                              color: sec.data.overrideCtaText || '#ffffff'
-                            }}
-                          >
-                            {sec.data.ctaText}
-                          </button>
-                          {sec.data.secondaryCtaText && (
-                            <button
-                              className={`px-5 py-2.5 font-bold text-xs border transition ${styles.buttonRadius}`}
-                              style={{ borderColor: styles.accentColor, color: styles.headingColor }}
-                            >
-                              {sec.data.secondaryCtaText}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {sec.data.imageUrl && (
-                        <img
-                          src={sec.data.imageUrl}
-                          alt="Hero Banner"
-                          className="absolute right-0 top-0 w-1/2 h-full object-cover opacity-55 mix-blend-multiply pointer-events-none"
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {/* 4. Featured Collection Ribbon */}
-                  {sec.type === 'featured_ribbon' && (
-                    <div
-                      className="p-6 text-center space-y-1.5 border-b"
-                      style={{
-                        backgroundColor: styles.backgroundColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      {sec.data.badge && (
-                        <span
-                          className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider inline-block shadow-xs"
-                          style={{ backgroundColor: styles.accentColor }}
-                        >
-                          {sec.data.badge}
-                        </span>
-                      )}
-                      <h2
-                        className="text-xl font-bold"
-                        style={{ fontFamily: styles.headingFont, color: styles.headingColor }}
-                      >
-                        {sec.data.title}
-                      </h2>
-                      <p className="text-xs opacity-80">{sec.data.subtitle}</p>
-                    </div>
-                  )}
-
-                  {/* 5. Product Grid */}
-                  {sec.type === 'product_grid' && (
-                    <div
-                      className="p-6 sm:p-8 space-y-5 border-b"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3
-                          className="text-base font-bold"
-                          style={{ fontFamily: styles.headingFont, color: styles.headingColor }}
-                        >
-                          {sec.data.title}
-                        </h3>
-                        <span
-                          className="text-xs font-semibold underline"
-                          style={{ color: styles.accentColor }}
-                        >
-                          View All Items →
-                        </span>
-                      </div>
-
-                      <div
-                        className={`grid ${
-                          sec.data.columns === 2
-                            ? 'grid-cols-2'
-                            : sec.data.columns === 4
-                            ? 'grid-cols-2 sm:grid-cols-4'
-                            : 'grid-cols-1 sm:grid-cols-3'
-                        } gap-4`}
-                      >
-                        {products.slice(0, sec.data.columns || 3).map((prod) => {
-                          const mainImg =
-                            prod.imageUrl ||
-                            (prod.images && prod.images[0]) ||
-                            'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80';
-                          const priceVal = Number(prod.sellingPriceINR || prod.price || 0);
-
-                          return (
-                            <div
-                              key={prod.id}
-                              className={`rounded-3xl p-3.5 space-y-2.5 shadow-xs hover:shadow-md transition border ${
-                                styles.cardBorder || 'border-[#FBCBCB]'
-                              }`}
-                              style={{ backgroundColor: sec.data.overrideCardBg || styles.cardSurface }}
-                            >
-                              <img
-                                src={mainImg}
-                                alt={prod.name}
-                                className="w-full aspect-square rounded-2xl object-cover"
-                              />
-                              <p
-                                className="font-bold text-xs truncate"
-                                style={{ color: styles.headingColor }}
-                              >
-                                {prod.name}
-                              </p>
-                              {sec.data.showPrice !== false && (
-                                <p
-                                  className="font-mono font-bold text-xs"
-                                  style={{ color: styles.accentColor }}
-                                >
-                                  ₹{priceVal.toLocaleString('en-IN')}
-                                </p>
-                              )}
-                              <button
-                                className={`w-full py-2 text-[10px] font-bold text-white transition ${styles.buttonRadius}`}
-                                style={{ backgroundColor: sec.data.overrideButtonBg || styles.accentColor }}
-                              >
-                                {sec.data.buttonLabel || 'Add to Bag'}
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 6. Promotional Banner */}
-                  {sec.type === 'promo_banner' && (
-                    <div
-                      className="p-8 border-b text-center space-y-3 text-white transition"
-                      style={{ backgroundColor: sec.data.overrideBg || styles.accentColor }}
-                    >
-                      <span className="px-3 py-0.5 rounded-full text-[10px] font-bold bg-white/20 uppercase tracking-widest">
-                        {sec.data.badge}
-                      </span>
-                      <h3 className="text-xl sm:text-2xl font-black font-serif">
-                        {sec.data.headline}
-                      </h3>
-                      <div className="inline-flex items-center gap-2 p-1.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 text-xs font-bold">
-                        <span>Voucher:</span>
-                        <span className="font-mono px-2 py-0.5 rounded-lg bg-white text-[#0F172A] font-black">
-                          {sec.data.couponCode}
-                        </span>
-                      </div>
-                      <p className="text-xs opacity-90 max-w-sm mx-auto">{sec.data.subtext}</p>
-                    </div>
-                  )}
-
-                  {/* 7. Video Reels */}
-                  {sec.type === 'video_reels' && (
-                    <div
-                      className="p-6 border-b space-y-4"
-                      style={{
-                        backgroundColor: styles.backgroundColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="text-center space-y-1">
-                        <h3
-                          className="font-bold text-sm flex items-center justify-center gap-1.5"
-                          style={{ fontFamily: styles.headingFont, color: styles.headingColor }}
-                        >
-                          <Film className="w-4 h-4" style={{ color: styles.accentColor }} />
-                          {sec.data.title}
-                        </h3>
-                        <p className="text-xs opacity-75">{sec.data.subtitle}</p>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-3">
-                        {[
-                          sec.data.reel1Img || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=300&q=80',
-                          sec.data.reel2Img || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80',
-                          sec.data.reel3Img || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80'
-                        ].map((img, i) => (
-                          <div
-                            key={i}
-                            className="aspect-[9/14] rounded-2xl overflow-hidden relative shadow-xs border"
-                            style={{ borderColor: styles.accentColor + '30' }}
-                          >
-                            <img src={img} alt="Reel" className="w-full h-full object-cover" />
-                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-lg bg-black/70 text-white text-[9px] font-bold">
-                              ▶ Watch Reel
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 8. Testimonials */}
-                  {sec.type === 'testimonials' && (
-                    <div
-                      className="p-8 text-center space-y-3 border-b"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <p className="font-bold text-sm" style={{ color: styles.accentColor }}>
-                        {sec.data.rating}
-                      </p>
-                      <h3
-                        className="font-bold text-base font-serif"
-                        style={{ color: styles.headingColor }}
-                      >
-                        {sec.data.title}
-                      </h3>
-                      <p className="text-xs italic opacity-90 max-w-md mx-auto">{sec.data.quote}</p>
-                      <p className="text-[11px] font-bold" style={{ color: styles.accentColor }}>
-                        — {sec.data.author} ({sec.data.badge})
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Trust Badges */}
-                  {sec.type === 'badges' && (
-                    <div
-                      className="p-6 border-b"
-                      style={{
-                        backgroundColor: styles.backgroundColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                        <div className="p-3 rounded-2xl bg-white border border-[#FBCBCB] space-y-1 shadow-xs">
-                          <Shield className="w-5 h-5 mx-auto text-[#D4A017]" />
-                          <p className="font-bold text-[11px]" style={{ color: styles.headingColor }}>{sec.data.badge1Title || '0% Platform Fee'}</p>
-                          <p className="text-[9px] opacity-75">{sec.data.badge1Desc || 'Direct pricing'}</p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-white border border-[#FBCBCB] space-y-1 shadow-xs">
-                          <CheckCircle2 className="w-5 h-5 mx-auto text-[#D4A017]" />
-                          <p className="font-bold text-[11px]" style={{ color: styles.headingColor }}>{sec.data.badge2Title || '100% Authentic'}</p>
-                          <p className="text-[9px] opacity-75">{sec.data.badge2Desc || 'Genuine guarantee'}</p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-white border border-[#FBCBCB] space-y-1 shadow-xs">
-                          <Zap className="w-5 h-5 mx-auto text-[#D4A017]" />
-                          <p className="font-bold text-[11px]" style={{ color: styles.headingColor }}>{sec.data.badge3Title || 'Insured Delivery'}</p>
-                          <p className="text-[9px] opacity-75">{sec.data.badge3Desc || 'Fast dispatch'}</p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-white border border-[#FBCBCB] space-y-1 shadow-xs">
-                          <Sparkles className="w-5 h-5 mx-auto text-[#D4A017]" />
-                          <p className="font-bold text-[11px]" style={{ color: styles.headingColor }}>{sec.data.badge4Title || 'Handcrafted'}</p>
-                          <p className="text-[9px] opacity-75">{sec.data.badge4Desc || 'Master artisan pieces'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Brand Story */}
-                  {sec.type === 'story' && (
-                    <div
-                      className="p-8 border-b"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
-                        <div className="sm:col-span-7 space-y-3">
-                          <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider inline-block shadow-xs" style={{ backgroundColor: styles.accentColor }}>
-                            {sec.data.badge || 'Heritage'}
-                          </span>
-                          <h3 className="text-xl sm:text-2xl font-bold font-serif" style={{ color: styles.headingColor }}>
-                            {sec.data.headline || 'Crafted with Integrity'}
-                          </h3>
-                          <p className="text-xs leading-relaxed opacity-90">{sec.data.storyText}</p>
-                          <div className="pt-2 border-t border-black/5">
-                            <span className="font-bold text-xs block" style={{ color: styles.headingColor }}>{sec.data.founderName || 'Founder & Master Artisan'}</span>
-                            <span className="text-[10px] opacity-70">{sec.data.founderRole || 'Curator'}</span>
-                          </div>
-                        </div>
-                        <div className="sm:col-span-5">
-                          <img
-                            src={sec.data.imageUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80'}
-                            alt="Studio Story"
-                            className="w-full aspect-[4/3] rounded-2xl object-cover shadow-md border"
-                            style={{ borderColor: styles.accentColor + '30' }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* FAQ Accordion */}
-                  {sec.type === 'faq' && (
-                    <div
-                      className="p-6 sm:p-8 border-b space-y-4"
-                      style={{
-                        backgroundColor: styles.backgroundColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="text-center space-y-1">
-                        <h3 className="text-base sm:text-lg font-bold font-serif" style={{ color: styles.headingColor }}>
-                          {sec.data.title || 'Frequently Asked Questions'}
-                        </h3>
-                        <p className="text-xs opacity-75">{sec.data.subtitle}</p>
-                      </div>
-                      <div className="space-y-2 max-w-xl mx-auto">
-                        <div className="p-3 rounded-xl bg-white border border-[#FBCBCB] space-y-1">
-                          <p className="font-bold text-xs" style={{ color: styles.headingColor }}>Q: {sec.data.q1 || 'Shipping timeframe?'}</p>
-                          <p className="text-[11px] opacity-80">{sec.data.a1}</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-white border border-[#FBCBCB] space-y-1">
-                          <p className="font-bold text-xs" style={{ color: styles.headingColor }}>Q: {sec.data.q2 || 'Return policy?'}</p>
-                          <p className="text-[11px] opacity-80">{sec.data.a2}</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-white border border-[#FBCBCB] space-y-1">
-                          <p className="font-bold text-xs" style={{ color: styles.headingColor }}>Q: {sec.data.q3 || 'Authenticity guarantee?'}</p>
-                          <p className="text-[11px] opacity-80">{sec.data.a3}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* VIP Newsletter */}
-                  {sec.type === 'newsletter' && (
-                    <div
-                      className="p-8 border-b text-center space-y-3"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <Sparkles className="w-6 h-6 mx-auto text-[#D4A017]" />
-                      <h3 className="text-xl font-bold font-serif" style={{ color: styles.headingColor }}>
-                        {sec.data.headline || 'Join the Connoisseur Circle'}
-                      </h3>
-                      <p className="text-xs opacity-80 max-w-md mx-auto">{sec.data.subtext}</p>
-                      <div className="flex items-center gap-2 max-w-md mx-auto pt-1">
-                        <input
-                          type="email"
-                          placeholder={sec.data.placeholder || 'Enter your email...'}
-                          className="flex-1 px-3 py-2 bg-white border border-[#FBCBCB] rounded-xl text-xs"
-                        />
-                        <button
-                          className={`px-4 py-2 text-xs font-bold text-white shadow-xs ${styles.buttonRadius}`}
-                          style={{ backgroundColor: styles.accentColor }}
-                        >
-                          {sec.data.buttonText || 'Subscribe'}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Instagram Gallery Feed */}
-                  {sec.type === 'instagram_feed' && (
-                    <div
-                      className="p-6 border-b space-y-4"
-                      style={{
-                        backgroundColor: styles.backgroundColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="text-center space-y-1">
-                        <h3 className="text-base font-bold font-serif" style={{ color: styles.headingColor }}>
-                          {sec.data.title || 'Follow Our Instagram'}
-                        </h3>
-                        <p className="text-xs font-mono font-bold" style={{ color: styles.accentColor }}>{sec.data.handle}</p>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[
-                          'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=300&q=80',
-                          'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80',
-                          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80',
-                          'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=300&q=80'
-                        ].map((img, i) => (
-                          <div key={i} className="aspect-square rounded-xl overflow-hidden shadow-xs border border-[#FBCBCB]">
-                            <img src={img} alt="Insta" className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Physical Boutique / Atelier Location */}
-                  {sec.type === 'store_location' && (
-                    <div
-                      className="p-6 border-b"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <div className="max-w-md mx-auto text-center space-y-2">
-                        <Compass className="w-6 h-6 mx-auto text-[#D4A017]" />
-                        <h3 className="text-base font-bold font-serif" style={{ color: styles.headingColor }}>
-                          {sec.data.title || 'Visit Our Atelier'}
-                        </h3>
-                        <p className="text-xs font-medium">{sec.data.address}</p>
-                        <p className="text-[11px] opacity-75">{sec.data.hours}</p>
-                        <p className="text-[11px] font-mono font-bold text-[#D4A017]">{sec.data.phone}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Footer */}
-                  {sec.type === 'footer' && (
-                    <footer
-                      className="p-6 text-center text-[10px] space-y-1 border-t"
-                      style={{
-                        backgroundColor: styles.surfaceColor,
-                        color: styles.textColor,
-                        borderColor: styles.accentColor + '20'
-                      }}
-                    >
-                      <p>
-                        {sec.data.copyrightText ||
-                          `© ${new Date().getFullYear()} ${currentStore?.name}. All rights reserved.`}
-                      </p>
-                      <p className="opacity-70">
-                        {sec.data.tagline || 'Direct D2C Boutique Powered by Go Julex'}
-                      </p>
-                    </footer>
-                  )}
-                </div>
-              );
-            })}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-[#FBCBCB] bg-[#FFF9F5]">
+              <span className="text-[10px] font-mono text-[#8A6200] truncate">
+                {cleanSubdomain}.gojulex.com — live storefront
+              </span>
+              <button
+                onClick={() => setPreviewTick((t) => t + 1)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-[#FBCBCB] hover:bg-[#FDF3E3] transition cursor-pointer"
+              >
+                <RefreshCw className="w-3 h-3" /> Refresh
+              </button>
+            </div>
+            <iframe
+              key={previewTick}
+              src={`/store/${cleanSubdomain}?_b=${previewTick}&julex_edit=1`}
+              title="Live storefront preview"
+              className="w-full h-[82vh] block"
+              style={{ border: 'none' }}
+            />
           </div>
         </main>
       </div>
