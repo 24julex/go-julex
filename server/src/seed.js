@@ -338,154 +338,6 @@ export const SEED_TENANTS = [
       }
     }
   },
-  {
-    id: 'ten_aura_01',
-    name: 'Aura Modern Living',
-    subdomain: 'auraliving.gojulex.com',
-    customDomain: 'auraliving.in',
-    category: 'Home & Living',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    planTier: 'SIX_MONTH',
-    status: 'ACTIVE',
-    activeThemeId: 'theme_aura_soft_peach',
-    activeInvoiceTemplateId: 'tpl_classic_tax_a4',
-    owner: {
-      email: 'aditi@auraliving.in',
-      name: 'Aditi Parekh',
-      phone: '+91 98201 54321',
-      role: 'MERCHANT_OWNER'
-    },
-    invoiceConfig: {
-      storeGstin: '27AAACA1234A1Z5',
-      storeLegalName: 'Aura Modern Living Private Limited',
-      storeTradeName: 'Aura Living',
-      storeAddress: '1402, Sea Green Towers, Worli Sea Face, Mumbai, Maharashtra - 400030',
-      storePhone: '+91 98201 54321',
-      storeEmail: 'support@auraliving.in',
-      authorizedSignatoryUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=160&q=80',
-      customStyles: {
-        fontFamily: 'Inter',
-        fontSize: 12,
-        primaryColor: '#E8927C',
-        secondaryColor: '#4A281E',
-        showTaxBreakdown: true,
-        showQrCode: true,
-        terms: '1. Standard 7-day exchange on all home decor items.\n2. Goods inspected prior to secure courier dispatch.\n3. Issued under Go Julex 0% platform fee.'
-      }
-    }
-  },
-  {
-    id: 'ten_apex_02',
-    name: 'Apex Audio & Studio Tech',
-    subdomain: 'apexaudio.gojulex.com',
-    customDomain: 'apexaudio.store',
-    category: 'Electronics & Audio',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    planTier: 'ONE_YEAR',
-    status: 'ACTIVE',
-    activeThemeId: 'theme_charcoal_champagne',
-    activeInvoiceTemplateId: 'tpl_neo_tech_digital',
-    owner: {
-      email: 'raghav@apexaudio.store',
-      name: 'Raghavendra Rathore',
-      phone: '+91 94140 88990',
-      role: 'MERCHANT_OWNER'
-    },
-    invoiceConfig: {
-      storeGstin: '29ABCDE1234F1Z8',
-      storeLegalName: 'Apex Studio Acoustics LLP',
-      storeTradeName: 'Apex Audio Tech',
-      storeAddress: '42, Indiranagar 100ft Road, HAL 2nd Stage, Bengaluru, Karnataka - 560038',
-      storePhone: '+91 94140 88990',
-      storeEmail: 'orders@apexaudio.store',
-      authorizedSignatoryUrl: null,
-      customStyles: {
-        fontFamily: 'Space Grotesk',
-        fontSize: 11,
-        primaryColor: '#1E3A8A',
-        secondaryColor: '#1F2937',
-        showTaxBreakdown: true,
-        showQrCode: true,
-        terms: '1. 1-Year Comprehensive Manufacturer Hardware Warranty included.\n2. Serial numbers recorded in cloud database.'
-      }
-    }
-  },
-  {
-    id: 'ten_vogue_03',
-    name: 'Vogue Threads Boutique',
-    subdomain: 'voguethreads.gojulex.com',
-    customDomain: 'voguethreads.in',
-    category: 'Fashion & Apparel',
-    city: 'New Delhi',
-    state: 'Delhi',
-    planTier: 'SIX_MONTH',
-    status: 'ACTIVE',
-    activeThemeId: 'theme_pearl_blush',
-    activeInvoiceTemplateId: 'tpl_boutique_atelier',
-    owner: {
-      email: 'sanya@voguethreads.in',
-      name: 'Sanya Malhotra',
-      phone: '+91 98111 22334',
-      role: 'MERCHANT_OWNER'
-    },
-    invoiceConfig: {
-      storeGstin: '07AAAAA0000A1Z5',
-      storeLegalName: 'Vogue Threads Fashion House LLP',
-      storeTradeName: 'Vogue Threads',
-      storeAddress: 'Shop 18, Khan Market, Central Delhi, New Delhi - 110003',
-      storePhone: '+91 98111 22334',
-      storeEmail: 'concierge@voguethreads.in',
-      authorizedSignatoryUrl: null,
-      customStyles: {
-        fontFamily: 'Playfair Display',
-        fontSize: 12,
-        primaryColor: '#9A3412',
-        secondaryColor: '#431407',
-        showTaxBreakdown: true,
-        showQrCode: true,
-        terms: 'Pure mulberry silk & designer handloom. Dry clean only.'
-      }
-    }
-  },
-  {
-    id: 'ten_green_04',
-    name: 'Green Earth Organics',
-    subdomain: 'greenearth.gojulex.com',
-    customDomain: 'greenearthmillet.com',
-    category: 'Millets & Organic Foods',
-    city: 'Hyderabad',
-    state: 'Telangana',
-    planTier: 'SIX_MONTH',
-    status: 'ACTIVE',
-    activeThemeId: 'theme_sage_linen',
-    activeInvoiceTemplateId: 'tpl_earthy_kraft_farm',
-    owner: {
-      email: 'kiran@greenearth.com',
-      name: 'Kiran Reddy',
-      phone: '+91 99887 76655',
-      role: 'MERCHANT_OWNER'
-    },
-    invoiceConfig: {
-      storeGstin: '36AAAAA1111A1Z2',
-      storeLegalName: 'Green Earth Agro Organics Pvt Ltd',
-      storeTradeName: 'Green Earth Farm Produce',
-      storeAddress: 'Plot 88, Jubilee Hills Road No. 36, Hyderabad, Telangana - 500033',
-      storePhone: '+91 99887 76655',
-      storeEmail: 'farms@greenearth.com',
-      authorizedSignatoryUrl: null,
-      customStyles: {
-        fontFamily: 'Outfit',
-        fontSize: 12,
-        primaryColor: '#2D6A4F',
-        secondaryColor: '#1B4332',
-        showTaxBreakdown: true,
-        showQrCode: true,
-        terms: '100% Certified Farm-to-Table Organic Grains & Millets. FSSAI Lic No. 13621014000123.'
-      }
-    }
-  }
 ];
 
 // ----------------------------------------------------
@@ -638,69 +490,7 @@ export async function seedDatabase() {
   console.log(`✅ Common Merchant created: ${commonMerchant.email}`);
 
   // 4. Seed Products
-  const sampleProducts = [
-    {
-      tenantId: 'ten_aura_01',
-      name: 'Nordic Solid Oak Minimalist Dining Table',
-      brand: 'Aura Living',
-      category: 'Home & Living',
-      productType: 'Dining Furniture',
-      price: 48500,
-      compareAtPrice: 58000,
-      discountPercent: 16,
-      stock: 6,
-      sku: 'AURA-OAK-TAB-01',
-      chargeTax: true,
-      gstRatePercent: 12,
-      description: 'Solid FSC-certified Nordic White Oak dining table with matte organic oil finish and beveled pill edges.',
-      specsJson: JSON.stringify({ Material: 'Solid White Oak', Dimensions: '180 x 90 x 75 cm', Finish: 'Matte Hardwax Oil' }),
-      imagesArray: JSON.stringify([
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=800&q=80'
-      ]),
-      isFeatured: true
-    },
-    {
-      tenantId: 'ten_aura_01',
-      name: 'Hand-Blown Amber Glass Pendant Light',
-      brand: 'Aura Living',
-      category: 'Home & Living',
-      productType: 'Lighting',
-      price: 12400,
-      compareAtPrice: 15000,
-      discountPercent: 17,
-      stock: 14,
-      sku: 'AURA-LGT-AMBER-02',
-      chargeTax: true,
-      gstRatePercent: 18,
-      description: 'Artisanal hand-blown fluted amber glass with brushed brass ceiling canopy and braided silk cord.',
-      specsJson: JSON.stringify({ Material: 'Hand-blown Borosilicate Glass', Socket: 'E27 Brass (LED Compatible)' }),
-      imagesArray: JSON.stringify([
-        'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=800&q=80'
-      ]),
-      isFeatured: true
-    },
-    {
-      tenantId: 'ten_apex_02',
-      name: 'Vesper Pro Acoustic Studio Monitors (Pair)',
-      brand: 'Apex Audio',
-      category: 'Electronics & Audio',
-      productType: 'Studio Monitors',
-      price: 34999,
-      compareAtPrice: 39999,
-      discountPercent: 12,
-      stock: 8,
-      sku: 'APEX-MON-VESP-01',
-      chargeTax: true,
-      gstRatePercent: 18,
-      description: 'Reference-grade active bi-amplified studio nearfield monitors with Kevlar low-frequency drivers and silk dome tweeters.',
-      specsJson: JSON.stringify({ Power: '140W Class A/B', FrequencyResponse: '38Hz - 22kHz', Inputs: 'XLR / TRS Balanced' }),
-      imagesArray: JSON.stringify([
-        'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80'
-      ]),
-      isFeatured: true
-    }
-  ];
+  const sampleProducts = [];
 
   for (const p of sampleProducts) {
     await prisma.product.upsert({
@@ -712,56 +502,7 @@ export async function seedDatabase() {
   console.log(`✅ Seeded ${sampleProducts.length} Demo Products`);
 
   // 5. Seed Sample Multi-Tenant Orders
-  const sampleOrders = [
-    {
-      id: 'ord_10821',
-      tenantId: 'ten_aura_01',
-      orderNumber: 'GJ-10821',
-      channel: 'WEB',
-      customerName: 'Priya Sharma',
-      customerEmail: 'priya.sharma@gmail.com',
-      customerPhone: '+91 98190 12345',
-      subtotalAmount: 48500,
-      discountAmount: 2500,
-      shippingFee: 0,
-      taxAmount: 5520,
-      totalAmount: 51520,
-      paymentStatus: 'PAID',
-      fulfillmentStatus: 'DELIVERED',
-      shippingAddress: JSON.stringify({
-        street: 'Flat 402, Sunset Heights, Bandra West',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        postalCode: '400050'
-      }),
-      paymentMethod: 'UPI (PhonePe / Razorpay)',
-      notes: 'Please call before delivery'
-    },
-    {
-      id: 'ord_10822',
-      tenantId: 'ten_aura_01',
-      orderNumber: 'GJ-10822',
-      channel: 'WHATSAPP',
-      customerName: 'Rohan Mehta',
-      customerEmail: 'rohan.mehta@yahoo.com',
-      customerPhone: '+91 98200 67890',
-      subtotalAmount: 12400,
-      discountAmount: 1000,
-      shippingFee: 500,
-      taxAmount: 2142,
-      totalAmount: 14042,
-      paymentStatus: 'PAID',
-      fulfillmentStatus: 'PROCESSING',
-      shippingAddress: JSON.stringify({
-        street: '12, Koregaon Park Road',
-        city: 'Pune',
-        state: 'Maharashtra',
-        postalCode: '411001'
-      }),
-      paymentMethod: 'Instant WhatsApp UPI',
-      notes: 'Fragile glass pendant light'
-    }
-  ];
+  const sampleOrders = [];
 
   for (const ord of sampleOrders) {
     await prisma.order.upsert({
@@ -775,7 +516,7 @@ export async function seedDatabase() {
   // 6. Seed Initial Audit Logs
   await prisma.auditLog.create({
     data: {
-      tenantId: 'ten_aura_01',
+      tenantId: 'store_luxestudio',
       actorId: superAdmin.id,
       actorEmail: superAdmin.email,
       action: 'SYSTEM_BOOTSTRAP',
