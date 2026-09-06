@@ -178,8 +178,10 @@ export const App = () => {
         </Routes>
       </main>
 
-      {/* Customer Storefront Footer */}
-      {!isDedicatedConsole && <Footer />}
+      {/* Customer Storefront Footer — the landing page ships its own footer,
+          so the shared one must not be appended below it (looked like extra
+          sections on mobile) */}
+      {!isDedicatedConsole && !isAdminLoginPage && <Footer />}
     </div>
   );
 };
