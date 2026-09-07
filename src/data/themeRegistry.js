@@ -18,15 +18,15 @@ export const THEME_META = {
     brandName: 'Aura Haute Atelier',
     tagline: 'Haute Couture & Bespoke Eveningwear',
     aesthetic: 'Luxury Haute Couture & Atelier',
-    thumbnail: '/theme-images/fashion-2.jpg',
-    heroImage: '/theme-images/fashion-2.jpg',
-    storyImage: '/theme-images/fashion-5.jpg',
-    bannerImage: '/theme-images/fashion-7.jpg',
+    thumbnail: '/theme-images/aura-1.jpg',
+    heroImage: '/theme-images/aura-1.jpg',
+    storyImage: '/theme-images/aura-3.jpg',
+    bannerImage: '/theme-images/aura-5.jpg',
     products: [
-      { id: 'soft_peach_1', name: 'Silk Chiffon Atelier Evening Gown', price: 24500, discountPercent: 10, image: '/theme-images/fashion-3.jpg', tag: 'Haute Couture', category: 'Evening Wear', brand: 'Aura' },
-      { id: 'soft_peach_2', name: 'French Runway Tailored Blazer', price: 18600, discountPercent: 15, image: '/theme-images/fashion-1.png', tag: 'Runway Edit', category: 'Tailoring', brand: 'Aura' },
-      { id: 'soft_peach_3', name: 'Sculpted Draped Midi Dress', price: 15900, discountPercent: 0, image: '/theme-images/fashion-4.jpeg', tag: 'Atelier Pick', category: 'Dresses', brand: 'Aura' },
-      { id: 'soft_peach_4', name: 'Cashmere Blend Studio Wrap', price: 9800, discountPercent: 5, image: '/theme-images/fashion-6.jpg', tag: 'Studio Essential', category: 'Apparel', brand: 'Aura' }
+      { id: 'soft_peach_1', name: 'Silk Chiffon Atelier Evening Gown', price: 24500, discountPercent: 10, image: '/theme-images/aura-2.jpg', tag: 'Haute Couture', category: 'Evening Wear', brand: 'Aura' },
+      { id: 'soft_peach_2', name: 'French Runway Tailored Blazer', price: 18600, discountPercent: 15, image: '/theme-images/aura-4.jpg', tag: 'Runway Edit', category: 'Tailoring', brand: 'Aura' },
+      { id: 'soft_peach_3', name: 'Sculpted Draped Midi Dress', price: 15900, discountPercent: 0, image: '/theme-images/aura-5.jpg', tag: 'Atelier Pick', category: 'Dresses', brand: 'Aura' },
+      { id: 'soft_peach_4', name: 'Cashmere Blend Studio Wrap', price: 9800, discountPercent: 5, image: '/theme-images/aura-6.jpg', tag: 'Studio Essential', category: 'Apparel', brand: 'Aura' }
     ]
   },
   preset_pearl_blush: {
