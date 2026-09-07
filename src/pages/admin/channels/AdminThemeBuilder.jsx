@@ -1,5 +1,5 @@
 import { api } from '../../../services/api';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -980,10 +980,22 @@ export const AdminThemeBuilder = () => {
 });
   // Live iframe refresh key — bumps (debounced) whenever the auto-saved
   // draft changes, so the center canvas always mirrors the real store.
+  // Live draft sync: stream the CURRENT builder state into the preview iframe.
+  // The preview never keeps its own copy — it renders exactly this state.
+  const draftRef = useRef(null);
+  const postDraft = () => {
+    const win = window.frames['julex-preview-frame'];
+    if (win && draftRef.current) {
+      try { win.postMessage({ type: 'julex-draft-theme', sections: draftRef.current.sections, styles: draftRef.current.styles }, '*'); } catch (e) {}
+    }
+  };
   useEffect(() => {
-    const t = setTimeout(() => setPreviewTick((n) => n + 1), 700);
+    draftRef.current = { sections, styles };
+    const t = setTimeout(postDraft, 60);
     return () => clearTimeout(t);
-  }, [sections, styles, activePresetId]);
+  }, [sections, styles, previewTick]);
+  // Preset switch changes the layout branch — remount the iframe
+  useEffect(() => { setPreviewTick((n) => n + 1); }, [activePresetId]);
 
 
   // Modal / Drawer state for adding new sections from the library
@@ -1108,12 +1120,13 @@ export const AdminThemeBuilder = () => {
       reader.onload = (uploadEvent) => {
         if (uploadEvent.target?.result) {
           callback(uploadEvent.target.result);
-          showToast('Image uploaded successfully from your device!', 'success');
+          showToast('Media uploaded successfully from your device!', 'success');
         }
       };
       reader.readAsDataURL(file);
     }
   };
+  const isVideoFile = (f) => f && f.type && f.type.startsWith('video/');
 
   const handlePublish = () => {
     // Merge in the newest edits saved by the Canva-style inline editor
@@ -2241,10 +2254,10 @@ export const AdminThemeBuilder = () => {
                                 <label className="text-[#374151] font-semibold block mb-1">Social Tag / Handle</label>
                                 <input
                                   type="text"
-                                  value={sec.data.tagText || ''}
+                                  value={sec.data.socialHandle || ''}
                                   onChange={(e) => {
                                     const updated = [...sections];
-                                    updated[idx].data.tagText = e.target.value;
+                                    updated[idx].data.socialHandle = e.target.value;
                                     setSections(updated);
                                   }}
                                   className="w-full px-3 py-1.5 bg-white border border-[#FBCBCB] rounded-xl font-mono text-[#881337] font-bold"
@@ -2253,11 +2266,12 @@ export const AdminThemeBuilder = () => {
                               </div>
 
                               <div className="space-y-1.5 p-2 rounded-xl bg-[#FFF5F5] border border-[#FBCBCB]">
-                                <label className="text-[#374151] font-bold block text-[10px]">Reel 1 Poster / Video Image</label>
+                                <label className="text-[#374151] font-bold block text-[10px]">Reel 1 — Photo or Video (URL / upload)</label>
                                 <div className="flex items-center gap-1.5">
                                   <input
                                     type="text"
-                                    value={sec.data.reel1Img || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80'}
+                                    value={sec.data.reel1Img || ''}
+                                    placeholder="photo URL or upload (mp4/video URL works too)"
                                     onChange={(e) => {
                                       const updated = [...sections];
                                       updated[idx].data.reel1Img = e.target.value;
@@ -2269,7 +2283,7 @@ export const AdminThemeBuilder = () => {
                                     <Upload className="w-3 h-3 inline mr-1" /> Upload
                                     <input
                                       type="file"
-                                      accept="image/*"
+                                      accept="image/*,video/*"
                                       className="hidden"
                                       onChange={(e) => handleFileUpload(e, (url) => {
                                         const updated = [...sections];
@@ -2282,11 +2296,12 @@ export const AdminThemeBuilder = () => {
                               </div>
 
                               <div className="space-y-1.5 p-2 rounded-xl bg-[#FFF5F5] border border-[#FBCBCB]">
-                                <label className="text-[#374151] font-bold block text-[10px]">Reel 2 Poster / Video Image</label>
+                                <label className="text-[#374151] font-bold block text-[10px]">Reel 2 — Photo or Video (URL / upload)</label>
                                 <div className="flex items-center gap-1.5">
                                   <input
                                     type="text"
-                                    value={sec.data.reel2Img || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80'}
+                                    value={sec.data.reel2Img || ''}
+                                    placeholder="photo URL or upload (mp4/video URL works too)"
                                     onChange={(e) => {
                                       const updated = [...sections];
                                       updated[idx].data.reel2Img = e.target.value;
@@ -2298,7 +2313,7 @@ export const AdminThemeBuilder = () => {
                                     <Upload className="w-3 h-3 inline mr-1" /> Upload
                                     <input
                                       type="file"
-                                      accept="image/*"
+                                      accept="image/*,video/*"
                                       className="hidden"
                                       onChange={(e) => handleFileUpload(e, (url) => {
                                         const updated = [...sections];
@@ -2311,11 +2326,12 @@ export const AdminThemeBuilder = () => {
                               </div>
 
                               <div className="space-y-1.5 p-2 rounded-xl bg-[#FFF5F5] border border-[#FBCBCB]">
-                                <label className="text-[#374151] font-bold block text-[10px]">Reel 3 Poster / Video Image</label>
+                                <label className="text-[#374151] font-bold block text-[10px]">Reel 3 — Photo or Video (URL / upload)</label>
                                 <div className="flex items-center gap-1.5">
                                   <input
                                     type="text"
-                                    value={sec.data.reel3Img || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80'}
+                                    value={sec.data.reel3Img || ''}
+                                    placeholder="photo URL or upload (mp4/video URL works too)"
                                     onChange={(e) => {
                                       const updated = [...sections];
                                       updated[idx].data.reel3Img = e.target.value;
@@ -2327,7 +2343,7 @@ export const AdminThemeBuilder = () => {
                                     <Upload className="w-3 h-3 inline mr-1" /> Upload
                                     <input
                                       type="file"
-                                      accept="image/*"
+                                      accept="image/*,video/*"
                                       className="hidden"
                                       onChange={(e) => handleFileUpload(e, (url) => {
                                         const updated = [...sections];
@@ -2886,7 +2902,8 @@ export const AdminThemeBuilder = () => {
             </div>
             <iframe
               key={previewTick}
-              src={`/store/${cleanSubdomain}?_b=${previewTick}&julex_edit=1`}
+              name="julex-preview-frame"
+              src={`/store/${cleanSubdomain}?_b=${previewTick}&julex_edit=1&julex_draft=1`}
               title="Live storefront preview"
               className="w-full h-[82vh] block"
               style={{ border: 'none' }}

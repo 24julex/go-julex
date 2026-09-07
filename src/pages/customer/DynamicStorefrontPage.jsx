@@ -131,6 +131,7 @@ export const DynamicStorefrontPage = () => {
   const previewPresetId = searchParams.get('theme'); // live-preview override (?theme=preset_id)
   // Canva-style in-template editing, enabled inside the merchant Visual Customizer iframe
   const isJulexEditMode = searchParams.get('julex_edit') === '1';
+  const isJulexDraftPreview = searchParams.get('julex_draft') === '1';
   const [themeConfig, setThemeConfig] = useState(() => {
     let savedStyles = null;
     let savedSections = null;
@@ -443,6 +444,24 @@ export const DynamicStorefrontPage = () => {
   useEffect(() => {
     if (matchedStore?.id) applyJuxInlineStyles(matchedStore.id, cleanSubdomain);
   }, [matchedStore?.id, cleanSubdomain]);
+
+  // Visual Customizer draft: the builder streams its CURRENT sections/styles
+  // into this preview — the preview never keeps an independent copy.
+  useEffect(() => {
+    if (!isJulexDraftPreview) return;
+    const onMsg = (e) => {
+      const d = e.data;
+      if (!d || d.type !== 'julex-draft-theme') return;
+      const valid = Array.isArray(d.sections) && d.sections.length > 0 && d.sections.every((x) => x && x.type && x.data && typeof x.data === 'object');
+      setThemeConfig((prev) => ({
+        styles: d.styles && Object.keys(d.styles).length > 0 ? d.styles : prev.styles,
+        sections: valid ? d.sections : prev.sections,
+        presetId: (d.styles && d.styles.layoutStyle) || prev.presetId
+      }));
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [isJulexDraftPreview]);
 
 
 
@@ -3281,10 +3300,56 @@ export const DynamicStorefrontPage = () => {
         // 7. VIDEO REELS
         // ----------------------------------------------------
         if (section.type === 'video_reels') {
+          // Merchant-curated media wall: photos AND videos set from the Theme
+          // Builder (Reel 1-3 / reels[]). Falls back to the product grid when
+          // the merchant has not configured any media of their own.
+          const isVideoSrc = (src) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(String(src)) || String(src).startsWith('data:video/');
+          const jxReels = [
+            section.data.reel1Img ? { src: section.data.reel1Img, caption: section.data.reel1Caption } : null,
+            section.data.reel2Img ? { src: section.data.reel2Img, caption: section.data.reel2Caption } : null,
+            section.data.reel3Img ? { src: section.data.reel3Img, caption: section.data.reel3Caption } : null,
+            ...(Array.isArray(section.data.reels) ? section.data.reels : [])
+          ].filter((r) => r && r.src);
           // Camel Editorial Fashion: reels become a Best Sellers fashion grid
           if (layoutStyle === 'camel_edit') {
             const cReelItems = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
               .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            if (jxReels.length > 0) {
+              return (
+                <section id="best-sellers" key={section.id} className="py-14" style={{ backgroundColor: '#F6EFE8' }}>
+                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                    <div className="text-center space-y-2">
+                      <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#A97C50' }}>Most Wanted</span>
+                      <h3 className="text-3xl sm:text-4xl uppercase" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>
+                        {section.data.title || 'Best Sellers'}
+                      </h3>
+                      {section.data.subtitle && <p className="text-sm max-w-md mx-auto" style={{ color: '#4A423B' }}>{section.data.subtitle}</p>}
+                      {(section.data.socialHandle || section.data.tagText) && (
+                        <p className="text-xs font-bold" style={{ color: '#A97C50' }}>📍 {section.data.socialHandle || section.data.tagText}</p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                      {jxReels.slice(0, 8).map((r, i) => (
+                        <div key={i} className="relative overflow-hidden rounded-2xl border bg-black" style={{ borderColor: '#E9E2D9' }}>
+                          <div className="aspect-[9/14] w-full">
+                            {isVideoSrc(r.src) ? (
+                              <video src={r.src} className="w-full h-full object-cover" autoPlay muted loop playsInline controls={isJulexEditMode} />
+                            ) : (
+                              <img src={r.src} alt={r.caption || 'Reel'} className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-500" />
+                            )}
+                          </div>
+                          {(r.caption || section.data.socialHandle || section.data.tagText) && (
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                              <span className="text-white text-[11px] font-bold">{r.caption || section.data.socialHandle || section.data.tagText}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              );
+            }
             return (
               <section id="best-sellers" key={section.id} className="py-14" style={{ backgroundColor: '#F6EFE8' }}>
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -3334,6 +3399,42 @@ export const DynamicStorefrontPage = () => {
           if (layoutStyle === 'bloom_beauty') {
             const reelItems = ((isPreviewMode && (!storeProducts || storeProducts.length === 0)) ? activeThemeMeta?.products || [] : storeProducts)
               .map((pr) => ({ ...pr, stockQuantity: (pr.stockQuantity ?? pr.stock ?? 50) }));
+            if (jxReels.length > 0) {
+              return (
+                <section id="best-sellers" key={section.id} className="py-14" style={{ backgroundColor: '#FDF8F6' }}>
+                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                    <div className="text-center space-y-2">
+                      <span className="text-[11px] uppercase tracking-[0.3em] font-bold block" style={{ color: '#8E4356' }}>Loved by Hundreds</span>
+                      <h3 className="text-3xl sm:text-4xl" style={{ color: '#3A1B2A', fontFamily: styles?.headingFont || 'Playfair Display', fontWeight: 700 }}>
+                        {section.data.title || 'Best Sellers'}
+                      </h3>
+                      {section.data.subtitle && <p className="text-sm max-w-md mx-auto" style={{ color: '#6B4A55' }}>{section.data.subtitle}</p>}
+                      {(section.data.socialHandle || section.data.tagText) && (
+                        <p className="text-xs font-bold" style={{ color: '#8E4356' }}>📍 {section.data.socialHandle || section.data.tagText}</p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                      {jxReels.slice(0, 8).map((r, i) => (
+                        <div key={i} className="relative overflow-hidden rounded-2xl border bg-black" style={{ borderColor: '#F0DBDD' }}>
+                          <div className="aspect-[9/14] w-full">
+                            {isVideoSrc(r.src) ? (
+                              <video src={r.src} className="w-full h-full object-cover" autoPlay muted loop playsInline controls={isJulexEditMode} />
+                            ) : (
+                              <img src={r.src} alt={r.caption || 'Reel'} className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-500" />
+                            )}
+                          </div>
+                          {(r.caption || section.data.socialHandle || section.data.tagText) && (
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                              <span className="text-white text-[11px] font-bold">{r.caption || section.data.socialHandle || section.data.tagText}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              );
+            }
             return (
               <section id="best-sellers" key={section.id} className="py-14" style={{ backgroundColor: '#FDF8F6' }}>
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -3396,24 +3497,33 @@ export const DynamicStorefrontPage = () => {
                   {section.data.title || 'Artisan Workshop Reels'}
                 </h3>
                 <p className="text-xs opacity-75">{section.data.subtitle}</p>
+                {(section.data.socialHandle || section.data.tagText) && (
+                  <p className="text-[11px] font-bold" style={{ color: styles?.accentColor }}>📍 {section.data.socialHandle || section.data.tagText}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  section.data.reel1Img || (isPreviewMode && activeThemeMeta?.products?.[0]?.image) || activeThemeMeta?.heroImage || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
-                  section.data.reel2Img || (isPreviewMode && activeThemeMeta?.products?.[1]?.image) || activeThemeMeta?.storyImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
-                  section.data.reel3Img || (isPreviewMode && activeThemeMeta?.products?.[2]?.image) || activeThemeMeta?.bannerImage || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80'
-                ].map((img, i) => (
+                {(jxReels.length > 0 ? jxReels.slice(0, 6) : [
+                  { src: section.data.reel1Img || (isPreviewMode && activeThemeMeta?.products?.[0]?.image) || activeThemeMeta?.heroImage || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80' },
+                  { src: section.data.reel2Img || (isPreviewMode && activeThemeMeta?.products?.[1]?.image) || activeThemeMeta?.storyImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80' },
+                  { src: section.data.reel3Img || (isPreviewMode && activeThemeMeta?.products?.[2]?.image) || activeThemeMeta?.bannerImage || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80' }
+                ]).map((r, i) => (
                   <div
                     key={i}
-                    className="aspect-[9/14] rounded-3xl overflow-hidden relative shadow-md border group"
+                    className="aspect-[9/14] rounded-3xl overflow-hidden relative shadow-md border group bg-black"
                     style={{ borderColor: '#FFE4E6' }}
                   >
-                    <img src={img} alt="Reel" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
-                      <span className="text-white text-xs font-bold">Artisanal Crafting Process</span>
-                      <span className="text-[10px] text-white/80">▶ Watch 4K Studio Reel</span>
-                    </div>
+                    {isVideoSrc(r.src) ? (
+                      <video src={r.src} className="w-full h-full object-cover" autoPlay muted loop playsInline controls={isJulexEditMode} />
+                    ) : (
+                      <img src={r.src} alt={r.caption || 'Reel'} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                    )}
+                    {(r.caption || section.data.socialHandle || section.data.tagText) && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4 pointer-events-none">
+                        <span className="text-white text-xs font-bold">{r.caption || section.data.socialHandle || section.data.tagText}</span>
+                        {!r.caption && <span className="text-[10px] text-white/80">▶ Watch Studio Reel</span>}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
