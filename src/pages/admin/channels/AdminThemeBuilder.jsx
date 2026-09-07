@@ -983,6 +983,7 @@ export const AdminThemeBuilder = () => {
   // Live draft sync: stream the CURRENT builder state into the preview iframe.
   // The preview never keeps its own copy — it renders exactly this state.
   const draftRef = useRef(null);
+  const extrasRef = useRef(null);
   const postDraft = () => {
     const win = window.frames['julex-preview-frame'];
     if (win && draftRef.current) {
@@ -994,6 +995,24 @@ export const AdminThemeBuilder = () => {
     const t = setTimeout(postDraft, 60);
     return () => clearTimeout(t);
   }, [sections, styles, previewTick]);
+
+  // Inline edits made directly in the preview flow back into this state —
+  // the builder is the single source of truth for publish.
+  useEffect(() => {
+    const onMsg = (e) => {
+      const d = e.data;
+      if (!d || d.type !== 'julex-inline-edit' || !d.cfg) return;
+      extrasRef.current = {
+        inlineStyles: d.cfg.inlineStyles || [],
+        floating: d.cfg.floating || [],
+        imgStyles: d.cfg.imgStyles || []
+      };
+      const valid = Array.isArray(d.cfg.sections) && d.cfg.sections.length > 0 && d.cfg.sections.every((x) => x && x.type && x.data && typeof x.data === 'object');
+      if (valid) setSections(d.cfg.sections);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
   // Preset switch changes the layout branch — remount the iframe
   useEffect(() => { setPreviewTick((n) => n + 1); }, [activePresetId]);
 
@@ -1140,14 +1159,18 @@ export const AdminThemeBuilder = () => {
         localStorage.getItem(`gojulex_store_theme_${cleanSubdomain}`) || 'null'
       );
     } catch (e) {}
-    const storedNewer = stored?.updatedAt && (!sections || new Date(stored.updatedAt) >= new Date(sections.updatedAt || 0));
-    const mergedSections = (storedNewer && Array.isArray(stored.sections) && stored.sections.length > 0) ? stored.sections : sections;
+    const extras = extrasRef.current || {
+      inlineStyles: stored?.inlineStyles || [],
+      floating: stored?.floating || [],
+      imgStyles: stored?.imgStyles || []
+    };
     const payload = {
       presetId: activePresetId,
       styles,
-      sections: mergedSections,
-      inlineStyles: stored?.inlineStyles || [],
-      floating: stored?.floating || [],
+      sections,
+      inlineStyles: extras.inlineStyles || [],
+      floating: extras.floating || [],
+      imgStyles: extras.imgStyles || [],
       updatedAt: new Date().toISOString()
     };
     try {

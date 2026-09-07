@@ -51,9 +51,18 @@ const readCfg = (keys) => {
 const writeCfg = (keys, cfg, subdomain) => {
   try { keys.forEach((k) => localStorage.setItem(k, JSON.stringify(cfg))); } catch (e) {}
   api.themes.saveConfig(cfg, subdomain).catch(() => {});
+  // Inside the Visual Customizer, stream every edit back to the builder so
+  // there is ONE theme state (left panel = preview = publish).
+  try {
+    if (window.parent !== window && new URLSearchParams(window.location.search).get('julex_draft') === '1') {
+      window.parent.postMessage({ type: 'julex-inline-edit', cfg }, '*');
+    }
+  } catch (e) {}
 };
 
 const norm = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
+
+const floatNodeTop = (node) => parseFloat(node.style.top) || node.getBoundingClientRect().top + window.scrollY;
 
 const rgbToHex = (rgb) => {
   const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgb || '');
@@ -479,6 +488,28 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         return;
       }
       const cur = selRef.current;
+      const floatEl = e.target.closest?.('[data-jx-float]');
+      // Added text/image boxes drag DIRECTLY — no Move button needed.
+      if (floatEl) {
+        const id = floatEl.getAttribute('data-jx-float');
+        const cfgNow = readCfg(keys) || ensureCfg();
+        const f = (cfgNow.floating || []).find((x) => x.id === id);
+        if (f) {
+          e.preventDefault(); e.stopPropagation();
+          dragRef.current = {
+            mode: 'float',
+            node: floatEl,
+            id,
+            startX: e.clientX, startY: e.clientY,
+            origLeft: floatEl.getBoundingClientRect().left,
+            origTop: floatNodeTop(floatEl),
+            moved: false,
+            clickTarget: e.target,
+            floatData: f,
+          };
+          return;
+        }
+      }
       if (!cur || !cur.move || !cur.el || !cur.el.contains(e.target)) return;
       e.preventDefault(); e.stopPropagation();
       if (cur.kind === 'float_text' || cur.kind === 'float_image') {
@@ -490,6 +521,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
           startX: e.clientX, startY: e.clientY,
           origLeft: node.getBoundingClientRect().left,
           origTop: node.getBoundingClientRect().top + window.scrollY,
+          moved: false,
         };
       } else {
         const st = cur.kind === 'image'
