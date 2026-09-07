@@ -44,7 +44,7 @@ import { DEMO_STORES, INITIAL_PRODUCTS_BY_STORE } from '../../data/multiVertical
 import { api } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { HARMONIOUS_THEME_PRESETS } from '../admin/channels/AdminThemeBuilder';
-import { THEME_META } from '../../data/themeRegistry';
+import { THEME_META , buildThemeSectionsForApply} from '../../data/themeRegistry';
 import { formatCurrency, calculateDiscount } from '../../utils/formatters';
 
 export const DynamicStorefrontPage = () => {
@@ -150,11 +150,22 @@ export const DynamicStorefrontPage = () => {
       }
     } catch (e) {}
 
-    // Live preview (?theme=): apply the previewed preset's STYLES while keeping
-    // the store's real saved SECTIONS, so the preview matches the live store
+    // Live preview (?theme=): render the PREVIEWED theme itself — its palette
+    // AND its default content (the exact sections "Apply Theme" installs).
+    // Keeping the store's saved sections here made previews of one theme show
+    // another theme's content (e.g. "Aura" preview showing Sage text).
     if (previewPresetId) {
       const previewPreset = HARMONIOUS_THEME_PRESETS.find((p) => p.id === previewPresetId);
-      if (previewPreset) savedStyles = previewPreset;
+      if (previewPreset) {
+        savedStyles = previewPreset;
+        try {
+          const previewSections = buildThemeSectionsForApply(previewPresetId, matchedStore);
+          if (Array.isArray(previewSections) && previewSections.length > 0) {
+            return { styles: { ...previewPreset }, sections: previewSections };
+          }
+        } catch (e) {}
+        savedSections = null;
+      }
     }
 
     // Default to Aura Soft Peach / preset matching vertical. Saved sections
