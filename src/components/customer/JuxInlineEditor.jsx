@@ -101,10 +101,18 @@ const renderFloating = (cfg) => {
     div.setAttribute('data-jx-float', f.id);
     div.style.cssText = `position:absolute;left:${f.x}%;top:${f.y}px;z-index:60;max-width:360px;padding:4px 6px;`;
     if (f.kind === 'image') {
-      const img = document.createElement('img');
-      img.src = f.src;
-      img.style.cssText = `width:${f.w || 220}px;height:auto;border-radius:10px;display:block;box-shadow:0 8px 24px rgba(0,0,0,.18);`;
-      div.appendChild(img);
+      if (f.src) {
+        const img = document.createElement('img');
+        img.src = f.src;
+        img.style.cssText = `width:${f.w || 220}px;height:auto;border-radius:10px;display:block;box-shadow:0 8px 24px rgba(0,0,0,.18);`;
+        div.appendChild(img);
+      } else {
+        const ph = document.createElement('button');
+        ph.setAttribute('data-jx-choose', f.id);
+        ph.textContent = 'Choose Image';
+        ph.style.cssText = `width:${f.w || 220}px;height:140px;border:2px dashed #A87A00;border-radius:12px;background:#FFF8E7;color:#7A5A00;font:700 13px 'Work Sans',sans-serif;cursor:pointer;`;
+        div.appendChild(ph);
+      }
     } else {
       const span = document.createElement('span');
       span.textContent = f.text || 'New text';
@@ -235,7 +243,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       bold: false,
       size: kind === 'text' ? '26px' : undefined,
       color: '#0F172A',
-      ...(kind === 'text' ? { text: 'Double-click to edit' } : { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80', w: 220 }),
+      ...(kind === 'text' ? { text: 'Double-click to edit' } : { src: '', w: 220 }),
     };
     cfg.floating.push(item);
     writeCfg(keys, cfg, subdomain);
@@ -384,6 +392,13 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
 
     const onClick = (e) => {
       if (inToolbar(e)) return;
+      // Empty image box → open the picker immediately
+      const chooseBtn = e.target.closest?.('[data-jx-choose]');
+      if (chooseBtn) {
+        e.preventDefault(); e.stopPropagation();
+        setImgPick({ floatId: chooseBtn.getAttribute('data-jx-choose') });
+        return;
+      }
       const floatNode = e.target.closest?.('[data-jx-float]');
       if (floatNode) {
         e.preventDefault(); e.stopPropagation();
@@ -472,6 +487,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     // ---- drag (Move) + image resize ----
     const onMouseDown = (e) => {
       if (inToolbar(e)) return;
+      if (e.target.closest?.('[data-jx-choose]')) return;
       if (e.target.classList?.contains('jx-resize-handle')) {
         e.preventDefault(); e.stopPropagation();
         const img = e.target.__jxTarget;
@@ -610,10 +626,10 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
 
   const replaceImage = (src) => {
     const cur = selRef.current;
-    if (!cur) return;
-    if (cur.floatId) {
-      saveFloating(cur.floatId, { src });
-    } else if (cur.el) {
+    const targetFloat = imgPick?.floatId || cur?.floatId;
+    if (targetFloat) {
+      saveFloating(targetFloat, { src });
+    } else if (cur?.el) {
       cur.el.src = src;
       saveField(cur.sid, cur.field, src);
     }

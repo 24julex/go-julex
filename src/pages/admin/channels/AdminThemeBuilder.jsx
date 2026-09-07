@@ -778,7 +778,10 @@ export const AdminThemeBuilder = () => {
   const { currentStore, products, addProduct, updateProduct, deleteProduct, showToast } = useMerchantAdmin();
   const navigate = useNavigate();
 
-  const cleanSubdomain = (currentStore?.subdomain || 'auraliving').toLowerCase().replace(/\.gojulex\.com$/, '');
+  const cleanSubdomain = (currentStore?.subdomain || 'auraliving').toLowerCase()
+    .replace(/\.go\.julex\.shop$/, '')
+    .replace(/\.gojulex\.com$/, '')
+    .replace(/^store_/, '');
   const liveStoreUrl = `/store/${cleanSubdomain}`;
   // Read the SAME keys the storefront reads, in the same order — so the
   // builder always customizes exactly the sections the live store renders
@@ -995,6 +998,40 @@ export const AdminThemeBuilder = () => {
     const t = setTimeout(postDraft, 60);
     return () => clearTimeout(t);
   }, [sections, styles, previewTick]);
+
+  // The PUBLISHED backend config is the canonical state. On mount, if the
+  // backend has a config that is newer than this browser's localStorage
+  // (or localStorage is empty), load the backend version so preset defaults
+  // can never silently overwrite the merchant's published work.
+  const [bootstrapped, setBootstrapped] = useState(false);
+  useEffect(() => {
+    if (bootstrapped) return;
+    let cancelled = false;
+    api.themes.getPublicConfig(cleanSubdomain)
+      .then((res) => {
+        if (cancelled || !res?.success || !res?.data) { setBootstrapped(true); return; }
+        const cfg = res.data;
+        const localNewer = savedTheme?.updatedAt && (!cfg.updatedAt || new Date(savedTheme.updatedAt) > new Date(cfg.updatedAt));
+        if (localNewer) { setBootstrapped(true); return; }
+        const valid = Array.isArray(cfg.sections) && cfg.sections.length > 0 && cfg.sections.every((x) => x && x.type && x.data && typeof x.data === 'object');
+        extrasRef.current = extrasRef.current || {
+          inlineStyles: cfg.inlineStyles || [],
+          floating: cfg.floating || [],
+          imgStyles: cfg.imgStyles || []
+        };
+        if (cfg.styles && Object.keys(cfg.styles).length > 0) setStyles(cfg.styles);
+        if (valid) setSections(cfg.sections);
+        if (cfg.presetId) setActivePresetId(cfg.presetId);
+        try {
+          const keys = [currentStore?.id && `gojulex_store_theme_${currentStore.id}`, `gojulex_store_theme_store_${cleanSubdomain}`, `gojulex_store_theme_${cleanSubdomain}`].filter(Boolean);
+          keys.forEach((k) => localStorage.setItem(k, JSON.stringify(cfg)));
+        } catch (e) {}
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setBootstrapped(true); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cleanSubdomain, currentStore?.id]);
 
   // Inline edits made directly in the preview flow back into this state —
   // the builder is the single source of truth for publish.
