@@ -99,6 +99,10 @@ export const api = {
   },
 
   // Theme Catalog (public read; super-admin writes) — shared by both dashboards
+  domains: {
+    checkSlug: (slug) => request(`/domains/check?slug=${encodeURIComponent(slug)}`),
+    setSubdomain: (payload) => request('/domains/subdomain', { method: 'PUT', body: JSON.stringify(payload) })
+  },
   themes: {
     getOverrides: () => request('/themes'),
     saveConfig: (config, subdomain) =>

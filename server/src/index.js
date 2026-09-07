@@ -16,6 +16,7 @@ import invoiceRoutes from './routes/invoices.js';
 import uploadRoutes from './routes/upload.js';
 import superAdminRoutes from './routes/superAdmin.js';
 import customerRoutes from './routes/customers.js';
+import domainsRoutes from './routes/domains.js';
 import themeRoutes from './routes/themes.js';
 
 dotenv.config();
@@ -56,6 +57,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/themes', themeRoutes);
+app.use('/api/domains', domainsRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

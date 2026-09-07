@@ -59,7 +59,7 @@ export const DynamicStorefrontPage = () => {
     totalItemsCount
   } = useCart();
 
-  const cleanSubdomain = (subdomain || 'luxestudio').toLowerCase().replace(/\.gojulex\.com$/, '');
+  const cleanSubdomain = (subdomain || 'luxestudio').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '');
 
   // 1. Identify Store / Tenant Profile (check custom profiles first)
   const savedProfile = (() => {

@@ -62,10 +62,18 @@ router.put('/config', requireMerchantAdmin, async (req, res) => {
  */
 router.get('/public/:subdomain', async (req, res) => {
   try {
-    const clean = String(req.params.subdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '');
     const all = await prisma.tenant.findMany();
-    const norm = (v) => String(v || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
-    const matches = all.filter((t) => norm(t.subdomain) === clean || norm(t.id) === clean);
+    const clean = String(req.params.subdomain || '').toLowerCase()
+      .replace(/\.gojulex\.shop$/, '').replace(/\.gojulex\.com$/, '');
+    const norm = (v) => String(v || '').toLowerCase()
+      .replace(/\.gojulex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const matches = all.filter((t) => {
+      if (norm(t.subdomain) === clean || norm(t.id) === clean) return true;
+      try {
+        const aliases = t.subdomainAliases ? JSON.parse(t.subdomainAliases) : [];
+        return aliases.some((a) => norm(a) === clean);
+      } catch (e) { return false; }
+    });
     const tenant = matches.find((t) => t.themeConfig) || matches[0] || null;
     if (!tenant || !tenant.themeConfig) {
       return res.json({ success: true, data: null });

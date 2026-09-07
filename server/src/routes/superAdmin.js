@@ -141,11 +141,14 @@ router.post('/tenants', requireSuperAdmin, async (req, res) => {
       });
     }
 
-    const cleanSubdomain = subdomain.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-');
-    const existing = await prisma.tenant.findUnique({ where: { subdomain: cleanSubdomain } });
-    if (existing) {
-      return res.status(400).json({ success: false, message: `Subdomain "${cleanSubdomain}" is already taken.` });
-    }
+    // Store name -> unique URL-safe slug -> {slug}.go.julex.shop
+    const { makeSlug, validateSlug, uniqueSlug } = await import('../utils/slug.js');
+    const desiredSlug = makeSlug(name);
+    const slugErr = validateSlug(desiredSlug);
+    if (slugErr) return res.status(400).json({ success: false, message: slugErr });
+    const uniq = await uniqueSlug(prisma, desiredSlug);
+    if (uniq.error) return res.status(409).json({ success: false, message: uniq.error });
+    const cleanSubdomain = `${uniq.slug}.go.julex.shop`;
 
     const existingUser = await prisma.user.findUnique({ where: { email: ownerEmail.toLowerCase().trim() } });
     if (existingUser) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Globe,
@@ -19,16 +19,30 @@ import {
   Tag
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
+import { api } from '../../../services/api';
+
+// Store name -> URL-safe slug, SAME rules as the backend
+const makeSlug = (name) => String(name || '')
+  .toLowerCase()
+  .replace(/[\u2018\u2019']/g, '')
+  .replace(/&/g, 'and')
+  .replace(/[^a-z0-9]+/g, '')
+  .slice(0, 40);
 
 export const AdminDomains = () => {
   const { currentStore, updateStoreProfile, showToast } = useMerchantAdmin();
 
   // Store profile fields
   const [storeName, setStoreName] = useState(currentStore.name || 'My Store');
-  const [subdomainSlug, setSubdomainSlug] = useState(
-    (currentStore.subdomain || 'mystore').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/[^a-z0-9]/g, '')
-  );
   const [categoryLabel, setCategoryLabel] = useState(currentStore.categoryLabel || 'Fine Jewelry & Luxury');
+  // Active slug on the store (saved). Draft slug derives from the store name.
+  const [activeSlug, setActiveSlug] = useState(
+    (currentStore.subdomain || 'mystore').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/[^a-z0-9]/g, '')
+  );
+  const [slugInfo, setSlugInfo] = useState(null); // { available, slug, message }
+  const [slugChecking, setSlugChecking] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const draftSlug = makeSlug(storeName);
 
   const [copiedSubdomain, setCopiedSubdomain] = useState(false);
   const [copiedCustomDomain, setCopiedCustomDomain] = useState(false);
@@ -37,7 +51,7 @@ export const AdminDomains = () => {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const [customDomain, setCustomDomain] = useState(
-    currentStore.customDomain || `${subdomainSlug}.in`
+    currentStore.customDomain || `${activeSlug}.in`
   );
 
   const handleCopy = (text, type) => {
@@ -52,14 +66,43 @@ export const AdminDomains = () => {
     showToast('Domain URL copied to clipboard!', 'info');
   };
 
-  const handleSaveBrandProfile = (e) => {
+  // Live availability preview while the merchant types the store name
+  useEffect(() => {
+    if (!draftSlug) { setSlugInfo(null); return; }
+    let cancelled = false;
+    setSlugChecking(true);
+    const t = setTimeout(() => {
+      api.domains.checkSlug(draftSlug)
+        .then((res) => { if (!cancelled) setSlugInfo(res); })
+        .catch(() => { if (!cancelled) setSlugInfo(null); })
+        .finally(() => { if (!cancelled) setSlugChecking(false); });
+    }, 450);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [draftSlug]);
+
+  // SAVE: store name -> backend generates unique slug -> {slug}.go.julex.shop
+  const handleSaveBrandProfile = async (e) => {
     e.preventDefault();
-    const cleanSub = subdomainSlug.trim().toLowerCase().replace(/[^a-z0-9]/g, '') || 'mystore';
-    updateStoreProfile({
-      name: storeName.trim(),
-      subdomain: cleanSub,
-      categoryLabel: categoryLabel.trim()
-    });
+    if (!draftSlug) { showToast('Please enter a valid store name.', 'error'); return; }
+    setSaving(true);
+    try {
+      const res = await api.domains.setSubdomain({ name: storeName.trim() });
+      if (res?.success && res.data?.slug) {
+        setActiveSlug(res.data.slug);
+        updateStoreProfile({
+          name: storeName.trim(),
+          subdomain: res.data.subdomain,
+          categoryLabel: categoryLabel.trim()
+        });
+        showToast(res.message || `Saved — ${res.data.subdomain}`, 'success');
+      } else {
+        showToast(res?.message || 'Could not save store identity.', 'error');
+      }
+    } catch (err) {
+      showToast('Could not reach the server. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleVerifyDns = () => {
@@ -83,7 +126,8 @@ export const AdminDomains = () => {
     showToast('Custom domain disconnected', 'info');
   };
 
-  const cleanSubdomainUrl = (subdomainSlug || 'mystore').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanSubdomainUrl = activeSlug || 'mystore';
+  const liveSubdomainUrl = `https://${cleanSubdomainUrl}.go.julex.shop`;
 
   return (
     <div className="space-y-8 text-[#0F172A] pb-16">
@@ -138,7 +182,7 @@ export const AdminDomains = () => {
             type="submit"
             className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs transition shadow-xs"
           >
-            <Save className="w-3.5 h-3.5" /> Save Changes
+            <Save className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
 
@@ -159,20 +203,19 @@ export const AdminDomains = () => {
 
           <div>
             <label className="font-semibold text-[#0F172A] block mb-1.5">
-              Go Julex Subdomain Slug
+              Go Julex Subdomain <span className="text-[#9F1239]">(auto-generated from your store name)</span>
             </label>
             <div className="flex items-center bg-white border border-[#FBCBCB] rounded-2xl overflow-hidden px-3 py-2">
-              <span className="text-slate-400 font-mono">https://</span>
-              <input
-                type="text"
-                required
-                value={subdomainSlug}
-                onChange={(e) => setSubdomainSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                placeholder="mystore"
-                className="w-28 bg-transparent text-[#9F1239] font-mono font-bold focus:outline-none px-1"
-              />
-              <span className="text-slate-400 font-mono text-[11px]">.gojulex.com</span>
+              <span className="text-slate-400 font-mono text-[11px]">https://</span>
+              <span className="px-1 text-[#9F1239] font-mono font-bold truncate">{draftSlug || 'yourstore'}</span>
+              <span className="text-slate-400 font-mono text-[11px]">.go.julex.shop</span>
             </div>
+            {slugChecking && <p className="text-[10px] text-slate-400 mt-1">Checking availability…</p>}
+            {!slugChecking && slugInfo && (
+              <p className={'text-[10px] mt-1 font-semibold ' + (slugInfo.available ? 'text-emerald-600' : 'text-[#9F1239]')}>
+                {slugInfo.message || (slugInfo.slug ? `${slugInfo.slug}.go.julex.shop` : '')}
+              </p>
+            )}
           </div>
 
           <div>
@@ -212,13 +255,13 @@ export const AdminDomains = () => {
           <div className="flex items-center gap-2 text-xs">
             <Lock className="w-4 h-4 text-emerald-600" />
             <span className="font-mono text-[#9F1239] font-bold text-sm">
-              https://{cleanSubdomainUrl}.gojulex.com
+              https://<span className="text-[#0F172A]">{cleanSubdomainUrl}</span><span className="text-slate-500">.go.julex.shop</span>
             </span>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
-              onClick={() => handleCopy(`https://${cleanSubdomainUrl}.gojulex.com`, 'sub')}
+              onClick={() => handleCopy(liveSubdomainUrl, 'sub')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FEE2E2] border border-[#FBCBCB] text-xs font-semibold text-[#881337] transition"
             >
               {copiedSubdomain ? (
@@ -234,14 +277,14 @@ export const AdminDomains = () => {
               )}
             </button>
 
-            <Link
-              to={`/store/${cleanSubdomainUrl}`}
+            <a
+              href={liveSubdomainUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fedddd] hover:bg-[#FECDD3] text-[#881337] border border-[#F8B4B4] text-xs font-bold transition"
             >
               <ExternalLink className="w-3.5 h-3.5" /> Visit Store
-            </Link>
+            </a>
           </div>
         </div>
       </div>

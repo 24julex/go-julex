@@ -36,6 +36,7 @@ model Tenant {
   id                       String                  @id @default(uuid())
   name                     String
   subdomain                String                  @unique
+  subdomainAliases         String? // JSON array of previous hostnames, kept for redirects
   customDomain             String?                 @unique
   category                 String                  @default("General")
   city                     String?
