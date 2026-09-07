@@ -465,6 +465,16 @@ export const DynamicStorefrontPage = () => {
 
 
 
+  // Exact variant match for the selected options — merchant-defined
+  // per-variant prices (e.g. 100g ₹50 / 250g ₹100 / 500g ₹180) win over
+  // the base product price. Works for ANY category (sizes, weights, volumes).
+  const findVariantFor = (product, selectedValues) => {
+    if (!product || !Array.isArray(product.variantMatrix) || product.variantMatrix.length === 0) return null;
+    const sets = getProductOptionSets(product);
+    const title = sets.map((os) => `${os.name}: ${selectedValues[os.name]}`).join(' / ');
+    return product.variantMatrix.find((v) => v && v.title === title && Number(v.price) > 0) || null;
+  };
+
   const handleQuickAdd = (product) => {
     const isOutOfStock = (Number(product.stockQuantity ?? product.stock ?? 0) <= 0) || product.status === 'No' || product.status === false || product.available === false;
     if (isOutOfStock) {
@@ -505,10 +515,21 @@ export const DynamicStorefrontPage = () => {
       ? variantEntries.map(([k, v]) => `${k}: ${v}`).join(' • ')
       : '';
 
+    const exactVariant = findVariantFor(selectedProductForVariant, selectedOptionValues);
+    const variantPrice = exactVariant ? Number(exactVariant.price) : null;
+
     const storeScopedItem = {
       ...selectedProductForVariant,
       variant: variantLabel,
       selectedOptions: selectedOptionValues,
+      // The selected variant's own price becomes the item price everywhere
+      // (cart totals, checkout, order data) when the merchant defined one.
+      ...(variantPrice !== null ? {
+        price: variantPrice,
+        sellingPriceINR: variantPrice,
+        finalPrice: variantPrice,
+        variantSku: exactVariant.sku || selectedProductForVariant.sku
+      } : {}),
       storeSubdomain: cleanSubdomain,
       tenantId: matchedStore.id,
       storeName: matchedStore.name
@@ -569,7 +590,10 @@ export const DynamicStorefrontPage = () => {
                   </h3>
                   <div className="flex items-baseline gap-2 mt-0.5">
                     <span className="font-mono font-bold text-base text-[#9F1239]">
-                      ₹{Number(selectedProductForVariant.sellingPriceINR || selectedProductForVariant.price || 0).toLocaleString('en-IN')}
+                      ₹{(() => {
+                        const v = findVariantFor(selectedProductForVariant, selectedOptionValues);
+                        return Number(v ? v.price : (selectedProductForVariant.sellingPriceINR || selectedProductForVariant.price || 0)).toLocaleString('en-IN');
+                      })()}
                     </span>
                     {selectedProductForVariant.discountPercent > 0 && (
                       <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
@@ -663,7 +687,10 @@ export const DynamicStorefrontPage = () => {
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>
-                  Confirm & Add {selectedQuantity} to Bag • ₹{(Number(selectedProductForVariant.sellingPriceINR || selectedProductForVariant.price || 0) * selectedQuantity).toLocaleString('en-IN')}
+                  Confirm & Add {selectedQuantity} to Bag • ₹{(() => {
+                    const v = findVariantFor(selectedProductForVariant, selectedOptionValues);
+                    return (Number(v ? v.price : (selectedProductForVariant.sellingPriceINR || selectedProductForVariant.price || 0)) * selectedQuantity).toLocaleString('en-IN');
+                  })()}
                 </span>
               </button>
             </div>
