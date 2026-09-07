@@ -606,17 +606,33 @@ html.dark .julex-landing-bg { background-color: #0A0A0A; }
 .jx-edit-wrap { position: relative; }
 .jx-edit-wrap:hover { outline: 1.5px dashed rgba(168, 122, 0, 0.55); outline-offset: -1.5px; }
 .jx-editing { outline: 2px solid #A87A00 !important; outline-offset: 2px; cursor: text; box-shadow: 0 0 0 4px rgba(168,122,0,0.15) !important; }
-.jx-edit-badge {
-  position: fixed; bottom: 16px; left: 16px; z-index: 9999;
-  background: #111; color: #fff; font: 600 11px/1.2 'Work Sans', sans-serif;
-  padding: 9px 14px; border-radius: 999px; box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  pointer-events: none;
-}
 .jux-toolbar {
   position: fixed; z-index: 10000; display: flex; align-items: center; gap: 4px;
   background: #111; padding: 6px 8px; border-radius: 12px;
   box-shadow: 0 10px 28px rgba(0,0,0,0.35);
 }
+/* ONE COMMON TOP TOOLBAR — spans the top of the customizer preview */
+.jux-toolbar.jux-topbar {
+  top: 0; left: 0; right: 0; border-radius: 0;
+  flex-wrap: wrap; padding: 8px 12px; gap: 6px;
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+.jux-tool-btn:disabled, .jux-tool-select:disabled { opacity: 0.35; cursor: not-allowed; }
+.jux-tool-disabled { opacity: 0.45; }
+.jux-tool-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.25); margin: 0 4px; }
+.jux-tool-hint { color: rgba(255,255,255,0.75); font: 500 10.5px 'Work Sans', sans-serif; margin-left: auto; padding-right: 8px; max-width: 300px; }
+.jux-tool-swatches { display: inline-flex; gap: 3px; align-items: center; margin: 0 2px; }
+.jux-swatch { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); cursor: pointer; padding: 0; }
+.jux-swatch:hover { transform: scale(1.2); }
+.jux-swatch:disabled { opacity: 0.3; cursor: not-allowed; }
+.jux-swatch-active { border-color: #A87A00; box-shadow: 0 0 0 2px #A87A00; }
+.jx-selected { outline: 2px solid #A87A00 !important; outline-offset: 2px; border-radius: 2px; }
+.jux-toolbar .jx-selected { outline: none; }
+.jx-resize-handle {
+  position: fixed; width: 14px; height: 14px; background: #A87A00; border: 2px solid #fff;
+  border-radius: 50%; cursor: nwse-resize; z-index: 10001; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
 .jux-tool-select {
   background: #111; color: #fff; border: 1px solid rgba(255,255,255,0.25);
   border-radius: 8px; font: 600 11px 'Work Sans', sans-serif; padding: 4px 6px; cursor: pointer; max-width: 130px;
@@ -658,9 +674,8 @@ html.dark .julex-landing-bg { background-color: #0A0A0A; }
   }
 }
 
-/* Canva editor: colour inputs + badge action buttons + floating boxes */
+/* Canva editor: colour input + floating boxes */
 .jux-toolbar .jux-tool-color { position: relative; display: inline-flex; align-items: center; }
 .jux-toolbar .jux-tool-color input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .jux-toolbar .jux-tool-color-icon { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #333; background: #fff; border: 1px solid #d4d4d4; border-radius: 8px; cursor: pointer; }
-.jx-badge-actions { display: inline-flex; gap: 6px; margin-left: 10px; }
 [data-jx-float] { cursor: grab; }

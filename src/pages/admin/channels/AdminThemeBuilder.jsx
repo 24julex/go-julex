@@ -1,3 +1,4 @@
+import { api } from '../../../services/api';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -1157,9 +1158,51 @@ export const AdminThemeBuilder = () => {
       .catch(() => showToast('Could not reach the server. Theme not published.', 'error'));
   };
 
+  // RESET — original theme back: default sections/styles, all custom edits
+  // (inline styles, added boxes, image tweaks) removed, published immediately.
+  const handleResetTheme = async () => {
+    try {
+    if (!window.confirm('Reset the theme to its original design? All custom edits (fonts, colours, moved/added elements) will be removed and the reset version will be published live.')) return;
+    const preset = HARMONIOUS_THEME_PRESETS[0];
+    applyPreset(preset);
+    // dynamic import — themeRegistry imports from this module, a static import would cycle
+    const { buildThemeSectionsForApply } = await import('../../../data/themeRegistry');
+    const freshSections = buildThemeSectionsForApply(preset.id, currentStore);
+    const payload = {
+      presetId: preset.id,
+      styles: { ...styles, presetId: preset.id },
+      sections: freshSections,
+      inlineStyles: [],
+      floating: [],
+      imgStyles: [],
+      updatedAt: new Date().toISOString()
+    };
+    try {
+      [currentStore?.id && `gojulex_store_theme_${currentStore.id}`, `gojulex_store_theme_${cleanSubdomain}`, `gojulex_store_theme_store_${cleanSubdomain}`]
+        .filter(Boolean).forEach((k) => localStorage.setItem(k, JSON.stringify(payload)));
+    } catch (e) {}
+    setSections(freshSections);
+    setPreviewTick((n) => n + 1);
+    api.themes.saveConfig(payload, cleanSubdomain)
+      .then((res) => showToast(res?.success ? 'Theme reset to original & published live.' : (res?.message || 'Reset saved locally but publishing failed.'), res?.success ? 'success' : 'error'))
+      .catch(() => showToast('Theme reset locally, but could not reach the server to publish.', 'error'));
+    } catch (err) { console.error('RESET FAILED', err); showToast('Reset failed: ' + (err?.message || 'unknown error'), 'error'); }
+  };
+
+  // DISCARD — throw away unsaved local edits, restore the last PUBLISHED version
   const handleDiscard = () => {
-    showToast('Discarded draft customizer changes', 'info');
-    navigate('/admin/channels/online-store/themes');
+    api.themes.getPublicConfig(cleanSubdomain)
+      .then((res) => {
+        const cfg = res?.success ? res.data : null;
+        [currentStore?.id && `gojulex_store_theme_${currentStore.id}`, `gojulex_store_theme_${cleanSubdomain}`, `gojulex_store_theme_store_${cleanSubdomain}`]
+          .filter(Boolean).forEach((k) => {
+            if (cfg) localStorage.setItem(k, JSON.stringify(cfg));
+            else localStorage.removeItem(k);
+          });
+        showToast('Unsaved changes discarded — restored the last published version.', 'info');
+      })
+      .catch(() => showToast('Discarded draft customizer changes', 'info'))
+      .finally(() => navigate('/admin/channels/online-store/themes'));
   };
 
   // Helper to render interactive color input with Hex field + Swatches
@@ -1272,7 +1315,7 @@ export const AdminThemeBuilder = () => {
           </Link>
 
           <button
-            onClick={() => applyPreset(HARMONIOUS_THEME_PRESETS[0])}
+            onClick={handleResetTheme}
             className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white hover:bg-[#FEE2E2] border border-[#FBCBCB] text-xs font-semibold text-[#881337] transition"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Reset
