@@ -37,9 +37,21 @@ import {
 } from 'lucide-react';
 
 export const AdminLoginPage = () => {
-  const { loginAdmin, registerMerchant, oauthLogin, googleSignIn } = useAuth();
+  const { loginAdmin, registerMerchant, oauthLogin, googleSignIn, completeGoogleRedirect } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+
+  // Returning from the Google full-page redirect — finish the sign-in
+  useEffect(() => {
+    let cancelled = false;
+    completeGoogleRedirect().then((res) => {
+      if (!cancelled && res?.success) {
+        window.location.href = res.user?.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin';
+      }
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Real-OAuth callback: backend redirects back with ?oauth_token=...
   useEffect(() => {
@@ -897,14 +909,14 @@ export const AdminLoginPage = () => {
                     type="button"
                     onClick={async () => {
                       setLoading(true);
-                      const res = await oauthLogin('google');
-                      if (res?.redirecting) return;
+                      const res = await googleSignIn();
+                      if (res?.redirecting) return; // full-page Google redirect in progress
                       if (res?.success) {
                         navigate(res.user?.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin');
-                      } else {
+                      } else if (!res?.cancelled) {
                         setError(res?.message || 'Google sign-in failed.');
-                        setLoading(false);
                       }
+                      setLoading(false);
                     }}
                     disabled={loading}
                     className="p-2.5 rounded-xl bg-[#FDFAEE] dark:bg-obsidian-800 hover:bg-slate-100 border border-[#EFE2BC] text-xs font-semibold text-[#0F172A] dark:text-slate-100 flex items-center justify-center gap-2 transition cursor-pointer"

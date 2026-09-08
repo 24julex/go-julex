@@ -89,10 +89,41 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return { success: false, message: 'Google sign-in is not configured yet. Please use email and password.' };
       }
-      const [{ initializeApp }, { getAuth, GoogleAuthProvider, signInWithPopup }] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
+      const [{ initializeApp }, { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect }] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
       const app = initializeApp(FIREBASE_CONFIG);
       const auth = getAuth(app);
-      const credential = await signInWithPopup(auth, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      let credential = null;
+      try {
+        credential = await signInWithPopup(auth, provider);
+      } catch (popupErr) {
+        const code = popupErr?.code || '';
+        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+          setLoading(false);
+          return { success: false, cancelled: true };
+        }
+        if (code === 'auth/unauthorized-domain') {
+          setLoading(false);
+          return { success: false, message: 'This domain is not yet authorized in Firebase (Authentication → Settings → Authorized domains).' };
+        }
+        // Popup blocked or failed — automatically fall back to the
+        // full-page redirect flow (works even with popups disabled).
+        try {
+          await signInWithRedirect(auth, provider);
+          return { success: false, redirecting: true };
+        } catch (redirErr) {
+          if ((redirErr?.code || '') === 'auth/unauthorized-domain') {
+            setLoading(false);
+            return { success: false, message: 'This domain is not yet authorized in Firebase (Authentication → Settings → Authorized domains).' };
+          }
+          setLoading(false);
+          return { success: false, message: 'Google sign-in could not be opened. Please allow popups for this site and try again.' };
+        }
+      }
+
+      if (!credential) { setLoading(false); return { success: false, cancelled: true }; }
       const idToken = await credential.user.getIdToken();
       const res = await api.auth.firebaseGoogle(idToken);
       if (res?.success && res?.user) {
@@ -113,7 +144,31 @@ export const AuthProvider = ({ children }) => {
       if (code === 'auth/unauthorized-domain') {
         return { success: false, message: 'This domain is not yet authorized in Firebase (Authentication → Settings → Authorized domains).' };
       }
-      return { success: false, message: 'Google sign-in could not be completed. Please try again.' };
+      return { success: false, message: err?.message || 'Google sign-in could not be completed. Please try again.' };
+    }
+  };
+
+  // Completes the redirect-based Google sign-in when the browser returns
+  // from accounts.google.com back to the login page.
+  const completeGoogleRedirect = async () => {
+    try {
+      const { FIREBASE_CONFIG, firebaseConfigured } = await import('../firebase');
+      if (!firebaseConfigured()) return null;
+      const [{ initializeApp }, { getAuth, getRedirectResult }] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
+      const auth = getAuth(initializeApp(FIREBASE_CONFIG));
+      const result = await getRedirectResult(auth);
+      if (!result?.user) return null;
+      const idToken = await result.user.getIdToken();
+      const res = await api.auth.firebaseGoogle(idToken);
+      if (res?.success && res?.user) {
+        localStorage.setItem('gojulex_jwt_token', res.token);
+        const userObj = { ...res.user, avatar: res.user.avatarUrl || MERCHANT_CREDENTIALS.avatar };
+        setCurrentUser(userObj);
+        return { success: true, user: userObj };
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   };
 
@@ -426,6 +481,7 @@ export const AuthProvider = ({ children }) => {
         stopImpersonation,
         login,
         googleSignIn,
+        completeGoogleRedirect,
         oauthLogin,
         loginAdmin: login,
         loginUser: login,
