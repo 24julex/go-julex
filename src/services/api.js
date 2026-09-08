@@ -120,6 +120,9 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify({ config, subdomain })
       }),
+    publishTheme: (payload) => request('/themes/publish', { method: 'POST', body: JSON.stringify(payload || {}) }),
+    discardTheme: () => request('/themes/discard', { method: 'POST', body: JSON.stringify({}) }),
+    getDraftConfig: (subdomain) => request(`/themes/draft/${encodeURIComponent(subdomain)}`),
     getPublicConfig: (subdomain) =>
       request(`/themes/public/${encodeURIComponent(subdomain)}`),
     updateOverride: (id, patch) =>

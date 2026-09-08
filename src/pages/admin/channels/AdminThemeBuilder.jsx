@@ -1007,7 +1007,7 @@ export const AdminThemeBuilder = () => {
   useEffect(() => {
     if (bootstrapped) return;
     let cancelled = false;
-    api.themes.getPublicConfig(cleanSubdomain)
+    api.themes.getDraftConfig(cleanSubdomain)
       .then((res) => {
         if (cancelled || !res?.success || !res?.data) { setBootstrapped(true); return; }
         const cfg = res.data;
@@ -1223,15 +1223,25 @@ export const AdminThemeBuilder = () => {
       localStorage.setItem(`gojulex_store_active_theme_${cleanSubdomain}`, activePresetId);
     } catch (e) {}
 
+    // Draft first, then publish — success is only shown after the backend
+    // confirms BOTH steps.
     api.themes.saveConfig(payload, cleanSubdomain)
-      .then((res) => {
-        if (res?.success) {
-          showToast(`Theme published live to ${res.data?.subdomain || cleanSubdomain}! 🚀`, 'success');
-        } else {
-          showToast(res?.message || 'Publish failed. Please try again.', 'error');
+      .then((draftRes) => {
+        if (!draftRes?.success) {
+          showToast(draftRes?.message || 'Could not save the draft.', 'error');
+          return;
         }
+        api.themes.publishTheme({ config: payload, subdomain: cleanSubdomain })
+          .then((res) => {
+            if (res?.success) {
+              showToast(`Theme published live to ${res.data?.subdomain || cleanSubdomain}! 🚀`, 'success');
+            } else {
+              showToast(res?.message || 'Publish failed. Please try again.', 'error');
+            }
+          })
+          .catch(() => showToast('Could not reach the server. Theme not published.', 'error'));
       })
-      .catch(() => showToast('Could not reach the server. Theme not published.', 'error'));
+      .catch(() => showToast('Could not reach the server. Draft not saved.', 'error'));
   };
 
   // RESET — original theme back: default sections/styles, all custom edits
@@ -1260,16 +1270,16 @@ export const AdminThemeBuilder = () => {
     setSections(freshSections);
     setPreviewTick((n) => n + 1);
     api.themes.saveConfig(payload, cleanSubdomain)
-      .then((res) => showToast(res?.success ? 'Theme reset to original & published live.' : (res?.message || 'Reset saved locally but publishing failed.'), res?.success ? 'success' : 'error'))
-      .catch(() => showToast('Theme reset locally, but could not reach the server to publish.', 'error'));
+      .then((res) => showToast(res?.success ? 'Theme reset to original — review it and click Save & Publish Live.' : (res?.message || 'Reset could not be saved.'), res?.success ? 'success' : 'error'))
+      .catch(() => showToast('Theme reset locally, but could not reach the server.', 'error'));
     } catch (err) { console.error('RESET FAILED', err); showToast('Reset failed: ' + (err?.message || 'unknown error'), 'error'); }
   };
 
-  // DISCARD — throw away unsaved local edits, restore the last PUBLISHED version
+  // DISCARD — drop unsaved draft changes; restore the PUBLISHED version into the editor
   const handleDiscard = () => {
-    api.themes.getPublicConfig(cleanSubdomain)
+    api.themes.discardTheme()
       .then((res) => {
-        const cfg = res?.success ? res.data : null;
+        const cfg = res?.success ? res.data?.config : null;
         [currentStore?.id && `gojulex_store_theme_${currentStore.id}`, `gojulex_store_theme_${cleanSubdomain}`, `gojulex_store_theme_store_${cleanSubdomain}`]
           .filter(Boolean).forEach((k) => {
             if (cfg) localStorage.setItem(k, JSON.stringify(cfg));

@@ -454,10 +454,11 @@ export const DynamicStorefrontPage = () => {
     return () => { cancelled = true; };
   }, [cleanSubdomain]);
 
-  // Re-apply merchant inline font/bold/size edits saved from the Visual Customizer
+  // Merchant's LOCAL DRAFT styling applies only inside the Visual Customizer —
+  // the public store renders strictly the PUBLISHED backend config.
   useEffect(() => {
-    if (matchedStore?.id) applyJuxInlineStyles(matchedStore.id, cleanSubdomain);
-  }, [matchedStore?.id, cleanSubdomain]);
+    if (isJulexEditMode && matchedStore?.id) applyJuxInlineStyles(matchedStore.id, cleanSubdomain);
+  }, [isJulexEditMode, matchedStore?.id, cleanSubdomain]);
 
   // Visual Customizer draft: the builder streams its CURRENT sections/styles
   // into this preview — the preview never keeps an independent copy.
