@@ -1096,27 +1096,30 @@ export const AdminThemeBuilder = () => {
   };
 
   // 1-Click Apply Preset
-  const applyPreset = (preset) => {
+  const applyPreset = async (preset) => {
     setActivePresetId(preset.id);
-    setStyles({
-      ...styles,
-      presetId: preset.id,
-      headingFont: preset.headingFont,
-      bodyFont: preset.bodyFont,
-      baseFontSize: preset.baseFontSize,
-      backgroundColor: preset.backgroundColor,
-      surfaceColor: preset.surfaceColor,
-      headerBg: preset.headerBg,
-      announcementBg: preset.announcementBg,
-      announcementText: preset.announcementText,
-      accentColor: preset.accentColor,
-      headingColor: preset.headingColor,
-      textColor: preset.textColor,
-      cardSurface: preset.cardSurface,
-      buttonRadius: preset.buttonRadius,
-      cardBorder: preset.cardBorder
-    });
-    showToast(`Applied "${preset.name}" palette preset!`, 'success');
+    const nextStyles = {
+      ...preset,
+      presetId: preset.id
+    };
+    setStyles(nextStyles);
+    // A preset is a COMPLETE theme: swap its sections in too (the same
+    // content Apply Theme installs) and clear customisations belonging to
+    // the previous theme, so sidebar + preview + publish all switch together.
+    try {
+      const { buildThemeSectionsForApply } = await import('../../../data/themeRegistry');
+      const presetSections = buildThemeSectionsForApply(preset.id, currentStore);
+      if (Array.isArray(presetSections) && presetSections.length > 0) {
+        setSections(presetSections);
+        extrasRef.current = { inlineStyles: [], floating: [], imgStyles: [] };
+        try {
+          const fresh = { presetId: preset.id, styles: nextStyles, sections: presetSections, inlineStyles: [], floating: [], imgStyles: [], updatedAt: new Date().toISOString() };
+          [currentStore?.id && `gojulex_store_theme_${currentStore.id}`, `gojulex_store_theme_store_${cleanSubdomain}`, `gojulex_store_theme_${cleanSubdomain}`]
+            .filter(Boolean).forEach((k) => localStorage.setItem(k, JSON.stringify(fresh)));
+        } catch (e) {}
+      }
+    } catch (e) {}
+    showToast(`Switched to "${preset.name}" theme — review it and click Save & Publish Live`, 'success');
   };
 
   // Drag & Drop Section Reordering
