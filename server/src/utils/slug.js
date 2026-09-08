@@ -26,7 +26,7 @@ export const validateSlug = (slug) => {
 
 const normSub = (v) => String(v || '').toLowerCase()
   .replace(/\.go\.julex\.shop$/, '')
-  .replace(/\.gojulex\.com$/, '')
+  .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '')
   .replace(/\.julex\.shop$/, '')
   .replace(/^store_/, '');
 

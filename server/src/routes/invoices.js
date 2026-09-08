@@ -326,7 +326,7 @@ router.get('/invoices/store-config/:tenantId', async (req, res) => {
     // Fallback: resolve the tenant by subdomain (checkout passes either
     // the tenant id, e.g. "store_ramstshirt", or a bare subdomain, e.g. "ramstshirt")
     if (!config) {
-      const cleanSub = String(tenantId).toLowerCase().replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '').replace(/^store_/, '');
+      const cleanSub = String(tenantId).toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '').replace(/^store_/, '');
       const tenant = await prisma.tenant.findFirst({
         where: {
           OR: [

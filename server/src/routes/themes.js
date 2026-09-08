@@ -19,7 +19,7 @@ router.put('/config', requireMerchantAdmin, async (req, res) => {
     // Resolve the tenant the config belongs to. Priority: impersonation scope,
     // then the store subdomain being customized (super admin switching stores),
     // then the logged-in merchant's own tenant.
-    const norm = (v) => String(v || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const norm = (v) => String(v || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
     let tenantId = req.impersonatedTenantId || null;
 
     if (!tenantId && subdomain) {
@@ -60,7 +60,7 @@ router.put('/config', requireMerchantAdmin, async (req, res) => {
 // The live storefront only ever changes after this succeeds.
 router.post('/publish', requireMerchantAdmin, async (req, res) => {
   try {
-    const norm = (v) => String(v || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const norm = (v) => String(v || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
     let tenantId = req.impersonatedTenantId || null;
     if (!tenantId && req.body?.subdomain) {
       const clean = norm(req.body.subdomain);
@@ -120,9 +120,9 @@ router.post('/discard', requireMerchantAdmin, async (req, res) => {
 // GET /api/themes/draft/:subdomain — merchant: the DRAFT config for the builder.
 router.get('/draft/:subdomain', requireMerchantAdmin, async (req, res) => {
   try {
-    const clean = String(req.params.subdomain || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '');
+    const clean = String(req.params.subdomain || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '');
     const all = await prisma.tenant.findMany();
-    const norm = (v) => String(v || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const norm = (v) => String(v || '').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
     const matches = all.filter((t) => norm(t.subdomain) === clean || norm(t.id) === clean);
     const tenant = matches[0] || null;
     if (!tenant) return res.json({ success: true, data: null });
@@ -146,9 +146,9 @@ router.get('/public/:subdomain', async (req, res) => {
   try {
     const all = await prisma.tenant.findMany();
     const clean = String(req.params.subdomain || '').toLowerCase()
-      .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '');
+      .replace(/\.go\.julex\.shop$/, '').replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '');
     const norm = (v) => String(v || '').toLowerCase()
-      .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+      .replace(/\.go\.julex\.shop$/, '').replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
     const matches = all.filter((t) => {
       if (norm(t.subdomain) === clean || norm(t.id) === clean) return true;
       try {
