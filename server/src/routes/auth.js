@@ -436,6 +436,71 @@ router.get('/oauth/:provider/callback', async (req, res) => {
   }
 });
 
+// Create Store signup: creates the REAL tenant + owner account in the
+// database so the merchant can actually log in with email + password.
+router.post('/signup-store', async (req, res) => {
+  try {
+    const { name, email, password, storeName, category } = req.body || {};
+    if (!email || !password || !storeName) {
+      return res.status(400).json({ success: false, message: 'Store name, email and password are required.' });
+    }
+    const cleanEmail = String(email).toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+    if (String(password).length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
+    if (await prisma.user.findUnique({ where: { email: cleanEmail } })) {
+      return res.status(400).json({ success: false, message: 'An account with this email already exists. Please sign in instead.' });
+    }
+
+    const { makeSlug, validateSlug, uniqueSlug } = await import('../utils/slug.js');
+    const desired = makeSlug(storeName);
+    const slugErr = validateSlug(desired);
+    if (slugErr) return res.status(400).json({ success: false, message: slugErr });
+    const uniq = await uniqueSlug(prisma, desired);
+    if (uniq.error) return res.status(409).json({ success: false, message: uniq.error });
+
+    const tenant = await prisma.tenant.create({
+      data: {
+        id: `store_${uniq.slug}`,
+        name: String(storeName).trim(),
+        subdomain: `${uniq.slug}.go.julex.shop`,
+        category: category || 'Custom E-Commerce Store',
+        planTier: 'SIX_MONTH',
+        status: 'ACTIVE'
+      }
+    });
+
+    const passwordHash = await bcrypt.hash(String(password), 10);
+    const user = await prisma.user.create({
+      data: {
+        email: cleanEmail,
+        passwordHash,
+        name: (name && String(name).trim()) || String(storeName).trim(),
+        role: 'MERCHANT_OWNER',
+        tenantId: tenant.id
+      },
+      include: { tenant: true }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Store created — ${tenant.subdomain}`,
+      token: generateToken(user),
+      user: {
+        id: user.id, email: user.email, name: user.name, role: user.role,
+        tenantId: user.tenantId, tenant: user.tenant
+      },
+      store: { id: tenant.id, name: tenant.name, subdomain: tenant.subdomain, slug: uniq.slug }
+    });
+  } catch (error) {
+    console.error('Signup-store error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create the store. Please try again.' });
+  }
+});
+
 // ----------------------------------------------------
 // 6. Update User Profile
 // ----------------------------------------------------

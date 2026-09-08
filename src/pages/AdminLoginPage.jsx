@@ -1,8 +1,10 @@
 import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
+
 import { useTheme } from '../context/ThemeContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '@/services/api';
 import {
   Lock,
   Mail,
@@ -535,7 +537,23 @@ export const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      const cleanSub = regStoreName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'mystore';
+      // 1) REAL account first: tenant + owner user in the backend database,
+      //    so email + password login actually works.
+      const backend = await api.auth.signupStore({
+        name: regName.trim() || regEmail.split('@')[0],
+        email: regEmail.trim(),
+        password: regPassword,
+        storeName: regStoreName.trim(),
+        category: 'Custom E-Commerce Store'
+      });
+      if (!backend?.success) {
+        setError(backend?.message || 'Could not create your store. Please try again.');
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem('gojulex_jwt_token', backend.token);
+
+      const cleanSub = (backend.store?.slug || regStoreName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'mystore');
       const result = await registerMerchant({
         email: regEmail.trim(),
         password: regPassword,

@@ -35,6 +35,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ email, password })
       }),
+    signupStore: (payload) =>
+      request('/auth/signup-store', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }),
     register: (userData) =>
       request('/auth/register', {
         method: 'POST',
