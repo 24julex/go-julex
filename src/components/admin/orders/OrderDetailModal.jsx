@@ -264,10 +264,10 @@ export const OrderDetailModal = ({ order, isOpen, onClose, onOpenInvoice }) => {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="font-mono font-bold text-[#0F172A]">
-                      ₹{item.subtotalINR.toLocaleString('en-IN')}
+                      ₹{Number(item.subtotalINR ?? item.finalPrice ?? 0).toLocaleString('en-IN')}
                     </p>
                     <p className="text-[11px] text-[#374151]">
-                      Qty: {item.quantity} × ₹{item.unitPriceINR.toLocaleString('en-IN')}
+                      Qty: {item.quantity} × ₹{Number(item.unitPriceINR ?? item.finalPrice ?? item.price ?? 0).toLocaleString('en-IN')}
                     </p>
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export const OrderDetailModal = ({ order, isOpen, onClose, onOpenInvoice }) => {
               <div className="flex justify-between text-[#374151]">
                 <span>Actual Product Cost (Subtotal):</span>
                 <span className="font-mono font-bold text-[#0F172A]">
-                  ₹{order.actualCostINR.toLocaleString('en-IN')}
+                  ₹{Number(order.actualCostINR ?? order.subtotal ?? order.total ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -300,7 +300,7 @@ export const OrderDetailModal = ({ order, isOpen, onClose, onOpenInvoice }) => {
                     )}
                   </span>
                   <span className="font-mono font-bold">
-                    -₹{order.discountAppliedINR.toLocaleString('en-IN')}
+                    -₹{Number(order.discountAppliedINR ?? 0).toLocaleString('en-IN')}
                   </span>
                 </div>
               )}
@@ -311,7 +311,7 @@ export const OrderDetailModal = ({ order, isOpen, onClose, onOpenInvoice }) => {
                   {order.deliveryCostINR === 0 ? (
                     <span className="text-emerald-800 font-bold">FREE</span>
                   ) : (
-                    `+₹${order.deliveryCostINR.toLocaleString('en-IN')}`
+                    `+₹${Number(order.deliveryCostINR ?? 0).toLocaleString('en-IN')}`
                   )}
                 </span>
               </div>
@@ -319,7 +319,7 @@ export const OrderDetailModal = ({ order, isOpen, onClose, onOpenInvoice }) => {
               <div className="flex justify-between text-[#374151]">
                 <span>(+) Estimated Tax (GST):</span>
                 <span className="font-mono text-[#0F172A]">
-                  +₹{order.taxGSTINR.toLocaleString('en-IN')}
+                  +₹{Number(order.taxGSTINR ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
 
