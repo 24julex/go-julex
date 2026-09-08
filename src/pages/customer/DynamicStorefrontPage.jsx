@@ -432,6 +432,9 @@ export const DynamicStorefrontPage = () => {
     api.themes.getPublicConfig(cleanSubdomain)
       .then((res) => {
         if (cancelled || !res?.success || !res?.data) return;
+        // Theme live-preview / customizer draft own the screen — never let
+        // the store's saved config overwrite them.
+        if (previewPresetId || isJulexDraftPreview) return;
         const cfg = res.data;
         // Only accept a fully valid section list — a malformed/partial publish
         // must never take the live storefront down.
