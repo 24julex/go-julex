@@ -467,6 +467,9 @@ export const DynamicStorefrontPage = () => {
       const d = e.data;
       if (!d || d.type !== 'julex-draft-theme') return;
       const valid = Array.isArray(d.sections) && d.sections.length > 0 && d.sections.every((x) => x && x.type && x.data && typeof x.data === 'object');
+      // Expose the live draft so the inline editor always SAVES the freshest
+      // sections/styles (never a stale localStorage copy).
+      window.__juxLiveDraft = { sections: valid ? d.sections : null, styles: d.styles || null, at: Date.now() };
       setThemeConfig((prev) => ({
         styles: d.styles && Object.keys(d.styles).length > 0 ? d.styles : prev.styles,
         sections: valid ? d.sections : prev.sections,
@@ -542,6 +545,11 @@ export const DynamicStorefrontPage = () => {
         price: variantPrice,
         sellingPriceINR: variantPrice,
         finalPrice: variantPrice,
+        // The variant owns pricing now — the base product's compare-at price
+        // must not leak into subtotal/savings math.
+        comparePriceINR: Number(exactVariant.compareAtPrice) > variantPrice ? Number(exactVariant.compareAtPrice) : variantPrice,
+        comparePrice: Number(exactVariant.compareAtPrice) > variantPrice ? Number(exactVariant.compareAtPrice) : variantPrice,
+        discountPercent: Number(exactVariant.compareAtPrice) > variantPrice ? Math.round((1 - variantPrice / Number(exactVariant.compareAtPrice)) * 100) : 0,
         variantSku: exactVariant.sku || selectedProductForVariant.sku
       } : {}),
       storeSubdomain: cleanSubdomain,

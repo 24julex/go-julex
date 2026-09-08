@@ -181,6 +181,19 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
 
   const ensureCfg = () => {
     let cfg = readCfg(keys);
+    // Inside the Visual Customizer the builder streams the live draft — always
+    // save THAT state (sections/styles), keeping local extras (inline styles,
+    // floating boxes, image tweaks) from the stored copy.
+    if (window.__juxLiveDraft && (window.__juxLiveDraft.sections || window.__juxLiveDraft.styles)) {
+      cfg = {
+        ...(cfg || {}),
+        ...(window.__juxLiveDraft.sections ? { sections: window.__juxLiveDraft.sections } : {}),
+        ...(window.__juxLiveDraft.styles ? { styles: window.__juxLiveDraft.styles } : {}),
+        inlineStyles: cfg?.inlineStyles || [],
+        floating: cfg?.floating || [],
+        imgStyles: cfg?.imgStyles || []
+      };
+    }
     if (!cfg) {
       cfg = {
         presetId: 'preset_soft_peach',

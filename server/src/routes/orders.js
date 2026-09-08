@@ -17,6 +17,7 @@ const formatOrder = (ord) => {
     id: item.productId || item.id,
     orderItemId: item.id,
     name: item.productName,
+    variant: item.variantLabel,
     image: item.productImage,
     quantity: item.quantity,
     finalPrice: item.priceAtPurchase
@@ -194,6 +195,7 @@ router.post('/', async (req, res) => {
       preparedItems.push({
         productId: validProductId,
         productName: item.name || item.productName || 'Direct D2C Order Piece',
+        variantLabel: (item.variant || item.variantLabel || null),
         productImage: item.image || item.productImage || item.images?.[0] || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=600&q=80',
         quantity: Number(item.quantity) || 1,
         priceAtPurchase: Number(item.finalPrice !== undefined ? item.finalPrice : item.price) || 0
