@@ -320,13 +320,13 @@ router.get('/invoices/store-config/:tenantId', async (req, res) => {
 
     let config = await prisma.tenantInvoiceConfig.findUnique({
       where: { tenantId },
-      include: { template: true }
+      include: { template: true, tenant: true }
     });
 
     // Fallback: resolve the tenant by subdomain (checkout passes either
     // the tenant id, e.g. "store_ramstshirt", or a bare subdomain, e.g. "ramstshirt")
     if (!config) {
-      const cleanSub = String(tenantId).toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+      const cleanSub = String(tenantId).toLowerCase().replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '').replace(/^store_/, '');
       const tenant = await prisma.tenant.findFirst({
         where: {
           OR: [
@@ -338,6 +338,35 @@ router.get('/invoices/store-config/:tenantId', async (req, res) => {
         }
       });
       if (tenant) {
+        // No invoice config yet — create one from the tenant's real identity
+        // so invoices are branded with the RIGHT store from the very first print.
+        config = await prisma.tenantInvoiceConfig.create({
+          data: {
+            tenantId: tenant.id,
+            templateId: 'tpl_classic_tax_a4',
+            storeLegalName: `${tenant.name} Private Limited`,
+            storeTradeName: tenant.name,
+            storeAddress: [tenant.city, tenant.state].filter(Boolean).join(', ') || 'Chennai, Tamil Nadu, India',
+            storeEmail: 'care@gojulex.shop',
+            customStylesJson: JSON.stringify({
+              fontFamily: 'Inter',
+              fontSize: 12,
+              primaryColor: '#D4A017',
+              secondaryColor: '#0F172A',
+              showTaxBreakdown: true,
+              showQrCode: true,
+              terms: '1. Goods once sold can be exchanged within 7 business days with original invoice.\n2. In accordance with Indian GST Rule 46.\n3. Issued under Go Julex 0% platform fee.'
+            })
+          }
+        }).catch(() => null);
+        if (config) {
+          config = await prisma.tenantInvoiceConfig.findUnique({
+            where: { tenantId: tenant.id },
+            include: { template: true, tenant: true }
+          });
+        }
+      }
+      if (tenant && !config) {
         config = await prisma.tenantInvoiceConfig.findUnique({
           where: { tenantId: tenant.id },
           include: { template: true }
