@@ -11,15 +11,22 @@ export const InvoiceTemplate = ({ order, isOpen, onClose, storeContext, previewC
     if (raw) savedActiveStore = JSON.parse(raw);
   } catch (e) {}
 
-  const storeId = order?.tenantId || storeContext?.id || savedActiveStore?.id || 'store_bookstore';
-  const cleanSubdomain = (storeContext?.subdomain || order?.storeSubdomain || storeId || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+  // The ORDER owns the store identity — never fall back to some other store
+  // (the old 'store_bookstore' default printed Book Haven branding on orders
+  // from stores without a resolvable tenant).
+  const storeId = order?.tenantId || order?.storeId || order?.tenant?.id || storeContext?.id || savedActiveStore?.id || null;
+  const cleanSubdomain = (order?.storeSubdomain || order?.tenant?.subdomain || storeContext?.subdomain || storeId || '')
+    .toLowerCase().replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '').replace(/^store_/, '');
 
-  const matchedStore = storeContext || DEMO_STORES.find(s => s.id === storeId || s.subdomain?.includes(cleanSubdomain)) || savedActiveStore || {
-    name: "RAM'S T-SHIRT STORE",
-    address: '128 Heritage Avenue, Studio Lane, Chennai, Tamil Nadu - 600001',
-    gstin: '33AABCR1234T1Z8',
-    ownerEmail: 'ramstshirt@merchant.com',
-    ownerPhone: '+91 98765 43210'
+  const orderStore = (order?.storeName || order?.tenant?.name || null);
+  const matchedStore = {
+    id: storeId,
+    name: orderStore || (DEMO_STORES.find(s => s.id === storeId)?.name) || storeContext?.name || savedActiveStore?.name || 'Go Julex Store',
+    address: order?.storeAddress || 'Chennai, Tamil Nadu, India',
+    gstin: order?.storeGstin || null,
+    ownerEmail: order?.storeEmail || 'support@gojulex.shop',
+    ownerPhone: order?.storePhone || null,
+    subdomain: cleanSubdomain
   };
 
   // Baseline config: optional localStorage override, else built-in default.
@@ -40,12 +47,12 @@ export const InvoiceTemplate = ({ order, isOpen, onClose, storeContext, previewC
       fontFamily: 'Inter',
       fontSize: 12,
       headerStyle: 'split_left_right',
-      legalName: `${matchedStore.name} Private Limited`,
+      legalName: `${matchedStore.name}${/pvt|ltd|private/i.test(matchedStore.name) ? '' : ' Private Limited'}`,
       tradeName: matchedStore.name,
-      gstin: matchedStore.gstin || '33AABCR1234T1Z8',
-      address: matchedStore.address || 'Chennai, Tamil Nadu',
-      phone: matchedStore.ownerPhone || '+91 98765 43210',
-      email: matchedStore.ownerEmail || 'support@merchant.com',
+      gstin: matchedStore.gstin || '—',
+      address: matchedStore.address || 'Chennai, Tamil Nadu, India',
+      phone: matchedStore.ownerPhone || '—',
+      email: matchedStore.ownerEmail || 'support@gojulex.shop',
       terms: '1. Goods once sold can be exchanged within 7 business days with original invoice.\n2. In accordance with Indian GST Rule 46.\n3. Issued under Go Julex 0% platform fee.'
     };
   })();
@@ -79,23 +86,18 @@ export const InvoiceTemplate = ({ order, isOpen, onClose, storeContext, previewC
       }));
     };
 
-    api.invoices.getStoreConfig(storeId)
-      .then(async res => {
-        if (cancelled) return;
-        if (res?.success && res.data?.config) {
-          applyConfig(res.data.config);
-          return;
-        }
-        // Retry by bare subdomain in case the tenantId on the order
-        // (e.g. "store_ramstshirt") doesn't match a DB tenant directly
-        if (cleanSubdomain) {
-          const retry = await api.invoices.getStoreConfig(cleanSubdomain).catch(() => null);
-          if (!cancelled && retry?.success && retry.data?.config) {
-            applyConfig(retry.data.config);
+    (async () => {
+      for (const candidate of [storeId, cleanSubdomain].filter(Boolean)) {
+        try {
+          const res = await api.invoices.getStoreConfig(candidate);
+          if (cancelled) return;
+          if (res?.success && res.data?.config) {
+            applyConfig(res.data.config);
+            return;
           }
-        }
-      })
-      .catch(() => {});
+        } catch (e) {}
+      }
+    })();
 
     return () => { cancelled = true; };
   }, [isOpen, storeId, cleanSubdomain]);

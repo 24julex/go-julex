@@ -46,6 +46,8 @@ const formatOrder = (ord) => {
     deliveryMethod: ord.deliveryMethod,
     paymentMethod: ord.paymentMethod,
     tenantId: ord.tenantId,
+    storeName: ord.tenant?.name || ord.tenantName || null,
+    storeSubdomain: ord.tenant?.subdomain || null,
     items
   };
 };
@@ -65,7 +67,7 @@ router.get('/', requireAdmin, async (req, res) => {
 
     const orders = await prisma.order.findMany({
       where,
-      include: { items: true },
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -99,7 +101,7 @@ router.get('/user/:email', async (req, res) => {
     const email = req.params.email?.toLowerCase().trim();
     const orders = await prisma.order.findMany({
       where: { customerEmail: { equals: email } },
-      include: { items: true },
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -125,7 +127,7 @@ router.get('/:id', async (req, res) => {
           { orderNumber: identifier }
         ]
       },
-      include: { items: true }
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } }
     });
 
     if (!order) {
@@ -227,7 +229,7 @@ router.post('/', async (req, res) => {
           create: preparedItems
         }
       },
-      include: { items: true }
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } }
     });
 
     // Deduct stock from products
@@ -273,7 +275,7 @@ router.patch('/:id/status', requireAdmin, async (req, res) => {
           { orderNumber: identifier }
         ]
       },
-      include: { items: true }
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } }
     });
 
     if (!order) {
@@ -289,7 +291,7 @@ router.patch('/:id/status', requireAdmin, async (req, res) => {
     const updated = await prisma.order.update({
       where: { id: order.id },
       data: dataToUpdate,
-      include: { items: true }
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } }
     });
 
     // If order was newly cancelled, restore product stock
