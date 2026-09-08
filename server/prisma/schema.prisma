@@ -37,6 +37,11 @@ model Tenant {
   name                     String
   subdomain                String                  @unique
   subdomainAliases         String? // JSON array of previous hostnames, kept for redirects
+  logoUrl                  String? // store logo (persisted upload)
+  profileImageUrl          String? // store/profile picture (persisted upload)
+  whatsappNumber           String? // saved contact number (NOT a connected account)
+  instagramHandle          String? // saved handle (NOT a connected account)
+  description              String?
   customDomain             String?                 @unique
   category                 String                  @default("General")
   city                     String?
@@ -46,12 +51,14 @@ model Tenant {
   activeThemeId            String                  @default("theme_aura_soft_peach")
   themeConfig             String? // PUBLISHED theme — what the live storefront renders
   themeDraftConfig        String? // DRAFT theme — what the merchant is editing; never public until publish
+  ownerPhone              String?
   activeInvoiceTemplateId  String                  @default("tpl_classic_a4")
   users                    User[]
   products                 Product[]
   orders                   Order[]
   invoiceConfig            TenantInvoiceConfig?
   auditLogs                AuditLog[]
+  subscription             Subscription?
   createdAt                DateTime                @default(now())
   updatedAt                DateTime                @updatedAt
 }
@@ -244,3 +251,47 @@ model ThemeCatalogOverride {
   deleted        Boolean  @default(false)
   updatedAt      DateTime @updatedAt
 }
+
+// ----------------------------------------------------
+// 9. SaaS Plans & Subscriptions (0% commission — flat plans)
+// ----------------------------------------------------
+model Plan {
+  id            String         @id
+  name          String
+  description   String?
+  priceInr      Int            @default(0)
+  billingPeriod String         @default("SIX_MONTH") // SIX_MONTH | ONE_YEAR | TWO_YEAR | FREE
+  productLimit  Int?           // null = unlimited
+  storageLimitMb Int?
+  customDomain  Boolean        @default(false)
+  featuresJson  String         @default("[]") // JSON array of feature strings
+  isPopular     Boolean        @default(false)
+  badge         String?
+  allowsPublish Boolean        @default(true) // FREE/trial plan cannot publish
+  isActive      Boolean        @default(true)
+  sortOrder     Int            @default(0)
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Subscription {
+  id               String    @id @default(uuid())
+  tenantId         String    @unique
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             Plan      @relation(fields: [planId], references: [id])
+  // NO_PLAN | PLAN_SELECTED | PAYMENT_PENDING | ACTIVE | EXPIRED | CANCELLED
+  // ACTIVE may ONLY be set by a verified real payment (future gateway).
+  status           String    @default("NO_PLAN")
+  selectedAt       DateTime?
+  activatedAt      DateTime?
+  expiresAt        DateTime?
+  paymentMetaJson  String?   // provider/order ids once a real gateway exists
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// ----------------------------------------------------
+// Go Julex SaaS Plans & Subscriptions
+// ----------------------------------------------------

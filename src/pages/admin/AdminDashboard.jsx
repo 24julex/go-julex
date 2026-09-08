@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   ShoppingBag,
@@ -13,12 +13,22 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMerchantAdmin } from '../../context/MerchantAdminContext';
+import { api } from '@/services/api';
+import { PlansGateModal } from '@/components/common/PlansGateModal';
 import { useAuth } from '../../context/AuthContext';
 import { OrderDetailModal } from '../../components/admin/orders/OrderDetailModal';
 import { InvoiceTemplate } from '../../components/admin/orders/InvoiceTemplate';
 import { EditSalesChannelModal } from '../../components/admin/channels/EditSalesChannelModal';
 
 export const AdminDashboard = () => {
+  const [storeAuth, setStoreAuth] = useState(null);
+  const [plansOpen, setPlansOpen] = useState(false);
+  useEffect(() => {
+    api.storeStatus.get()
+      .then((res) => { if (res?.success) setStoreAuth(res.data); })
+      .catch(() => {});
+  }, []);
+
   const { currentStore, kpis, orders, products, sendInvoiceEmail } = useMerchantAdmin();
   const { currentUser } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -74,6 +84,22 @@ export const AdminDashboard = () => {
             <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>• {currentStore?.categoryLabel || 'Retail Store'}</span>
           </div>
           <h1 className="text-2xl font-black font-serif tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            {storeAuth && !storeAuth.canPublish && (
+              <div className="p-4 rounded-2xl border border-amber-300 bg-amber-50 space-y-2 mb-2">
+                <p className="text-sm font-black text-amber-900">Your store is not live yet.</p>
+                <p className="text-xs text-amber-800">Complete your Go Julex plan purchase to publish your store. Payment processing is currently being configured — you can keep building meanwhile.</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setPlansOpen(true)} className="px-3 py-1.5 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white text-[11px] font-bold transition cursor-pointer">View Plans</button>
+                  <span className="px-3 py-1.5 rounded-xl bg-white border border-amber-200 text-amber-900 text-[11px] font-bold">Status: {storeAuth.storeStatus || 'DRAFT'}</span>
+                </div>
+              </div>
+            )}
+            {storeAuth && storeAuth.canPublish && (
+              <div className="px-3 py-2 mb-2 rounded-2xl border border-emerald-200 bg-emerald-50 inline-flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-black text-emerald-800">Your store is LIVE</span>
+              </div>
+            )}
             Welcome back, {ownerName} 👋
           </h1>
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -416,4 +442,10 @@ export const AdminDashboard = () => {
       />
     </div>
   );
+
+      <PlansGateModal
+        open={plansOpen}
+        onClose={() => { setPlansOpen(false); api.storeStatus.get().then((r) => { if (r?.success) setStoreAuth(r.data); }); }}
+        storeStatusApi={api.storeStatus.get}
+      />
 };

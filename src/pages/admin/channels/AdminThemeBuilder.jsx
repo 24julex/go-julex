@@ -1,4 +1,5 @@
 import { api } from '../../../services/api';
+import { PlansGateModal } from '../../../components/common/PlansGateModal';
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -1004,6 +1005,7 @@ export const AdminThemeBuilder = () => {
   // (or localStorage is empty), load the backend version so preset defaults
   // can never silently overwrite the merchant's published work.
   const [bootstrapped, setBootstrapped] = useState(false);
+  const [plansGateOpen, setPlansGateOpen] = useState(false);
   useEffect(() => {
     if (bootstrapped) return;
     let cancelled = false;
@@ -1235,6 +1237,9 @@ export const AdminThemeBuilder = () => {
           .then((res) => {
             if (res?.success) {
               showToast(`Theme published live to ${res.data?.subdomain || cleanSubdomain}! 🚀`, 'success');
+            } else if (res?.paymentRequired) {
+              showToast('Your changes are saved. Choose a Go Julex plan to publish your store.', 'info');
+              setPlansGateOpen(true);
             } else {
               showToast(res?.message || 'Publish failed. Please try again.', 'error');
             }
@@ -3076,4 +3081,11 @@ export const AdminThemeBuilder = () => {
       )}
     </div>
   );
+
+      <PlansGateModal
+        open={plansGateOpen}
+        onClose={() => setPlansGateOpen(false)}
+        contextTitle="Your store is ready to go live!"
+        contextMessage="All your changes have been saved as a draft. Choose a Go Julex plan to publish your store and make it available to customers."
+      />
 };

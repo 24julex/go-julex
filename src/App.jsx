@@ -15,6 +15,7 @@ import { MerchantPlansPage } from './pages/customer/MerchantPlansPage';
 import { DynamicStorefrontPage } from './pages/customer/DynamicStorefrontPage';
 import { UserLoginPage } from './pages/UserLoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { StoreOnboardingPage } from './pages/customer/StoreOnboardingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 // Merchant Admin Context & Pages
@@ -105,6 +106,7 @@ export const App = () => {
           <Route path="/pricing" element={<MerchantPlansPage />} />
           <Route path="/plans" element={<MerchantPlansPage />} />
           <Route path="/login" element={<UserLoginPage />} />
+          <Route path="/onboarding" element={<StoreOnboardingPage />} />
 
           {/* Admin / Merchant Console Authentication (dedicated merchant login) */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

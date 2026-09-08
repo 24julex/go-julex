@@ -132,6 +132,19 @@ export const DynamicStorefrontPage = () => {
   // Canva-style in-template editing, enabled inside the merchant Visual Customizer iframe
   const isJulexEditMode = searchParams.get('julex_edit') === '1';
   const isJulexDraftPreview = searchParams.get('julex_draft') === '1';
+  // §19: unpublished stores are never publicly accessible. The merchant can
+  // still preview privately via the customizer (julex_edit) or a preview token.
+  const [storeNotLive, setStoreNotLive] = useState(null); // null=checking, true=blocked, false=ok
+  useEffect(() => {
+    let cancelled = false;
+    const ownerPreview = isJulexEditMode || isJulexDraftPreview;
+    if (ownerPreview) { setStoreNotLive(false); return; undefined; }
+    api.storePublicStatus ? api.storePublicStatus(cleanSubdomain)
+      .then((res) => { if (!cancelled) setStoreNotLive(!(res?.success && res.data?.published)); })
+      .catch(() => { if (!cancelled) setStoreNotLive(false); })
+      : setStoreNotLive(false);
+    return () => { cancelled = true; };
+  }, [cleanSubdomain, isJulexEditMode, isJulexDraftPreview]);
   const [themeConfig, setThemeConfig] = useState(() => {
     let savedStyles = null;
     let savedSections = null;
@@ -564,6 +577,19 @@ export const DynamicStorefrontPage = () => {
     setIsBagDrawerOpen(true);
     setTimeout(() => setAddedItemNotice(null), 3500);
   };
+
+  if (storeNotLive === true) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#FFF9F6' }}>
+        <div className="max-w-md text-center space-y-4 p-8 bg-white rounded-3xl border border-[#FBCBCB] shadow-sm">
+          <p className="text-4xl">🛍️</p>
+          <h1 className="font-serif text-2xl font-black text-[#0F172A]">This store isn't live yet</h1>
+          <p className="text-sm text-[#475569]">The store owner is still setting things up. Please check back soon!</p>
+          <a href="https://go.julex.shop" className="inline-block px-5 py-2.5 rounded-2xl bg-[#9F1239] hover:bg-[#881337] text-white text-xs font-bold transition">Explore Go Julex</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

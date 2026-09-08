@@ -468,8 +468,10 @@ router.post('/signup-store', async (req, res) => {
         name: String(storeName).trim(),
         subdomain: `${uniq.slug}.go.julex.shop`,
         category: category || 'Custom E-Commerce Store',
-        planTier: 'SIX_MONTH',
-        status: 'ACTIVE'
+        planTier: 'FREE',
+        // New stores start UNPUBLISHED — they only go live after plan
+        // payment + publishing (legacy stores keep their ACTIVE status).
+        status: 'DRAFT'
       }
     });
 

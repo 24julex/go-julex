@@ -510,7 +510,7 @@ export const AdminLoginPage = () => {
         if (result.user?.role === 'SUPER_ADMIN') {
           navigate('/super-admin');
         } else {
-          navigate('/admin');
+          navigate('/onboarding');
         }
       } else {
         setError(result?.message || 'Invalid credentials. Please verify your email and password.');

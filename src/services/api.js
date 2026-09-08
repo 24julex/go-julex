@@ -109,6 +109,18 @@ export const api = {
   },
 
   // Theme Catalog (public read; super-admin writes) — shared by both dashboards
+  plans: {
+    list: () => request('/plans'),
+    select: (planId) => request('/plans/select', { method: 'POST', body: JSON.stringify({ planId }) }),
+    paymentPending: () => request('/plans/payment-pending', { method: 'POST', body: JSON.stringify({}) }),
+    mySubscription: () => request('/plans/subscription/me')
+  },
+  storeStatus: {
+    get: () => request('/store/status'),
+    saveProfile: (payload) => request('/store/profile', { method: 'PUT', body: JSON.stringify(payload) }),
+    publish: () => request('/store/publish', { method: 'POST', body: JSON.stringify({}) })
+  },
+  storePublicStatus: (subdomain) => request(`/store/public-status/${encodeURIComponent(subdomain)}`),
   domains: {
     checkSlug: (slug) => request(`/domains/check?slug=${encodeURIComponent(slug)}`),
     setSubdomain: (payload) => request('/domains/subdomain', { method: 'PUT', body: JSON.stringify(payload) })

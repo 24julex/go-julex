@@ -87,6 +87,19 @@ router.post('/publish', requireMerchantAdmin, async (req, res) => {
     if (!cfg || !Array.isArray(cfg.sections) || cfg.sections.length === 0) {
       return res.status(400).json({ success: false, message: 'Nothing to publish — save your theme first.' });
     }
+    // Publishing authorisation is enforced by the store module (payment gate)
+    const { computePublishAuth } = await import('./plans.js');
+    const targetTenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+    const auth = await computePublishAuth(targetTenant);
+    if (!auth.canPublish) {
+      return res.status(402).json({
+        success: false,
+        paymentRequired: true,
+        code: auth.reason,
+        message: 'Payment required: choose and activate a Go Julex plan to publish your store.',
+        data: { storeStatus: targetTenant.status, subscription: auth.subscription }
+      });
+    }
     const published = { ...cfg, publishedAt: new Date().toISOString() };
     await prisma.tenant.update({
       where: { id: tenantId },
@@ -156,9 +169,27 @@ router.get('/public/:subdomain', async (req, res) => {
         return aliases.some((a) => norm(a) === clean);
       } catch (e) { return false; }
     });
-    const tenant = matches.find((t) => t.themeConfig) || matches[0] || null;
+    let tenant = matches.find((t) => t.themeConfig) || matches[0] || null;
     if (!tenant || !tenant.themeConfig) {
       return res.json({ success: true, data: null });
+    }
+    // Backend-enforced publish gate (§19): unpublished stores never serve
+    // their storefront config publicly — only to the owning merchant
+    // (private draft preview) via a valid token.
+    if (!['ACTIVE', 'PUBLISHED'].includes(String(tenant.status || '').toUpperCase())) {
+      let isOwner = false;
+      const authHeader = req.headers.authorization || '';
+      if (authHeader.startsWith('Bearer ')) {
+        try {
+          const jwt = (await import('jsonwebtoken')).default;
+          const secret = process.env.JWT_SECRET || 'gojulex-dev-secret';
+          const decoded = jwt.decode(authHeader.slice(7));
+          isOwner = decoded && (decoded.tenantId === tenant.id || decoded.role === 'SUPER_ADMIN');
+        } catch (e) {}
+      }
+      if (!isOwner) {
+        return res.status(403).json({ success: false, unpublished: true, message: 'This store is not live yet.' });
+      }
     }
     return res.json({ success: true, data: JSON.parse(tenant.themeConfig) });
   } catch (error) {
