@@ -323,6 +323,41 @@ const oauthSession = (user) => ({
   }
 });
 
+// Google Sign-In via Firebase: the frontend signs in with the Firebase SDK
+// (Google account chooser) and posts the ID token here. We verify it with
+// Google's Identity Toolkit, then create/login the merchant from the verified
+// profile — no client secrets in the browser.
+router.post('/oauth/firebase-google', async (req, res) => {
+  try {
+    const { idToken } = req.body || {};
+    const apiKey = process.env.FIREBASE_API_KEY;
+    if (!idToken || !apiKey) {
+      return res.status(503).json({ success: false, message: 'Google sign-in is not configured yet. Please use email and password.' });
+    }
+    const lookupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+    const data = await lookupRes.json();
+    const user = data && data.users && data.users[0];
+    if (!user || !user.email) {
+      return res.status(401).json({ success: false, message: 'Google sign-in could not be verified. Please try again.' });
+    }
+    const account = await findOrCreateOAuthMerchant({
+      email: user.email,
+      name: user.displayName || user.email.split('@')[0],
+      avatarUrl: user.photoUrl || null,
+      provider: 'google'
+    });
+    return res.json(oauthSession(account));
+  } catch (error) {
+    console.error('Firebase Google sign-in error:', error);
+    return res.status(500).json({ success: false, message: 'Google sign-in failed. Please try again.' });
+  }
+});
+
+
 // Button click — real redirect when configured, instant demo session otherwise
 router.post('/oauth/:provider', async (req, res) => {
   const cfg = OAUTH_PROVIDERS[(req.params.provider || '').toLowerCase()];
@@ -398,40 +433,6 @@ router.get('/oauth/:provider/callback', async (req, res) => {
   } catch (error) {
     console.error('OAuth callback error:', error);
     return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
-  }
-});
-
-// Google Sign-In via Firebase: the frontend signs in with the Firebase SDK
-// (Google account chooser) and posts the ID token here. We verify it with
-// Google's Identity Toolkit, then create/login the merchant from the verified
-// profile — no client secrets in the browser.
-router.post('/oauth/firebase-google', async (req, res) => {
-  try {
-    const { idToken } = req.body || {};
-    const apiKey = process.env.FIREBASE_API_KEY;
-    if (!idToken || !apiKey) {
-      return res.status(503).json({ success: false, message: 'Google sign-in is not configured yet. Please use email and password.' });
-    }
-    const lookupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken })
-    });
-    const data = await lookupRes.json();
-    const user = data && data.users && data.users[0];
-    if (!user || !user.email) {
-      return res.status(401).json({ success: false, message: 'Google sign-in could not be verified. Please try again.' });
-    }
-    const account = await findOrCreateOAuthMerchant({
-      email: user.email,
-      name: user.displayName || user.email.split('@')[0],
-      avatarUrl: user.photoUrl || null,
-      provider: 'google'
-    });
-    return res.json(oauthSession(account));
-  } catch (error) {
-    console.error('Firebase Google sign-in error:', error);
-    return res.status(500).json({ success: false, message: 'Google sign-in failed. Please try again.' });
   }
 });
 
