@@ -67,6 +67,7 @@ export const InvoiceTemplate = ({ order, isOpen, onClose, storeContext, previewC
     const applyConfig = (cfg) => {
       const layout = cfg.template?.defaultLayout || {};
       const styles = cfg.customStyles || {};
+      const tenantName = cfg.tenant?.name || null;
       setInvoiceConfig(prev => ({
         ...prev,
         templateId: cfg.templateId || prev.templateId,
@@ -75,14 +76,15 @@ export const InvoiceTemplate = ({ order, isOpen, onClose, storeContext, previewC
         fontFamily: styles.fontFamily || layout.fontFamily || prev.fontFamily,
         fontSize: styles.fontSize || layout.fontSize || prev.fontSize,
         headerStyle: styles.headerStyle || layout.headerStyle || prev.headerStyle,
-        legalName: cfg.storeLegalName || prev.legalName,
-        tradeName: cfg.storeTradeName || prev.tradeName,
+        legalName: cfg.storeLegalName || (tenantName ? `${tenantName} Private Limited` : prev.legalName),
+        tradeName: cfg.storeTradeName || tenantName || prev.tradeName,
         gstin: cfg.storeGstin || prev.gstin,
         address: cfg.storeAddress || prev.address,
         phone: cfg.storePhone || prev.phone,
         email: cfg.storeEmail || prev.email,
         terms: styles.terms || layout.defaultTerms || prev.terms,
-        signatureUrl: cfg.authorizedSignatoryUrl || prev.signatureUrl
+        signatureUrl: cfg.authorizedSignatoryUrl || prev.signatureUrl,
+        tenantAddress: cfg.tenant ? [cfg.tenant.city, cfg.tenant.state].filter(Boolean).join(', ') : prev.tenantAddress
       }));
     };
 

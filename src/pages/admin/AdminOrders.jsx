@@ -222,6 +222,7 @@ export const AdminOrders = () => {
         order={invoiceOrder}
         isOpen={Boolean(invoiceOrder)}
         onClose={() => setInvoiceOrder(null)}
+        storeContext={currentStore}
       />
     </div>
   );
