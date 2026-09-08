@@ -80,6 +80,43 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+  // Google Sign-In via Firebase (real Google account chooser).
+  const googleSignIn = async () => {
+    setLoading(true);
+    try {
+      const { FIREBASE_CONFIG, firebaseConfigured } = await import('../firebase');
+      if (!firebaseConfigured()) {
+        setLoading(false);
+        return { success: false, message: 'Google sign-in is not configured yet. Please use email and password.' };
+      }
+      const [{ initializeApp }, { getAuth, GoogleAuthProvider, signInWithPopup }] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
+      const app = initializeApp(FIREBASE_CONFIG);
+      const auth = getAuth(app);
+      const credential = await signInWithPopup(auth, new GoogleAuthProvider());
+      const idToken = await credential.user.getIdToken();
+      const res = await api.auth.firebaseGoogle(idToken);
+      if (res?.success && res?.user) {
+        localStorage.setItem('gojulex_jwt_token', res.token);
+        const userObj = { ...res.user, avatar: res.user.avatarUrl || MERCHANT_CREDENTIALS.avatar };
+        setCurrentUser(userObj);
+        setLoading(false);
+        return { success: true, user: userObj };
+      }
+      setLoading(false);
+      return { success: false, message: (res && res.message) || 'Google sign-in failed.' };
+    } catch (err) {
+      setLoading(false);
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        return { success: false, cancelled: true };
+      }
+      if (code === 'auth/unauthorized-domain') {
+        return { success: false, message: 'This domain is not yet authorized in Firebase (Authentication → Settings → Authorized domains).' };
+      }
+      return { success: false, message: 'Google sign-in could not be completed. Please try again.' };
+    }
+  };
+
   // Social OAuth sign-in (Google / Microsoft).
   // Real OAuth redirect when the backend has app keys; instant demo session otherwise.
   const oauthLogin = async (provider) => {
@@ -388,6 +425,7 @@ export const AuthProvider = ({ children }) => {
         impersonateMerchant,
         stopImpersonation,
         login,
+        googleSignIn,
         oauthLogin,
         loginAdmin: login,
         loginUser: login,

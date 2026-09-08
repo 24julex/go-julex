@@ -40,7 +40,12 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(userData)
       }),
-    oauthLogin: (provider) =>
+    firebaseGoogle: (idToken) =>
+      request('/auth/oauth/firebase-google', {
+        method: 'POST',
+        body: JSON.stringify({ idToken })
+      }),
+    oauthLogin: (provider) => 
       request(`/auth/oauth/${provider}`, {
         method: 'POST',
         body: JSON.stringify({})

@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 
 export const AdminLoginPage = () => {
-  const { loginAdmin, registerMerchant, oauthLogin } = useAuth();
+  const { loginAdmin, registerMerchant, oauthLogin, googleSignIn } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
