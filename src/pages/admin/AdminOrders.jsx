@@ -10,7 +10,7 @@ import { OrderDetailModal } from '../../components/admin/orders/OrderDetailModal
 import { InvoiceTemplate } from '../../components/admin/orders/InvoiceTemplate';
 
 export const AdminOrders = () => {
-  const { orders, showToast } = useMerchantAdmin();
+  const { orders, currentStore, showToast } = useMerchantAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [channelFilter, setChannelFilter] = useState('All');
