@@ -1,0 +1,29 @@
+# VPS OVERRIDE — deploy on the server with:
+#   docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+#
+# The Hostinger VPS firewall drops outbound traffic from Docker bridge
+# networks (MASQUERADE never sees the packets), so the API runs directly on
+# the host network where outbound (Firebase verification, payment webhooks)
+# works. Port 5001 avoids the existing service on host port 5000.
+services:
+  backend:
+    network_mode: host
+    environment:
+      - PORT=5001
+      - DATABASE_URL=file:/data/julex.db
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID:-}
+      - MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET:-}
+      - NODE_ENV=production
+    volumes:
+      - julex-db:/data
+    restart: unless-stopped
+
+  frontend:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - API_PORT=5001
