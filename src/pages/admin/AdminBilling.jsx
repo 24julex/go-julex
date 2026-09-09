@@ -93,7 +93,7 @@ export const AdminBilling = () => {
       {loading && <p className="text-xs text-stone-500">Loading plans…</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {!loading && plans.map((plan) => {
-          const isCurrent = sub?.plan?.id === plan.id;
+          const isCurrent = sub?.status === 'ACTIVE' && sub?.plan?.id === plan.id;
           return (
             <div
               key={plan.id}
@@ -113,10 +113,10 @@ export const AdminBilling = () => {
               </ul>
               <button
                 onClick={() => choosePlan(plan)}
-                disabled={busy || isCurrent || status?.canPublish}
+                disabled={busy || isCurrent}
                 className={'w-full py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ' + (isCurrent ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-[#9F1239] hover:bg-[#881337] text-white disabled:opacity-50')}
               >
-                {isCurrent ? 'Current Plan' : status?.canPublish ? 'Active' : plan.priceINR === 0 ? 'Select (Preview Only)' : 'Choose Plan'}
+                {isCurrent ? 'Active Plan' : plan.priceINR === 0 ? 'Select (Preview Only)' : 'Choose Plan'}
               </button>
             </div>
           );
