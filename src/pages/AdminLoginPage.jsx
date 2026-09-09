@@ -995,7 +995,7 @@ export const AdminLoginPage = () => {
                       setLoading(false);
                     }}
                     disabled={loading}
-                    className="p-2.5 rounded-xl bg-[#FDFAEE] dark:bg-obsidian-800 hover:bg-slate-100 border border-[#EFE2BC] text-xs font-semibold text-[#0F172A] dark:text-slate-100 flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="w-full p-2.5 rounded-xl bg-[#FDFAEE] dark:bg-obsidian-800 hover:bg-slate-100 border border-[#EFE2BC] text-xs font-semibold text-[#0F172A] dark:text-slate-100 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -1004,31 +1004,6 @@ export const AdminLoginPage = () => {
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                     </svg>
                     <span>Google</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setLoading(true);
-                      const res = await oauthLogin('microsoft');
-                      if (res?.redirecting) return;
-                      if (res?.success) {
-                        navigate(res.user?.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin');
-                      } else {
-                        setError(res?.message || 'Microsoft sign-in failed.');
-                        setLoading(false);
-                      }
-                    }}
-                    disabled={loading}
-                    className="p-2.5 rounded-xl bg-[#FDFAEE] dark:bg-obsidian-800 hover:bg-slate-100 border border-[#EFE2BC] text-xs font-semibold text-[#0F172A] dark:text-slate-100 flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 23 23">
-                      <rect fill="#F25022" x="1" y="1" width="10" height="10" />
-                      <rect fill="#7FBA00" x="12" y="1" width="10" height="10" />
-                      <rect fill="#00A4EF" x="1" y="12" width="10" height="10" />
-                      <rect fill="#FFB900" x="12" y="12" width="10" height="10" />
-                    </svg>
-                    <span>Microsoft</span>
                   </button>
                 </div>
               </form>
