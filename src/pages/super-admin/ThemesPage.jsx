@@ -55,7 +55,7 @@ export const ThemesPage = () => {
           const mapped = res.data.map((t) => ({
             id: t.id,
             name: t.name,
-            subdomain: String(t.subdomain || '').replace(/\.gojulex\.com$/, ''),
+            subdomain: String(t.subdomain || '').replace(/\.gojulex\.shop$/, '').replace(/\.gojulex\.com$/, ''),
             activeThemeId: t.activeThemeId || null,
             status: (t.status || 'active').toLowerCase(),
             createdAt: t.createdAt || ''
@@ -80,7 +80,9 @@ export const ThemesPage = () => {
     load();
     return () => { cancelled = true; };
   }, []);
-  const tenants = dbTenants || contextTenants;
+  // ONLY the real database list — no localStorage/context fallback (which
+  // included stale discovered stores that inflated the count).
+  const tenants = dbTenants || [];
   // Live preview renders against a real storefront — first live tenant, else demo store
   const previewSubdomain = (tenants?.[0]?.subdomain || 'luxestudio').toLowerCase().replace(/\.gojulex\.com$/, '');
   const navigate = useNavigate();
@@ -310,7 +312,7 @@ Stores using it will fall back to the default theme.`)) return;
               [t.id, t.presetId].some((k) => storeKeys.includes(norm(k)))
             );
             const themeLabel = themeMatch ? themeMatch.name : (store.activeThemeId || 'Not set');
-            const cleanSub = String(store.subdomain || store.id).replace(/^store_/, '').replace(/\.gojulex\.com$/, '');
+            const cleanSub = String(store.subdomain || store.id).replace(/^store_/, '').replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '');
             return (
               <div
                 key={store.id}
@@ -319,12 +321,18 @@ Stores using it will fall back to the default theme.`)) return;
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-bold text-xs truncate" style={{ color: 'var(--text-primary)' }}>{store.name}</h4>
+                    <h4 className="font-bold text-base truncate" style={{ color: 'var(--text-primary)' }}>{store.name}</h4>
                     <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase" style={{ backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--accent)' }}>
                       Active
                     </span>
                   </div>
-                  <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{cleanSub}.gojulex.com</p>
+                  <a
+                    href={`https://${cleanSub}.go.julex.shop`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-mono hover:underline"
+                    style={{ color: 'var(--accent)' }}
+                  >{cleanSub}.go.julex.shop</a>
                 </div>
 
                 <div className="pt-2 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
