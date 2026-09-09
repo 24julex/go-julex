@@ -66,6 +66,10 @@ export const UserLoginPage = () => {
     try {
       const result = await loginUser(email.trim(), password);
       if (result && result.success) {
+        // Merchants/Super Admins go to their dashboard; customers to the store
+        const role = result.user?.role;
+        if (role === 'SUPER_ADMIN') { navigate('/super-admin'); return; }
+        if (role === 'MERCHANT_OWNER' || role === 'ADMIN' || role === 'MERCHANT_STAFF') { navigate('/admin'); return; }
         navigate(redirectPath);
       } else {
         setError(result?.message || 'Invalid email or password.');
