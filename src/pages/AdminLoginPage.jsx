@@ -43,9 +43,6 @@ export const AdminLoginPage = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  // Email change invalidates an in-flight verification
-  useEffect(() => { setOtpSent(false); setOtpVerified(false); setOtpCode(''); }, [regEmail]);
-
   // Returning from the Google full-page redirect — finish the sign-in
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +106,9 @@ export const AdminLoginPage = () => {
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpBusy, setOtpBusy] = useState(false);
   const [otpCodeHint, setOtpCodeHint] = useState('');
+
+  // Email change invalidates an in-flight verification
+  useEffect(() => { setOtpSent(false); setOtpVerified(false); setOtpCode(''); }, [regEmail]);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
