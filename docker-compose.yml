@@ -4,9 +4,8 @@ services:
       context: .
       dockerfile: server/Dockerfile
       network: host
-    # The host uses systemd-resolved (127.0.0.53) which containers can't
-    # reach — provide public resolvers so runtime API calls (Firebase token
-    # verification, etc.) resolve correctly.
+    # Public resolvers: the host's systemd-resolved (127.0.0.53) is not
+    # reachable from containers.
     dns:
       - 8.8.8.8
       - 1.1.1.1
