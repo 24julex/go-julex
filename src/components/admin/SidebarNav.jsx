@@ -17,7 +17,8 @@ import {
   Link as LinkIcon,
   FileText,
   Eye,
-  ExternalLink
+  ExternalLink,
+  CreditCard
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../context/MerchantAdminContext';
 import { useAuth } from '../../context/AuthContext';
