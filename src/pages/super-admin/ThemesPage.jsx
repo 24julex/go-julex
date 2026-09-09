@@ -22,16 +22,19 @@ import { MASTER_THEME_CATALOG as MASTER_THEMES_CATALOG, THEME_META } from '../..
 import { api } from '../../services/api';
 
 
-/* Rendered Live Website Template Card Front */
+/* Unified card cover: the platform cover image with the theme name overlaid.
+   The name comes from the catalog (DB overrides respected) — super admin
+   edits it via the Edit Template button. */
 const MiniThemeStorefrontCard = ({ theme }) => {
-  // Real-image preview using the theme's local hero + product photography
-  const themeMeta = THEME_META[theme.id] || {};
-  const hero = themeMeta.heroImage || theme.thumbnail;
-  const products = (themeMeta.products || []).slice(0, 3);
-
   return (
-    <div className="w-full h-full relative bg-white overflow-hidden">
-      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.8)', transformOrigin: '50% 18%' }} />
+    <div className="w-full h-full relative overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#1a1a2e' }}>
+      <img src="/theme-images/card-cover.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.85 }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)' }} />
+      <div className="relative z-10 text-center px-4">
+        <h3 className="font-serif font-black text-white leading-tight" style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>
+          {theme.name}
+        </h3>
+      </div>
     </div>
   );
 };
@@ -410,14 +413,7 @@ Stores using it will fall back to the default theme.`)) return;
                 <div className="relative aspect-[16/8] w-full border-b overflow-hidden" style={{ borderColor: 'var(--border-subtle)' }}>
                   <MiniThemeStorefrontCard theme={theme} />
 
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
-                    <span
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-md"
-                      style={{ backgroundColor: '#D4A017', color: '#111111', border: '1px solid rgba(0,0,0,0.2)' }}
-                    >
-                      {theme.vertical.split(',')[0]}
-                    </span>
-                  </div>
+
 
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                     {theme.tierAccess === 'pro' && (
@@ -429,12 +425,7 @@ Stores using it will fall back to the default theme.`)) return;
                   </div>
                 </div>
 
-                {/* Clean card header: theme name only */}
-                <div className="p-4 pb-2">
-                  <h3 className="font-serif text-lg font-bold truncate" style={{ color: 'var(--text-primary)' }}>
-                    {theme.name}
-                  </h3>
-              </div>              </div>
+              </div>
 
               {/* Bottom Actions — clean: preview, edit, delete */}
               <div className="px-4 pb-4 pt-2 flex items-center justify-between gap-2">
