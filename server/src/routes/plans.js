@@ -224,13 +224,11 @@ router.delete('/:id', requireSuperAdmin, async (req, res) => {
     const planId = req.params.id;
     const existing = await prisma.plan.findUnique({ where: { id: planId } });
     if (!existing) return res.status(404).json({ success: false, message: 'Plan not found.' });
-    const subCount = await prisma.subscription.count({ where: { planId } });
-    if (subCount > 0) {
+    await prisma.plan.delete({ where: { id: planId } }).catch(async (e) => {
+      // FK constraint (stores still subscribed) → deactivate instead
       await prisma.plan.update({ where: { id: planId }, data: { isActive: false } });
-      return res.json({ success: true, message: `Plan deactivated (${subCount} stores still on it).` });
-    }
-    await prisma.plan.delete({ where: { id: planId } });
-    return res.json({ success: true, message: `Plan "${existing.name}" deleted.` });
+    });
+    return res.json({ success: true, message: `Plan "${existing.name}" removed.` });
   } catch (error) {
     console.error('Delete plan error:', error);
     return res.status(500).json({ success: false, message: 'Could not delete plan.' });

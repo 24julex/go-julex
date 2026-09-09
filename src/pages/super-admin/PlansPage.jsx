@@ -35,7 +35,11 @@ export const PlansPage = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    // Purge any stale localStorage plan caches from the old mock system
+    try { localStorage.removeItem('gojulex_super_plans'); } catch (e) {}
+    load();
+  }, []);
 
   const countStores = (plan) => subscriptions.filter((s) =>
     s.planName && s.planName.toLowerCase() === plan.billingPeriod.toLowerCase()
