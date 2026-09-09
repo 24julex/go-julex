@@ -43,6 +43,9 @@ export const AdminLoginPage = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
+  // Email change invalidates an in-flight verification
+  useEffect(() => { setOtpSent(false); setOtpVerified(false); setOtpCode(''); }, [regEmail]);
+
   // Returning from the Google full-page redirect — finish the sign-in
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +103,12 @@ export const AdminLoginPage = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regStoreName, setRegStoreName] = useState('');
+  // Email OTP verification state
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [otpCodeHint, setOtpCodeHint] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -525,12 +534,61 @@ export const AdminLoginPage = () => {
   // ----------------------------------------------------
   // MERCHANT SIGN UP HANDLER
   // ----------------------------------------------------
+  const sendOtp = async () => {
+    if (!regEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmail.trim())) {
+      setError('Please enter a valid email address first.');
+      return;
+    }
+    setOtpBusy(true); setError('');
+    try {
+      const res = await api.auth.sendOtp(regEmail.trim());
+      if (res?.success) {
+        if (res.alreadyVerified) {
+          setOtpVerified(true);
+          setOtpSent(false);
+        } else {
+          setOtpSent(true);
+          setOtpVerified(false);
+          setOtpCode('');
+        }
+        setError(res.devCode ? '' : '');
+        if (res.devCode) setOtpCodeHint(res.devCode);
+      } else {
+        setError(res?.message || 'Could not send the code.');
+      }
+    } catch (e2) {
+      setError('Could not send the verification code.');
+    } finally { setOtpBusy(false); }
+  };
+
+  const verifyOtp = async () => {
+    if (!otpCode.trim() || otpCode.trim().length !== 6) {
+      setError('Enter the 6-digit code from your email.');
+      return;
+    }
+    setOtpBusy(true); setError('');
+    try {
+      const res = await api.auth.verifyOtp(regEmail.trim(), otpCode.trim());
+      if (res?.success) {
+        setOtpVerified(true);
+      } else {
+        setError(res?.message || 'Incorrect code.');
+      }
+    } catch (e2) {
+      setError('Could not verify the code.');
+    } finally { setOtpBusy(false); }
+  };
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
 
     if (!regEmail.trim() || !regPassword.trim() || !regStoreName.trim()) {
       setError('Please fill in your name, business email, store name, and password.');
+      return;
+    }
+    if (!otpVerified) {
+      setError('Please verify your email with the OTP code before creating your store.');
       return;
     }
 
@@ -1025,6 +1083,52 @@ export const AdminLoginPage = () => {
                       placeholder="e.g. owner@abisjewel.com"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
+                  </div>
+
+                  {/* Email OTP verification */}
+                  <div className="mt-2 space-y-2">
+                    {!otpVerified ? (
+                      <>
+                        {!otpSent ? (
+                          <button
+                            type="button"
+                            onClick={sendOtp}
+                            disabled={otpBusy}
+                            className="px-3 py-1.5 rounded-xl bg-[#fedddd] hover:bg-[#FECDD3] border border-[#F8B4B4] text-[#881337] text-[11px] font-bold transition cursor-pointer disabled:opacity-60"
+                          >
+                            {otpBusy ? 'Sending…' : 'Verify Email (Send Code)'}
+                          </button>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={6}
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                                placeholder="6-digit code"
+                                className="w-32 px-3 py-1.5 bg-white border border-[#FBCBCB] rounded-xl font-mono font-bold tracking-widest text-center"
+                              />
+                              <button
+                                type="button"
+                                onClick={verifyOtp}
+                                disabled={otpBusy}
+                                className="px-3 py-1.5 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white text-[11px] font-bold transition cursor-pointer disabled:opacity-60"
+                              >
+                                {otpBusy ? 'Checking…' : 'Verify Code'}
+                              </button>
+                              <button type="button" onClick={sendOtp} disabled={otpBusy} className="text-[10px] font-bold text-stone-500 hover:text-[#881337] cursor-pointer">Resend</button>
+                            </div>
+                            {otpCodeHint && <p className="text-[10px] font-mono text-amber-700">Dev code: {otpCodeHint}</p>}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Email verified
+                      </p>
+                    )}
                   </div>
                 </div>
 

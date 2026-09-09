@@ -20,6 +20,11 @@ model User {
   tenantId          String?     // Nullable for Super Admins; Required for Merchant Staff/Owners
   tenant            Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   twoFactorEnabled  Boolean     @default(false)
+  emailVerified     Boolean     @default(false)
+  otpHash           String?     // bcrypt hash of the current email-verification OTP
+  otpExpiresAt      DateTime?
+  otpAttempts       Int         @default(0)
+  otpLastSentAt     DateTime?
   avatarUrl         String?
   phone             String?
   address           String?

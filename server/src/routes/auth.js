@@ -438,6 +438,112 @@ router.get('/oauth/:provider/callback', async (req, res) => {
 
 // Create Store signup: creates the REAL tenant + owner account in the
 // database so the merchant can actually log in with email + password.
+// ----------------------------------------------------
+// Email OTP verification
+// ----------------------------------------------------
+const { sendMail, otpEmailHtml } = await import('../utils/mailer.js');
+
+const OTP_TTL_MIN = 10;
+const OTP_RESEND_COOLDOWN_SEC = 60;
+const OTP_MAX_ATTEMPTS = 5;
+
+const genOtp = () => String(100000 + Math.floor(Math.random() * 900000));
+
+// POST /api/auth/otp/send  { email }
+// Creates/updates the account with a fresh OTP. Rate limited.
+router.post('/otp/send', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+    let user = await prisma.user.findUnique({ where: { email } });
+    if (user?.emailVerified) {
+      return res.json({ success: true, message: 'Email already verified — please sign in.', alreadyVerified: true });
+    }
+    if (user?.otpLastSentAt && (Date.now() - new Date(user.otpLastSentAt).getTime()) < OTP_RESEND_COOLDOWN_SEC * 1000) {
+      return res.status(429).json({ success: false, message: 'Please wait a minute before requesting another code.' });
+    }
+    const code = genOtp();
+    const otpHash = await bcrypt.hash(code, 10);
+    if (!user) {
+      user = await prisma.user.create({
+        data: { email, passwordHash: await bcrypt.hash(randomBytes(24).toString('hex'), 10), name: email.split('@')[0], role: 'MERCHANT_OWNER' }
+      });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { otpHash, otpExpiresAt: new Date(Date.now() + OTP_TTL_MIN * 60000), otpAttempts: 0, otpLastSentAt: new Date() }
+    });
+    const mail = await sendMail({
+      to: email,
+      subject: `Your Go Julex verification code: ${code}`,
+      text: `Your Go Julex verification code is ${code}. It expires in ${OTP_TTL_MIN} minutes.`,
+      html: otpEmailHtml(code)
+    });
+    // When SMTP is unavailable (dev), reveal the code in the response so the
+    // flow stays testable. NEVER do this in production — gated by NODE_ENV.
+    // Dev-only convenience: reveal the code when SMTP is down AND explicitly
+    // enabled via ALLOW_DEV_OTP=1 (never set in production).
+    const devCode = (!mail.sent && process.env.ALLOW_DEV_OTP === '1') ? code : undefined;
+    return res.json({
+      success: true,
+      message: mail.sent
+        ? `Verification code sent to ${email}. It expires in ${OTP_TTL_MIN} minutes.`
+        : 'Could not send the email right now — please try again shortly.',
+      emailSent: mail.sent,
+      ...(devCode ? { devCode } : {})
+    });
+  } catch (error) {
+    console.error('OTP send error:', error);
+    return res.status(500).json({ success: false, message: 'Could not send the verification code.' });
+  }
+});
+
+// POST /api/auth/otp/verify  { email, code }
+// Marks the email verified. Resets attempts; invalidates the OTP.
+router.post('/otp/verify', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').toLowerCase().trim();
+    const code = String(req.body?.code || '').trim();
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.otpHash || !user.otpExpiresAt) {
+      return res.status(400).json({ success: false, message: 'Request a verification code first.' });
+    }
+    if (user.otpAttempts >= OTP_MAX_ATTEMPTS) {
+      return res.status(429).json({ success: false, message: 'Too many incorrect attempts. Request a new code.' });
+    }
+    if (new Date(user.otpExpiresAt) < new Date()) {
+      return res.status(400).json({ success: false, message: 'This code has expired. Request a new one.' });
+    }
+    const ok = await bcrypt.compare(code, user.otpHash);
+    if (!ok) {
+      await prisma.user.update({ where: { id: user.id }, data: { otpAttempts: { increment: 1 } } });
+      const left = OTP_MAX_ATTEMPTS - (user.otpAttempts + 1);
+      return res.status(401).json({ success: false, message: `Incorrect code. ${left > 0 ? left + ' attempt(s) left.' : 'Request a new code.'}` });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, otpHash: null, otpExpiresAt: null, otpAttempts: 0 }
+    });
+    return res.json({ success: true, message: 'Email verified! Continue creating your store.' });
+  } catch (error) {
+    console.error('OTP verify error:', error);
+    return res.status(500).json({ success: false, message: 'Could not verify the code.' });
+  }
+});
+
+// POST /api/auth/otp/status  { email } — light probe for the UI
+router.post('/otp/status', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').toLowerCase().trim();
+    const user = await prisma.user.findUnique({ where: { email } });
+    return res.json({ success: true, verified: Boolean(user?.emailVerified) });
+  } catch (e) {
+    return res.json({ success: true, verified: false });
+  }
+});
+
 router.post('/signup-store', async (req, res) => {
   try {
     const { name, email, password, storeName, category } = req.body || {};
@@ -445,14 +551,25 @@ router.post('/signup-store', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Store name, email and password are required.' });
     }
     const cleanEmail = String(email).toLowerCase().trim();
+    // Email must be OTP-verified before an account can be created
+    const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    if (!existingUser?.emailVerified) {
+      return res.status(403).json({ success: false, message: 'Please verify your email with the OTP code first.', needsVerification: true });
+    }
+    // A verified shell (created during OTP) is ADOPTED: set the real password
+    // and profile instead of rejecting as duplicate.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
     }
     if (String(password).length < 6) {
       return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
     }
-    if (await prisma.user.findUnique({ where: { email: cleanEmail } })) {
-      return res.status(400).json({ success: false, message: 'An account with this email already exists. Please sign in instead.' });
+    const passwordHash = await bcrypt.hash(String(password), 10);
+    if (existingUser) {
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: { passwordHash, name: (name && String(name).trim()) || String(storeName).trim() }
+      });
     }
 
     const { makeSlug, validateSlug, uniqueSlug } = await import('../utils/slug.js');
@@ -475,17 +592,18 @@ router.post('/signup-store', async (req, res) => {
       }
     });
 
-    const passwordHash = await bcrypt.hash(String(password), 10);
-    const user = await prisma.user.create({
-      data: {
-        email: cleanEmail,
-        passwordHash,
-        name: (name && String(name).trim()) || String(storeName).trim(),
-        role: 'MERCHANT_OWNER',
-        tenantId: tenant.id
-      },
-      include: { tenant: true }
-    });
+    const user = existingUser
+      ? await prisma.user.findUnique({ where: { id: existingUser.id }, include: { tenant: true } })
+      : await prisma.user.create({
+          data: {
+            email: cleanEmail,
+            passwordHash,
+            name: (name && String(name).trim()) || String(storeName).trim(),
+            role: 'MERCHANT_OWNER',
+            tenantId: tenant.id
+          },
+          include: { tenant: true }
+        });
 
     return res.status(201).json({
       success: true,

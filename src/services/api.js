@@ -40,6 +40,8 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(payload)
       }),
+    sendOtp: (email) => request('/auth/otp/send', { method: 'POST', body: JSON.stringify({ email }) }),
+    verifyOtp: (email, code) => request('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ email, code }) }),
     register: (userData) =>
       request('/auth/register', {
         method: 'POST',

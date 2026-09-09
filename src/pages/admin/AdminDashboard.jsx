@@ -440,12 +440,13 @@ export const AdminDashboard = () => {
         isOpen={Boolean(invoiceOrder)}
         onClose={() => setInvoiceOrder(null)}
       />
-    </div>
-  );
 
       <PlansGateModal
         open={plansOpen}
         onClose={() => { setPlansOpen(false); api.storeStatus.get().then((r) => { if (r?.success) setStoreAuth(r.data); }); }}
         storeStatusApi={api.storeStatus.get}
       />
+    </div>
+  );
+
 };
