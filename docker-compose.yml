@@ -4,6 +4,12 @@ services:
       context: .
       dockerfile: server/Dockerfile
       network: host
+    # The host uses systemd-resolved (127.0.0.53) which containers can't
+    # reach — provide public resolvers so runtime API calls (Firebase token
+    # verification, etc.) resolve correctly.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     container_name: julex-api
     environment:
       - PORT=5000
