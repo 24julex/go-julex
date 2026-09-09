@@ -63,7 +63,8 @@ export const WelcomeStoreCard = ({ storeData, onDone }) => {
         whatsappNumber: businessPhone.trim(),
         ownerPhone: ownerPhone.trim(),
         logoUrl,
-        profileImageUrl: profileUrl
+        profileImageUrl: profileUrl,
+        subdomain: storeData?.subdomain || undefined
       });
       if (res?.success) {
         localStorage.setItem('gojulex_welcome_card_done', '1');
