@@ -519,7 +519,7 @@ export const AdminLoginPage = () => {
         if (result.user?.role === 'SUPER_ADMIN') {
           navigate('/super-admin');
         } else {
-          navigate('/onboarding');
+          navigate('/admin');
         }
       } else {
         setError(result?.message || 'Invalid credentials. Please verify your email and password.');
@@ -884,7 +884,7 @@ export const AdminLoginPage = () => {
               <img src="/images/go-julex-logo.png" alt="Go Julex" className="h-14 w-auto mx-auto" />
               <p className="text-xs text-[#475569] dark:text-slate-400">
                 {authMode === 'signin'
-                  ? 'Unified entry for Super Admin and Merchant Store Owners'
+                  ? 'Welcome back — sign in to your store'
                   : 'Launch your 0% commission direct-to-consumer store'}
               </p>
             </div>

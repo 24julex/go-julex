@@ -72,20 +72,13 @@ export const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider">
+          <nav className="hidden lg:flex items-center gap-5 text-sm">
             <Link
               to="/"
               className={`transition-colors ${isCurrentPath('/') ? 'font-bold' : ''}`}
               style={{ color: isCurrentPath('/') ? 'var(--accent)' : 'var(--text-secondary)' }}
             >
               Home
-            </Link>
-            <Link
-              to="/catalog"
-              className={`transition-colors ${isCurrentPath('/catalog') ? 'font-bold' : ''}`}
-              style={{ color: isCurrentPath('/catalog') ? 'var(--accent)' : 'var(--text-secondary)' }}
-            >
-              Artisan Catalog
             </Link>
             <Link
               to="/plans"
@@ -100,20 +93,6 @@ export const Navbar = () => {
               style={{ color: isCurrentPath('/orders') ? 'var(--accent)' : 'var(--text-secondary)' }}
             >
               Tracking
-            </Link>
-            <Link
-              to="/admin"
-              className="px-3 py-1.5 rounded-xl font-semibold transition-colors flex items-center gap-1.5 text-[11px]"
-              style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-card)', color: 'var(--text-primary)' }}
-            >
-              <Shield className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} /> Merchant
-            </Link>
-            <Link
-              to="/super-admin"
-              className="px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 text-[11px] shadow-xs text-black"
-              style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
-            >
-              <Zap className="w-3.5 h-3.5" /> Super Admin
             </Link>
           </nav>
 
@@ -227,20 +206,11 @@ export const Navbar = () => {
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl transition">
               Home
             </Link>
-            <Link to="/catalog" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl transition">
-              Artisan Catalog
-            </Link>
             <Link to="/plans" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl transition flex items-center gap-2" style={{ color: 'var(--accent)' }}>
               <Zap className="w-4 h-4" /> 0% Fee SaaS Plans
             </Link>
             <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl transition">
               Order Tracking
-            </Link>
-            <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-card)' }}>
-              <Shield className="w-4 h-4" style={{ color: 'var(--accent)' }} /> Merchant Console
-            </Link>
-            <Link to="/super-admin" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl font-bold flex items-center gap-2 text-black" style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}>
-              <Zap className="w-4 h-4" /> Super Admin Master Portal
             </Link>
           </nav>
         </div>
