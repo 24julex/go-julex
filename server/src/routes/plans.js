@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
-import { requireAuth, requireMerchantAdmin } from '../middleware/auth.js';
+import { requireAuth, requireMerchantAdmin, requireSuperAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -157,5 +157,84 @@ export const PaymentService = {
     return true;
   }
 };
+
+
+// POST /api/plans — Super Admin: create a plan
+router.post('/', requireSuperAdmin, async (req, res) => {
+  try {
+    const { id, name, description, priceINR, billingPeriod, productLimit, customDomain, features, badge, isPopular, allowsPublish, sortOrder } = req.body || {};
+    if (!id || !name) return res.status(400).json({ success: false, message: 'Plan id and name are required.' });
+    if (await prisma.plan.findUnique({ where: { id } })) {
+      return res.status(400).json({ success: false, message: 'A plan with this ID already exists.' });
+    }
+    const plan = await prisma.plan.create({
+      data: {
+        id, name,
+        description: description || '',
+        priceInr: Number(priceINR) || 0,
+        billingPeriod: billingPeriod || 'SIX_MONTH',
+        productLimit: productLimit ? Number(productLimit) : null,
+        customDomain: Boolean(customDomain),
+        featuresJson: JSON.stringify(Array.isArray(features) ? features : []),
+        badge: badge || null,
+        isPopular: Boolean(isPopular),
+        allowsPublish: allowsPublish !== false,
+        sortOrder: Number(sortOrder) || 99,
+        isActive: true
+      }
+    });
+    return res.status(201).json({ success: true, message: `Plan "${plan.name}" created.`, data: planToApi(plan) });
+  } catch (error) {
+    console.error('Create plan error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create plan.' });
+  }
+});
+
+// PUT /api/plans/:id — Super Admin: update a plan
+router.put('/:id', requireSuperAdmin, async (req, res) => {
+  try {
+    const planId = req.params.id;
+    const existing = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Plan not found.' });
+    const { name, description, priceINR, billingPeriod, productLimit, customDomain, features, badge, isPopular, allowsPublish, sortOrder, isActive } = req.body || {};
+    const data = {};
+    if (name !== undefined) data.name = name;
+    if (description !== undefined) data.description = description;
+    if (priceINR !== undefined) data.priceInr = Number(priceINR);
+    if (billingPeriod !== undefined) data.billingPeriod = billingPeriod;
+    if (productLimit !== undefined) data.productLimit = productLimit ? Number(productLimit) : null;
+    if (customDomain !== undefined) data.customDomain = Boolean(customDomain);
+    if (features !== undefined) data.featuresJson = JSON.stringify(Array.isArray(features) ? features : []);
+    if (badge !== undefined) data.badge = badge || null;
+    if (isPopular !== undefined) data.isPopular = Boolean(isPopular);
+    if (allowsPublish !== undefined) data.allowsPublish = Boolean(allowsPublish);
+    if (sortOrder !== undefined) data.sortOrder = Number(sortOrder);
+    if (isActive !== undefined) data.isActive = Boolean(isActive);
+    const plan = await prisma.plan.update({ where: { id: planId }, data });
+    return res.json({ success: true, message: `Plan "${plan.name}" updated.`, data: planToApi(plan) });
+  } catch (error) {
+    console.error('Update plan error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update plan.' });
+  }
+});
+
+// DELETE /api/plans/:id — Super Admin: deactivate a plan (soft delete)
+router.delete('/:id', requireSuperAdmin, async (req, res) => {
+  try {
+    const planId = req.params.id;
+    const existing = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Plan not found.' });
+    const subCount = await prisma.subscription.count({ where: { planId } });
+    if (subCount > 0) {
+      await prisma.plan.update({ where: { id: planId }, data: { isActive: false } });
+      return res.json({ success: true, message: `Plan deactivated (${subCount} stores still on it).` });
+    }
+    await prisma.plan.delete({ where: { id: planId } });
+    return res.json({ success: true, message: `Plan "${existing.name}" deleted.` });
+  } catch (error) {
+    console.error('Delete plan error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete plan.' });
+  }
+});
 
 export default router;
