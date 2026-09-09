@@ -7,6 +7,13 @@ const projectDir = path.resolve();
 export default defineConfig({
   root: projectDir,
   plugins: [react()],
+  // Minifiers (esbuild AND terser) create a false TDZ with the current module
+  // graph ("Cannot access 'j'/'g' before initialization"). Unminified builds
+  // load perfectly — deploy readable code until the root cause is fixed.
+  build: {
+    minify: false,
+  },
+
   resolve: {
     preserveSymlinks: true,
     alias: {
