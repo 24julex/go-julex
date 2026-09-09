@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    network_mode: host
     environment:
+      - API_HOST=127.0.0.1
       - API_PORT=5001
