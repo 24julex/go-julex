@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 import { useMerchantAdmin } from '../../context/MerchantAdminContext';
 import { api } from '@/services/api';
 import { PlansGateModal } from '@/components/common/PlansGateModal';
+import { WelcomeStoreCard } from '@/components/admin/WelcomeStoreCard';
 import { useAuth } from '../../context/AuthContext';
 import { OrderDetailModal } from '../../components/admin/orders/OrderDetailModal';
 import { InvoiceTemplate } from '../../components/admin/orders/InvoiceTemplate';
@@ -23,6 +24,9 @@ import { EditSalesChannelModal } from '../../components/admin/channels/EditSales
 export const AdminDashboard = () => {
   const [storeAuth, setStoreAuth] = useState(null);
   const [plansOpen, setPlansOpen] = useState(false);
+  const [showWelcomeCard, setShowWelcomeCard] = useState(() => {
+    try { return !localStorage.getItem('gojulex_welcome_card_done'); } catch (e) { return false; }
+  });
   useEffect(() => {
     api.storeStatus.get()
       .then((res) => { if (res?.success) setStoreAuth(res.data); })
@@ -440,6 +444,16 @@ export const AdminDashboard = () => {
         isOpen={Boolean(invoiceOrder)}
         onClose={() => setInvoiceOrder(null)}
       />
+
+      {showWelcomeCard && (
+        <WelcomeStoreCard
+          storeData={storeAuth}
+          onDone={() => {
+            setShowWelcomeCard(false);
+            api.storeStatus.get().then((r) => { if (r?.success) setStoreAuth(r.data); });
+          }}
+        />
+      )}
 
       <PlansGateModal
         open={plansOpen}

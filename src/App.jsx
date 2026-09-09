@@ -16,6 +16,7 @@ import { DynamicStorefrontPage } from './pages/customer/DynamicStorefrontPage';
 import { UserLoginPage } from './pages/UserLoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { StoreOnboardingPage } from './pages/customer/StoreOnboardingPage';
+import { AdminBilling } from './pages/admin/AdminBilling';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 // Merchant Admin Context & Pages

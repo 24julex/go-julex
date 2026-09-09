@@ -120,7 +120,9 @@ export const api = {
   storeStatus: {
     get: () => request('/store/status'),
     saveProfile: (payload) => request('/store/profile', { method: 'PUT', body: JSON.stringify(payload) }),
-    publish: () => request('/store/publish', { method: 'POST', body: JSON.stringify({}) })
+    publish: () => request('/store/publish', { method: 'POST', body: JSON.stringify({}) }),
+    restrict: (tenantId, reason) => request('/store/super-admin/restrict', { method: 'POST', body: JSON.stringify({ tenantId, reason }) }),
+    restore: (tenantId) => request('/store/super-admin/restore', { method: 'POST', body: JSON.stringify({ tenantId }) })
   },
   storePublicStatus: (subdomain) => request(`/store/public-status/${encodeURIComponent(subdomain)}`),
   domains: {

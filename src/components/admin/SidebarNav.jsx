@@ -48,6 +48,7 @@ export const SidebarNav = ({ onOpenAddProduct, onCloseMobile }) => {
       badge: kpis.lowStockItemsCount > 0 ? `${kpis.lowStockItemsCount} Low` : null,
     },
     { name: 'Customers', path: '/admin/customers', icon: Users },
+    { name: 'Billing', path: '/admin/billing', icon: CreditCard },
     { name: 'Discounts', path: '/admin/discounts', icon: Tag },
     { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 }
   ];

@@ -133,4 +133,48 @@ router.post('/super-admin/activate', requireSuperAdmin, async (req, res) => {
   }
 });
 
+
+// POST /api/store/super-admin/restrict — Super Admin: restrict an unpaid
+// store from going live (after the 3-day grace period). Status → SUSPENDED.
+router.post('/super-admin/restrict', requireSuperAdmin, async (req, res) => {
+  try {
+    const { tenantId, reason } = req.body || {};
+    if (!tenantId) return res.status(400).json({ success: false, message: 'tenantId required.' });
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) return res.status(404).json({ success: false, message: 'Store not found.' });
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { status: 'SUSPENDED' }
+    });
+    await prisma.auditLog.create({
+      data: {
+        tenantId,
+        actorEmail: req.user?.email || 'super-admin',
+        action: 'STORE_RESTRICTED',
+        entityType: 'TENANT',
+        entityId: tenantId,
+        detailsJson: JSON.stringify({ reason: reason || 'Billing overdue', restrictedBy: req.user?.email, at: new Date().toISOString() })
+      }
+    }).catch(() => {});
+    return res.json({ success: true, message: `Store "${tenant.name}" restricted from publishing (billing overdue).` });
+  } catch (error) {
+    console.error('Restrict store error:', error);
+    return res.status(500).json({ success: false, message: 'Could not restrict store.' });
+  }
+});
+
+// POST /api/store/super-admin/restore — Super Admin: restore a restricted store
+router.post('/super-admin/restore', requireSuperAdmin, async (req, res) => {
+  try {
+    const { tenantId } = req.body || {};
+    if (!tenantId) return res.status(400).json({ success: false, message: 'tenantId required.' });
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) return res.status(404).json({ success: false, message: 'Store not found.' });
+    await prisma.tenant.update({ where: { id: tenantId }, data: { status: 'PUBLISHED' } });
+    return res.json({ success: true, message: `Store "${tenant.name}" restored.` });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Could not restore store.' });
+  }
+});
+
 export default router;

@@ -28,7 +28,8 @@ const planToApi = (p) => ({
 // (future gateway) or an explicit Super Admin activation — never the frontend.
 // ----------------------------------------------------
 export const computePublishAuth = async (tenant) => {
-  const legacyLive = ['ACTIVE', 'PUBLISHED'].includes(String(tenant.status || '').toUpperCase());
+  const suspended = String(tenant.status || '').toUpperCase() === 'SUSPENDED';
+  const legacyLive = !suspended && ['ACTIVE', 'PUBLISHED'].includes(String(tenant.status || '').toUpperCase());
   const sub = await prisma.subscription.findUnique({
     where: { tenantId: tenant.id },
     include: { plan: true }
