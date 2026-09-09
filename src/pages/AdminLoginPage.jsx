@@ -919,7 +919,7 @@ export const AdminLoginPage = () => {
               <form onSubmit={handleSignIn} className="space-y-4 text-left">
                 <div>
                   <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1.5">
-                    Email Address / Store ID
+                    Email Address
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -928,7 +928,7 @@ export const AdminLoginPage = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. abinayaramasamy502@gmail.com or admin@gojulex.com"
+                      placeholder="Enter email address"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100 font-medium transition"
                     />
                   </div>
@@ -980,7 +980,7 @@ export const AdminLoginPage = () => {
                 </div>
 
                 {/* Social Logins */}
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="flex justify-center">
                   <button
                     type="button"
                     onClick={async () => {
@@ -1046,7 +1046,7 @@ export const AdminLoginPage = () => {
 
                 <div>
                   <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1">
-                    Business Email Address
+                    Email Address
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -1055,7 +1055,7 @@ export const AdminLoginPage = () => {
                       required
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
-                      placeholder="e.g. owner@abisjewel.com"
+                      placeholder="Enter email address"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>
