@@ -146,6 +146,7 @@ export const App = () => {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="settings/invoices" element={<AdminInvoiceSettings />} />
             <Route path="invoices" element={<AdminInvoiceSettings />} />
+            <Route path="billing" element={<AdminBilling />} />
           </Route>
 
           {/* Super Admin Master Portal (11 Modules) — STRICTLY RESTRICTED */}
