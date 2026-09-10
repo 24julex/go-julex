@@ -702,7 +702,7 @@ export const MerchantAdminProvider = ({ children }) => {
       value={{
         // Stores
         demoStores,
-        currentStore: displayStore,
+        currentStore,
         currentStoreId,
         switchStore,
 
