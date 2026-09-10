@@ -17,8 +17,12 @@ const findTenantBySub = async (sub) => {
 // GET /api/store/status — merchant: the real store + subscription state
 router.get('/status', requireMerchantAdmin, async (req, res) => {
   try {
-    const tenantId = req.tenantId;
-    if (!tenantId) return res.status(400).json({ success: false, message: 'No store selected.' });
+    let tenantId = req.tenantId || req.user?.tenantId;
+    if (!tenantId && req.query?.subdomain) {
+      const tenant = await findTenantBySub(req.query.subdomain);
+      if (tenant) tenantId = tenant.id;
+    }
+    if (!tenantId) return res.status(400).json({ success: false, message: 'No store linked to your account yet. Please sign out and sign in again.' });
     const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
     if (!tenant) return res.status(404).json({ success: false, message: 'Store not found.' });
     const auth = await computePublishAuth(tenant);
@@ -44,8 +48,15 @@ router.get('/status', requireMerchantAdmin, async (req, res) => {
 // PUT /api/store/profile — merchant: persist store identity fields
 router.put('/profile', requireMerchantAdmin, async (req, res) => {
   try {
-    const tenantId = req.tenantId;
-    if (!tenantId) return res.status(400).json({ success: false, message: 'No store selected.' });
+    let tenantId = req.tenantId;
+    if (!tenantId && req.body?.subdomain) {
+      const tenant = await findTenantBySub(req.body.subdomain);
+      if (tenant && (req.user.role === 'SUPER_ADMIN' || tenant.id === req.user.tenantId)) {
+        tenantId = tenant.id;
+      }
+    }
+    if (!tenantId && req.user?.tenantId) tenantId = req.user.tenantId;
+    if (!tenantId) return res.status(400).json({ success: false, message: 'No store linked to your account yet. Please sign out and sign in again.' });
     const { name, logoUrl, profileImageUrl, whatsappNumber, instagramHandle, ownerPhone, category } = req.body || {};
     const data = {};
     if (typeof name === 'string' && name.trim()) data.name = name.trim();

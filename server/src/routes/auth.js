@@ -266,7 +266,28 @@ const originUrl = (req) => process.env.APP_URL || `${req.protocol}://${req.get('
 const findOrCreateOAuthMerchant = async ({ email, name, avatarUrl, provider }) => {
   const cleanEmail = email.toLowerCase().trim();
   let user = await prisma.user.findUnique({ where: { email: cleanEmail }, include: { tenant: true } });
-  if (user) return user;
+  if (user) {
+    // Existing user without a store (e.g. OTP shell) — create their store now
+    if (!user.tenantId) {
+      const sub = ('oauth' + cleanEmail.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'oauthstore';
+      const tenant = await prisma.tenant.create({
+        data: {
+          id: `store_${sub}`,
+          name: `${(name || 'My Brand').split(' ')[0]}'s Store`,
+          subdomain: `${sub}.go.julex.shop`,
+          category: 'Custom E-Commerce Store',
+          planTier: 'FREE',
+          status: 'DRAFT'
+        }
+      });
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { tenantId: tenant.id },
+        include: { tenant: true }
+      });
+    }
+    return user;
+  }
 
   const subdomain = ('oauth' + cleanEmail.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'oauthstore';
   const tenantId = `store_${subdomain}`;

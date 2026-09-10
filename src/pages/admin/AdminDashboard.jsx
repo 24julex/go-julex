@@ -41,6 +41,13 @@ export const AdminDashboard = () => {
 
   const cleanSubdomain = (currentStore?.subdomain || 'luxestudio').toLowerCase().replace(/\.gojulex\.com$/, '');
   const liveStoreUrl = `/store/${cleanSubdomain}`;
+  // Real store identity from the database (updated by the Welcome Card)
+  const displayStoreName = storeAuth?.name || currentStore?.name || 'My Store';
+  const displayStoreLogo = storeAuth?.logoUrl || null;
+  const displayProfilePic = storeAuth?.profileImageUrl || null;
+  const displayPhone = storeAuth?.whatsappNumber || null;
+  const displayOwnerPhone = storeAuth?.ownerPhone || null;
+  const displayCategory = storeAuth?.category || currentStore?.categoryLabel || '';
   const ownerName = (() => {
     let raw = currentUser?.role === 'SUPER_ADMIN' ? (currentUser?.name || 'Super Admin') : (currentStore?.ownerName || 'Store Owner');
     if (raw.includes('Eleanor') || raw.includes('Aditya') || raw.includes('Rajesh')) return 'Super Admin';
@@ -104,6 +111,19 @@ export const AdminDashboard = () => {
                 <span className="text-xs font-black text-emerald-800">Your store is LIVE</span>
               </div>
             )}
+            <div className="flex items-center gap-3 mb-1">
+              {displayStoreLogo && (
+                <img src={displayStoreLogo} alt={displayStoreName} className="h-12 w-12 rounded-2xl object-cover border" style={{ borderColor: 'var(--border-card)' }} />
+              )}
+              {displayProfilePic && (
+                <img src={displayProfilePic} alt="Owner" className="h-10 w-10 rounded-full object-cover border" style={{ borderColor: 'var(--border-card)' }} />
+              )}
+              <div>
+                <p className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>{displayStoreName}</p>
+                {displayCategory && <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{displayCategory}</p>}
+                {displayPhone && <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>📞 {displayPhone}</p>}
+              </div>
+            </div>
             Welcome back, {ownerName} 👋
           </h1>
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>

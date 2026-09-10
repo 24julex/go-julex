@@ -115,7 +115,10 @@ export const api = {
     list: () => request('/plans'),
     select: (planId) => request('/plans/select', { method: 'POST', body: JSON.stringify({ planId }) }),
     paymentPending: () => request('/plans/payment-pending', { method: 'POST', body: JSON.stringify({}) }),
-    mySubscription: () => request('/plans/subscription/me')
+    mySubscription: () => request('/plans/subscription/me'),
+    createPlan: (payload) => request('/plans', { method: 'POST', body: JSON.stringify(payload) }),
+    updatePlan: (id, payload) => request(`/plans/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deletePlan: (id) => request(`/plans/${encodeURIComponent(id)}`, { method: 'DELETE' })
   },
   storeStatus: {
     get: () => request('/store/status'),
