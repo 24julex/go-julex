@@ -167,6 +167,43 @@ export const MerchantAdminProvider = ({ children }) => {
   const currentStore = resolveCurrentStore();
   const currentStoreId = currentStore?.id || 'store_luxestudio';
 
+  // Fetch the REAL store identity from the database and merge it into
+  // currentStore so every component (sidebar, dashboard, channels, domains)
+  // displays what the merchant actually saved — not mock/localStorage data.
+  const [backendStore, setBackendStore] = useState(null);
+  useEffect(() => {
+    const subdomain = String(currentStore?.subdomain || '').replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '').replace(/^store_/, '');
+    if (!subdomain) return;
+    let cancelled = false;
+    api.themes.getPublicConfig(subdomain)
+      .then(() => api.storeStatus.get())
+      .then((res) => {
+        if (cancelled || !res?.success || !res?.data) return;
+        setBackendStore(res.data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [currentStore?.subdomain]);
+
+  // The database version WINS over any mock/localStorage resolution
+  const effectiveStore = backendStore ? {
+    ...currentStore,
+    id: currentStore?.id, // keep the id stable for state keys
+    name: backendStore.name || currentStore?.name,
+    subdomain: backendStore.subdomain || currentStore?.subdomain,
+    whatsappNumber: backendStore.whatsappNumber,
+    ownerPhone: backendStore.ownerPhone,
+    instagramHandle: backendStore.instagramHandle,
+    logoUrl: backendStore.logoUrl,
+    profileImageUrl: backendStore.profileImageUrl,
+    category: backendStore.category || currentStore?.categoryLabel,
+    categoryLabel: backendStore.category || currentStore?.categoryLabel,
+    canPublish: backendStore.canPublish,
+    storeStatus: backendStore.storeStatus
+  } : currentStore;
+  // Replace currentStore references throughout with effectiveStore
+  const displayStore = effectiveStore;
+
 
 
   // 2. Multi-Store Products State
@@ -425,7 +462,7 @@ export const MerchantAdminProvider = ({ children }) => {
   // Switch Store Handler (Works for Super Admin & Merchants with multiple stores)
   const switchStore = (storeId) => {
     setSelectedStoreId(storeId);
-    const storeObj = demoStores.find(s => s.id === storeId);
+    const storeObj = displayStore?.id === storeId ? displayStore : demoStores.find(s => s.id === storeId);
     try {
       localStorage.setItem('gojulex_merchant_store_id', storeId);
     } catch {}
@@ -665,7 +702,7 @@ export const MerchantAdminProvider = ({ children }) => {
       value={{
         // Stores
         demoStores,
-        currentStore,
+        currentStore: displayStore,
         currentStoreId,
         switchStore,
 

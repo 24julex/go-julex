@@ -63,7 +63,7 @@ export const AdminDashboard = () => {
     return null;
   })();
 
-  const displayWhatsApp = savedChannels?.whatsappNumber || currentStore?.ownerPhone || '+91 98765 43210';
+  const displayWhatsApp = storeAuth?.whatsappNumber || savedChannels?.whatsappNumber || currentStore?.ownerPhone || null;
   const cleanHandleBase = (currentStore?.subdomain || currentStore?.id || 'store').replace(/^store_/, '');
   const displayInstagram = savedChannels?.instagramHandle || currentStore?.instagramHandle || `@${cleanHandleBase}_official`;
 

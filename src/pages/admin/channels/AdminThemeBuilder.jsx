@@ -757,7 +757,7 @@ export const AVAILABLE_BLOCK_LIBRARY = [
       title: 'Visit Our Flagship Atelier',
       address: '128 Heritage Avenue, Studio Lane, Chennai, Tamil Nadu - 600001',
       hours: 'Mon - Sat: 10:30 AM – 8:30 PM | Sunday by Appointment',
-      phone: '+91 98765 43210',
+      phone: currentStore?.whatsappNumber || '',
       ctaText: 'Get Driving Directions ↗'
     }
   },
