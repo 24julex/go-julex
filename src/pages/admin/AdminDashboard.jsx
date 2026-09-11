@@ -24,7 +24,13 @@ import { EditSalesChannelModal } from '../../components/admin/channels/EditSales
 export const AdminDashboard = () => {
   const [storeAuth, setStoreAuth] = useState(null);
   const [plansOpen, setPlansOpen] = useState(false);
+  // Welcome card shows ONLY for a merchant's first login — never for
+  // super admins or impersonation sessions.
+  const { currentUser, impersonatedTenant } = useAuth();
+  const isImpersonating = Boolean(impersonatedTenant);
+  const isMerchantOwner = currentUser?.role === 'MERCHANT_OWNER' || currentUser?.role === 'MERCHANT_STAFF' || currentUser?.role === 'ADMIN';
   const [showWelcomeCard, setShowWelcomeCard] = useState(() => {
+    if (isImpersonating || !isMerchantOwner) return false;
     try { return !localStorage.getItem('gojulex_welcome_card_done'); } catch (e) { return false; }
   });
   useEffect(() => {
@@ -33,8 +39,12 @@ export const AdminDashboard = () => {
       .catch(() => {});
   }, []);
 
+  // Hide the welcome card when a super admin impersonates a store
+  useEffect(() => {
+    if (isImpersonating) setShowWelcomeCard(false);
+  }, [isImpersonating]);
+
   const { currentStore, kpis, orders, products, sendInvoiceEmail } = useMerchantAdmin();
-  const { currentUser } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [invoiceOrder, setInvoiceOrder] = useState(null);
   const [isChannelModalOpen, setChannelModalOpen] = useState(false);
