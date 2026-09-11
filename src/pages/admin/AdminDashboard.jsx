@@ -29,21 +29,13 @@ export const AdminDashboard = () => {
   const { currentUser, impersonatedTenant } = useAuth();
   const isImpersonating = Boolean(impersonatedTenant);
   const isMerchantOwner = currentUser?.role === 'MERCHANT_OWNER' || currentUser?.role === 'MERCHANT_STAFF' || currentUser?.role === 'ADMIN';
-  const [showWelcomeCard, setShowWelcomeCard] = useState(false);
+  const [showWelcomeCard, setShowWelcomeCard] = useState(() => {
+    if (isImpersonating || !isMerchantOwner) return false;
+    try { return !localStorage.getItem('gojulex_welcome_card_done'); } catch (e) { return false; }
+  });
   useEffect(() => {
     api.storeStatus.get()
-      .then((res) => {
-        if (res?.success) {
-          setStoreAuth(res.data);
-          // Show the Welcome Card when the merchant's store has NO identity
-          // data saved yet (phone, logo, profile pic) — even if the card
-          // was previously dismissed, incomplete data means it should show again.
-          if (!isImpersonating && isMerchantOwner) {
-            const hasData = res.data?.whatsappNumber || res.data?.logoUrl || res.data?.profileImageUrl || res.data?.ownerPhone;
-            if (!hasData) setShowWelcomeCard(true);
-          }
-        }
-      })
+      .then((res) => { if (res?.success) setStoreAuth(res.data); })
       .catch(() => {});
   }, []);
 

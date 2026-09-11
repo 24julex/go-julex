@@ -33,8 +33,22 @@ export const AdminDomains = () => {
   const { currentStore, updateStoreProfile, showToast } = useMerchantAdmin();
 
   // Store profile fields
-  const [storeName, setStoreName] = useState(currentStore.name || 'My Store');
-  const [categoryLabel, setCategoryLabel] = useState(currentStore.categoryLabel || 'Fine Jewelry & Luxury');
+  // Load real store data from the database (same source as Dashboard/Settings)
+  const [dbStore, setDbStore] = useState(null);
+  useEffect(() => {
+    api.storeStatus.get()
+      .then((res) => { if (res?.success) setDbStore(res.data); })
+      .catch(() => {});
+  }, []);
+
+  const [storeName, setStoreName] = useState('');
+  const [categoryLabel, setCategoryLabel] = useState('');
+  useEffect(() => {
+    if (dbStore) {
+      setStoreName(dbStore.name || 'My Store');
+      setCategoryLabel(dbStore.category || 'Fine Jewelry & Luxury');
+    }
+  }, [dbStore]);
   // Active slug on the store (saved). Draft slug derives from the store name.
   const [activeSlug, setActiveSlug] = useState(
     (currentStore.subdomain || 'mystore').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/[^a-z0-9]/g, '')
