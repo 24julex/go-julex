@@ -638,7 +638,7 @@ export const SuperAdminProvider = ({ children }) => {
               avatar: bt.ownerUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
             },
             planTier: bt.planTier || 'SIX_MONTH',
-            planName: bt.planTier === 'ONE_YEAR' ? '1-Year Enterprise Launch' : '6-Month Direct Launch (0% Fee)',
+            planName: bt.planTier === 'FREE' ? 'Free Trial (Not Paid)' : bt.planTier === 'ONE_YEAR' ? '1-Year Plan' : bt.planTier === 'SIX_MONTH' ? '6-Month Plan' : 'Free Trial',
             status: (bt.status || 'active').toLowerCase(),
             productsCount: bt.productCount || 0,
             ordersCount: bt.orderCount || 0,
@@ -1154,9 +1154,15 @@ export const SuperAdminProvider = ({ children }) => {
     return days;
   })();
 
-  // Global Platform Metrics
-  const totalPlatformGMV = tenants.reduce((sum, t) => sum + Number(t.gmvINR || 0), 0);
-  const totalPlatformOrders = tenants.reduce((sum, t) => sum + Number(t.totalOrders || t.ordersCount || 0), 0);
+  // Global Platform Metrics — from the REAL backend metrics API
+  const [realMetrics, setRealMetrics] = useState(null);
+  useEffect(() => {
+    api.superAdmin.getMetrics()
+      .then((res) => { if (res?.success) setRealMetrics(res.data); })
+      .catch(() => {});
+  }, []);
+  const totalPlatformGMV = realMetrics?.totalPlatformGMV ?? tenants.reduce((sum, t) => sum + Number(t.gmvINR || 0), 0);
+  const totalPlatformOrders = realMetrics?.totalPlatformOrders ?? tenants.reduce((sum, t) => sum + Number(t.totalOrders || t.ordersCount || 0), 0);
   const platformAOV = totalPlatformOrders > 0 ? Math.round(totalPlatformGMV / totalPlatformOrders) : 0;
   const totalFeeSavedINR = Math.round(totalPlatformGMV * 0.02);
 
