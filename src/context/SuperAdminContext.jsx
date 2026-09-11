@@ -313,6 +313,56 @@ export const SuperAdminProvider = ({ children }) => {
     }
   });
 
+  // Fetch REAL data from the database API on mount — replaces all
+  // localStorage/mock tenant discovery with database truth.
+  useEffect(() => {
+    let cancelled = false;
+    
+    api.superAdmin.getTenants()
+      .then((res) => {
+        if (cancelled || !res?.success) return;
+        const list = Array.isArray(res.data) ? res.data : res.data?.tenants || [];
+        const mapped = list.map((t) => ({
+          id: t.id,
+          name: t.name || t.tenant?.name || 'Store',
+          subdomain: String(t.subdomain || t.id || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, ''),
+          customDomain: t.customDomain || null,
+          category: t.category || t.tenant?.category || 'General',
+          planTier: t.planTier || t.tenant?.planTier || 'FREE',
+          planName: t.planTier || t.tenant?.planTier || 'Free',
+          status: (t.status || t.tenant?.status || 'active').toLowerCase(),
+          ownerName: t.ownerName || t.admin?.name || 'Store Owner',
+          ownerEmail: t.ownerEmail || t.admin?.email || 'merchant@gojulex.shop',
+          city: t.city || t.tenant?.city || null,
+          state: t.state || t.tenant?.state || null,
+          createdAt: t.createdAt || new Date().toISOString(),
+          activeThemeId: t.activeThemeId || t.tenant?.activeThemeId || null
+        }));
+        if (!cancelled && mapped.length > 0) {
+          setTenants(mapped);
+        }
+      })
+      .catch(() => {});
+
+    api.plans.list()
+      .then((res) => {
+        if (cancelled || !res?.success) return;
+        const dbPlans = (res.data || []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          tagline: p.description || '',
+          priceINR: p.priceINR,
+          interval: p.billingPeriod === 'FREE' ? 'free' : p.billingPeriod === 'SIX_MONTH' ? '6_months' : p.billingPeriod === 'ONE_YEAR' ? '1_year' : '2_years',
+          isPopular: p.isPopular,
+          features: { customDomain: p.customDomain, maxProducts: p.productLimit || 'Unlimited', whatsappSync: true, instagramApi: true, platformFeePercent: 0 }
+        }));
+        if (!cancelled && dbPlans.length > 0) setPlans(dbPlans);
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, []);
+
   const [atRiskSubscriptions, setAtRiskSubscriptions] = useState(() => {
     try {
       const saved = localStorage.getItem('gojulex_super_at_risk');

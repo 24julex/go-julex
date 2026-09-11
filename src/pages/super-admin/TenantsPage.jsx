@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { TenantDetailDrawer } from '../../components/super-admin/TenantDetailDrawer';
 import { AddTenantModal } from '../../components/super-admin/AddTenantModal';
+import { api } from '../../services/api';
 import {
   Search,
   Store,
@@ -15,10 +16,44 @@ import {
 
 export const TenantsPage = () => {
   const {
-    tenants,
+    tenants: contextTenants,
     plans,
     impersonateTenant,
   } = useSuperAdmin();
+
+  // Read DIRECTLY from the database API — no localStorage/mock fallbacks
+  const [dbTenants, setDbTenants] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    api.superAdmin.getTenants()
+      .then((res) => {
+        if (cancelled || !res?.success) return;
+        const list = (Array.isArray(res.data) ? res.data : res.data?.tenants || []).map((t) => ({
+          id: t.id,
+          name: t.name || t.tenant?.name || 'Store',
+          subdomain: String(t.subdomain || t.id || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, ''),
+          customDomain: t.customDomain || null,
+          category: t.category || t.tenant?.category || 'General',
+          planTier: t.planTier || t.tenant?.planTier || 'FREE',
+          planName: t.planTier || t.tenant?.planTier || 'Free',
+          status: (t.status || t.tenant?.status || 'active').toLowerCase(),
+          ownerName: t.ownerName || t.admin?.name || t.tenant?.ownerName || 'Store Owner',
+          ownerEmail: t.ownerEmail || t.admin?.email || t.tenant?.ownerEmail || 'merchant@gojulex.shop',
+          city: t.city || t.tenant?.city || null,
+          state: t.state || t.tenant?.state || null,
+          createdAt: t.createdAt || new Date().toISOString(),
+          monthlyRevenueINR: 0,
+          totalOrders: 0,
+          productCount: 0,
+          activeThemeId: t.activeThemeId || t.tenant?.activeThemeId || null
+        }));
+        if (!cancelled && list.length > 0) setDbTenants(list);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const tenants = dbTenants || [];
 
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
