@@ -73,9 +73,9 @@ export const AdminDashboard = () => {
     return null;
   })();
 
-  const displayWhatsApp = savedChannels?.whatsappNumber || currentStore?.ownerPhone || '+91 98765 43210';
+  const displayWhatsApp = storeAuth?.whatsappNumber || savedChannels?.whatsappNumber || currentStore?.ownerPhone || null;
   const cleanHandleBase = (currentStore?.subdomain || currentStore?.id || 'store').replace(/^store_/, '');
-  const displayInstagram = savedChannels?.instagramHandle || currentStore?.instagramHandle || `@${cleanHandleBase}_official`;
+  const displayInstagram = storeAuth?.instagramHandle || savedChannels?.instagramHandle || currentStore?.instagramHandle || null;
 
   const recentOrders = orders.slice(0, 5);
 
@@ -262,7 +262,7 @@ export const AdminDashboard = () => {
               </span>
             </div>
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-              Domain: <span className="font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{savedChannels?.customDomain || currentStore.customDomain || `${cleanHandleBase}.in`}</span>
+              Domain: <span className="font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{storeAuth?.subdomain?.replace(/\.gojulex\.com$/,'')?.replace(/\.go\.julex\.shop$/,'') + '.go.julex.shop' || savedChannels?.customDomain || currentStore?.customDomain || null}</span>
             </p>
             <div className="pt-2 border-t text-[11px] flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
               <span>SSL: Active • Edge CDN</span>

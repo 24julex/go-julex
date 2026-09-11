@@ -145,9 +145,9 @@ export const AdminInvoiceSettings = () => {
   // Customization Layer State
   const [legalName, setLegalName] = useState(currentStore?.name ? `${currentStore.name} Pvt Ltd` : 'Aura Modern Living Private Limited');
   const [tradeName, setTradeName] = useState(currentStore?.name || 'Aura Living');
-  const [gstin, setGstin] = useState('27AAACA1234A1Z5');
+  const [gstin, setGstin] = useState('');
   const [address, setAddress] = useState('1402, Sea Green Towers, Worli Sea Face, Mumbai, Maharashtra - 400030');
-  const [phone, setPhone] = useState('+91 98201 54321');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('support@auraliving.in');
   const [signatureUrl, setSignatureUrl] = useState('https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=160&q=80');
 
@@ -276,7 +276,7 @@ export const AdminInvoiceSettings = () => {
             <div className="flex items-center justify-between border-b pb-1" style={{ borderColor: 'var(--border-subtle)' }}>
               <div>
                 <p className="font-bold text-[9px] font-serif">{currentStore?.name || 'TAX INVOICE'}</p>
-                <p className="text-[7px] font-mono" style={{ color: 'var(--text-muted)' }}>GSTIN: 27AAACA1234A1Z5</p>
+                <p className="text-[7px] font-mono" style={{ color: 'var(--text-muted)' }}>GSTIN: {gstin || 'Not set'}</p>
               </div>
               <span className="text-[7px] text-white px-1 py-0.2 rounded font-bold" style={{ backgroundColor: activeColor }}>GST A4</span>
             </div>

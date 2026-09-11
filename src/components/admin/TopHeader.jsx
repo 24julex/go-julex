@@ -234,7 +234,7 @@ export const TopHeader = ({ onToggleMobileNav, searchQuery, setSearchQuery }) =>
                 {ownerDisplayName}
               </p>
               <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
-                {currentUser?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Store Owner'}
+                {currentUser?.name || currentStore?.ownerName || 'My Store'}
               </p>
             </div>
             <ChevronDown className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />

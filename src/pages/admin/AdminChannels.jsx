@@ -182,7 +182,7 @@ export const AdminChannels = () => {
 
           <div className="p-3.5 rounded-2xl border flex items-center justify-between text-xs" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-card)' }}>
             <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Synced Handle:</span>
-            <span className="font-mono text-pink-500 font-bold">@{currentStore.id}_official</span>
+            <span className="font-mono text-pink-500 font-bold">{currentStore?.instagramHandle || 'Not connected'}</span>
           </div>
 
           <div className="space-y-2 text-xs" style={{ color: 'var(--text-secondary)' }}>

@@ -14,8 +14,8 @@ export const EditSalesChannelModal = ({ isOpen, onClose, initialChannel = 'all' 
       if (saved) return JSON.parse(saved);
     } catch {}
     return {
-      whatsappNumber: currentStore?.ownerPhone || '+91 98765 43210',
-      instagramHandle: currentStore?.instagramHandle || `@${(currentStore?.subdomain || currentStore?.id || 'store').replace(/^store_/, '')}_official`,
+      whatsappNumber: currentStore?.whatsappNumber || currentStore?.ownerPhone || '',
+      instagramHandle: currentStore?.instagramHandle || '',
       customDomain: currentStore?.customDomain || `${(currentStore?.subdomain || 'store').replace(/^store_/, '')}.in`,
       isWhatsAppEnabled: true,
       isInstagramEnabled: true,
