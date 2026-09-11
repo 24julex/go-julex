@@ -91,21 +91,21 @@ export const CheckoutPage = () => {
   // Payable after coupon discount (must come after cartTotals destructure)
   const payableAmount = Math.max(0, finalAmount - (appliedCoupon?.discountINR || 0));
 
-  // Form State
+  // Form State — no prefilled demo values; customers enter their own details
   const [formData, setFormData] = useState({
-    fullName: currentUser?.name || 'Abinaya',
-    email: currentUser?.email || 'customer@gojulex.com',
+    fullName: currentUser?.name || '',
+    email: currentUser?.email || '',
     phone: '',
     street: '',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    zipCode: '600001',
+    city: '',
+    state: '',
+    zipCode: '',
     country: 'India',
     paymentMethod: 'upi', // 'upi', 'card', 'cod', 'netbanking'
-    upiId: 'customer@okaxis',
-    cardNumber: '•••• •••• •••• 4242',
-    cardExpiry: '12/28',
-    cardCvc: '888'
+    upiId: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvc: ''
   });
 
   useEffect(() => {
@@ -337,13 +337,12 @@ export const CheckoutPage = () => {
 
     // 4. Default fallback if subdomain exists
     if (resolvedSubdomain) {
-      const isRam = resolvedSubdomain.includes('ram');
       return {
         id: `store_${resolvedSubdomain}`,
-        name: isRam ? "RAM'S T-SHIRT STORE" : (resolvedSubdomain.toUpperCase() + ' STORE'),
-        subdomain: `${resolvedSubdomain}.gojulex.com`,
-        gstin: '33AABCR1234T1Z8',
-        ownerEmail: `${resolvedSubdomain}@merchant.com`,
+        name: resolvedSubdomain.toUpperCase() + ' STORE',
+        subdomain: `${resolvedSubdomain}.go.julex.shop`,
+        gstin: '',
+        ownerEmail: '',
         ownerPhone: '',
         address: ''
       };

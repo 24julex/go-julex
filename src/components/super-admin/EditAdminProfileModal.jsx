@@ -10,7 +10,7 @@ export const EditAdminProfileModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     name: activeAdmin?.name || 'Super Admin',
     email: activeAdmin?.email || 'admin@gojulex.com',
-    phone: activeAdmin?.phone || '+91 98000 00000',
+    phone: activeAdmin?.phone || '',
     role: activeAdmin?.role || 'Super Admin',
     avatarUrl: activeAdmin?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80'
   });
@@ -20,7 +20,7 @@ export const EditAdminProfileModal = ({ isOpen, onClose }) => {
       setFormData({
         name: activeAdmin.name || 'Super Admin',
         email: activeAdmin.email || 'admin@gojulex.com',
-        phone: activeAdmin.phone || '+91 98000 00000',
+        phone: activeAdmin.phone || '',
         role: activeAdmin.role || 'Super Admin',
         avatarUrl: activeAdmin.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80'
       });
@@ -40,7 +40,7 @@ export const EditAdminProfileModal = ({ isOpen, onClose }) => {
       ...activeAdmin,
       ...formData,
       lastSecurityCheck: 'Live Active',
-      ipAddress: activeAdmin?.ipAddress || '103.211.54.18'
+      ipAddress: activeAdmin?.ipAddress || ''
     };
 
     // 1. Update Super Admin Context

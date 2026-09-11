@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { INITIAL_PRODUCTS, INITIAL_ORDERS, LUXURY_BRANDS, WATCH_CATEGORIES } from '../data/initialData';
+import { INITIAL_PRODUCTS, LUXURY_BRANDS, WATCH_CATEGORIES } from '../data/initialData';
 import { api } from '../services/api';
 
 const ProductContext = createContext();
@@ -26,7 +26,8 @@ export const ProductProvider = ({ children }) => {
         return [];
       }
     }
-    return INITIAL_ORDERS;
+    // No seeded demo orders — real orders are created at checkout
+    return [];
   });
 
   const [brands, setBrands] = useState(() => {
@@ -443,10 +444,10 @@ export const ProductProvider = ({ children }) => {
   const resetToFactoryCatalog = async () => {
     api.admin.reset().catch((e) => console.error(e));
     setProducts(INITIAL_PRODUCTS);
-    setOrders(INITIAL_ORDERS);
+    setOrders([]);
     setBrands(LUXURY_BRANDS);
     localStorage.setItem('chronos_products', JSON.stringify(INITIAL_PRODUCTS));
-    localStorage.setItem('chronos_orders', JSON.stringify(INITIAL_ORDERS));
+    localStorage.setItem('chronos_orders', JSON.stringify([]));
     localStorage.setItem('chronos_brands', JSON.stringify(LUXURY_BRANDS));
   };
 

@@ -70,7 +70,7 @@ export const MerchantsPage = () => {
         id: merchant.tenantId || merchant.associatedStoreId || `store_${cleanSub}`,
         name: storeName,
         subdomain: cleanSub,
-        customDomain: `${cleanSub}.in`,
+        customDomain: null,
         category: 'Bespoke E-Commerce Store',
         ownerName: merchant.name,
         ownerEmail: merchant.email,

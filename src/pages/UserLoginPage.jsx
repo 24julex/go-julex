@@ -37,7 +37,7 @@ export const UserLoginPage = () => {
   const redirectPath = searchParams.get('redirect') || defaultStorePath;
 
   const [activeTab, setActiveTab] = useState(initialTab);
-  const { loginUser, registerUser, defaultCustomer } = useAuth();
+  const { loginUser, registerUser } = useAuth();
   const navigate = useNavigate();
 
   // Login Form
@@ -112,12 +112,6 @@ export const UserLoginPage = () => {
       setError('Registration connection error.');
       setLoading(false);
     }
-  };
-
-  const fillDemoCustomerCredentials = () => {
-    setEmail(defaultCustomer.email);
-    setPassword(defaultCustomer.password);
-    setError('');
   };
 
   return (
@@ -197,7 +191,7 @@ export const UserLoginPage = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="customer@gojulex.com"
+                    placeholder="you@example.com"
                     className="w-full pl-10 pr-4 py-2.5 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-sky-400 transition"
                   />
                 </div>
@@ -236,17 +230,6 @@ export const UserLoginPage = () => {
                 )}
               </button>
 
-              {/* 1-Click Demo Fill */}
-              <div className="pt-3 border-t border-slate-800 space-y-2">
-                <button
-                  type="button"
-                  onClick={fillDemoCustomerCredentials}
-                  className="w-full py-2 px-3 rounded-xl bg-obsidian-950 hover:bg-slate-800 border border-slate-700 text-xs text-sky-300 font-semibold flex items-center justify-center gap-2 transition"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                  Auto-Fill Demo Customer (customer@gojulex.com)
-                </button>
-              </div>
             </form>
           )}
 
@@ -264,7 +247,7 @@ export const UserLoginPage = () => {
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Aarav Sharma"
+                    placeholder="Your full name"
                     className="w-full pl-10 pr-4 py-2 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-sky-400"
                   />
                 </div>

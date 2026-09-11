@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 
 export const AdminLoginPage = () => {
-  const { loginAdmin, registerMerchant, oauthLogin, googleSignIn, completeGoogleRedirect } = useAuth();
+  const { loginAdmin, adoptBackendSession, oauthLogin, googleSignIn, completeGoogleRedirect } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
@@ -611,25 +611,10 @@ export const AdminLoginPage = () => {
       }
       localStorage.setItem('gojulex_jwt_token', backend.token);
 
-      const cleanSub = (backend.store?.slug || regStoreName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'mystore');
-      const result = await registerMerchant({
-        email: regEmail.trim(),
-        password: regPassword,
-        name: regName.trim() || regEmail.split('@')[0],
-        storeName: regStoreName.trim(),
-        subdomain: cleanSub,
-        customDomain: cleanSub + '.in',
-        category: 'Custom E-Commerce Store',
-        themePresetId: 'preset_pure_minimal',
-        startWithEmptyCatalog: true
-      });
-
-      if (result && result.success) {
-        navigate('/admin');
-      } else {
-        setError(result?.message || 'Failed to create merchant store.');
-        setLoading(false);
-      }
+      // Real DB account created via /auth/signup-store (OTP verified) — adopt
+      // the backend session and enter the console. No local shadow data.
+      adoptBackendSession(backend);
+      navigate('/admin');
     } catch (err) {
       setError('Store creation connection error.');
       setLoading(false);

@@ -1,317 +1,15 @@
 import { api } from '../services/api';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-  initialTenants,
-  initialPlans,
-  initialMRRHistory,
-  initialAtRiskSubscriptions,
-  initialAuditLogs,
-  initialMerchantUsers,
-  initialBroadcasts,
-  initialFeatureFlags,
-  conversionFunnelData,
-  platformGMVTrend
-} from '../data/superAdminData';
 
 const SuperAdminContext = createContext(null);
 
 export const SuperAdminProvider = ({ children }) => {
-  // Helper to discover all real created stores from localStorage and merge with initial demo stores
-    // Helper to discover all real created stores from localStorage and backend
-    // Helper to discover only genuine user-created stores
-    // Helper to discover exclusively genuine user-created stores
-  const loadAllTenants = () => {
-    const discoveredMap = new Map();
-
-    const isDemoStore = (t) => {
-      if (!t) return true;
-      const id = String(t.id || '').toLowerCase();
-      const sub = String(t.subdomain || '').toLowerCase();
-      const name = String(t.name || '').toLowerCase();
-      
-      // Filter out any mock store from seed or previous demo sessions
-      if (id.startsWith('ten_') || id.startsWith('test-store-') || id === 'global_flags' || id === 'demo') return true;
-
-      // Junk auto-created stores: literal "store" names or empty identities
-      if (name === 'store' || name === 'my store' || !name || id === 'store' || id === 'store_store') return true;
-      
-      const demoNames = [
-        'aura', 'apex', 'zariya', 'niloufer', 'tvara', 'rivaaz', 'solah',
-        'veda', 'miraya', 'swarnam', 'tara', 'noor', 'green earth',
-        'vogue threads', 'samay', 'claycraft', 'theobroma', 'kaveri',
-        'automated test', 'test boutique'
-      ];
-      
-      return demoNames.some(d => id.includes(d) || sub.includes(d) || name.includes(d));
-    };
-
-    // 1. Auto-discover all user-created stores from localStorage profiles
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('gojulex_store_profile_')) {
-          const raw = localStorage.getItem(key);
-          if (raw) {
-            try {
-              const profile = JSON.parse(raw);
-              if (profile && !isDemoStore(profile)) {
-                // Fully normalize: strip store_ prefix, .gojulex.com suffix AND
-                // trailing 'store' variants (ramstshirtstore → ramstshirt) so one
-                // physical store can never be discovered as multiple tenants
-                const sub = (profile.subdomain || profile.id?.replace(/^store_/, '') || 'mystore')
-                  .toLowerCase()
-                  .replace(/\.gojulex\.com$/, '')
-                  .replace(/^store_/, '')
-                  .replace(/store$/, '');
-                const id = `store_${sub}`;
-
-                // Products count (Real-Time Synchronized from Merchant Add Product)
-                let prodCount = 0;
-                const prodKeys = [
-                  `gojulex_store_products_${sub}`,
-                  `gojulex_store_products_${id}`,
-                  `gojulex_store_products_store_${sub}`
-                ];
-                for (const pk of prodKeys) {
-                  const prodsRaw = localStorage.getItem(pk);
-                  if (prodsRaw) {
-                    try {
-                      const arr = JSON.parse(prodsRaw);
-                      if (Array.isArray(arr) && arr.length > 0) {
-                        prodCount = arr.length;
-                        break;
-                      }
-                    } catch (e) {}
-                  }
-                }
-                if (prodCount === 0) {
-                  try {
-                    const rawAll = localStorage.getItem('gojulex_merchant_products');
-                    if (rawAll) {
-                      const parsed = JSON.parse(rawAll);
-                      const list = parsed[id] || parsed[sub] || parsed[`store_${sub}`];
-                      if (Array.isArray(list)) prodCount = list.length;
-                    }
-                  } catch (e) {}
-                }
-
-                // Orders count & GMV
-                let orderCount = 0;
-                let gmv = 0;
-                const ordersRaw = localStorage.getItem('gojulex_merchant_orders');
-                if (ordersRaw) {
-                  try {
-                    const orderObj = JSON.parse(ordersRaw);
-                    const storeOrders = orderObj[id] || orderObj[sub] || [];
-                    if (Array.isArray(storeOrders)) {
-                      orderCount = storeOrders.length;
-                      gmv = storeOrders.reduce((acc, o) => acc + Number(o.totalINR || o.totalAmount || 0), 0);
-                    }
-                  } catch (e) {}
-                }
-
-                const mergedTenant = {
-                  id: id,
-                  name: profile.name || (sub.charAt(0).toUpperCase() + sub.slice(1) + ' Store'),
-                  subdomain: sub,
-                  customDomain: profile.customDomain || `${sub}.in`,
-                  category: profile.category || 'Custom E-Commerce Store',
-                  ownerName: profile.ownerName || profile.name || 'Store Owner',
-                  ownerEmail: profile.ownerEmail || `${sub}@merchant.com`,
-                  planTier: profile.planTier || 'SIX_MONTH',
-                  planName: '6-Month Direct Launch (0% Fee)',
-                  status: (profile.status || 'ACTIVE').toLowerCase(),
-                  productsCount: prodCount,
-                  ordersCount: orderCount,
-                  totalOrders: orderCount,
-                  gmvINR: gmv,
-                  createdAt: profile.createdAt || new Date().toISOString().split('T')[0],
-                  admin: {
-                    name: profile.ownerName || profile.name || 'Store Owner',
-                    email: profile.ownerEmail || `${sub}@merchant.com`,
-                    phone: profile.ownerPhone || ''
-                  },
-                  isCustomTenant: true
-                };
-
-                discoveredMap.set(sub, mergedTenant);
-              }
-            } catch (e) {}
-          }
-        }
-      }
-    } catch (e) {}
-
-    // 2. Saved super tenants (Strictly real stores only)
-    try {
-      const saved = localStorage.getItem('gojulex_super_tenants');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((t) => {
-            if (t && (t.subdomain || t.id) && !isDemoStore(t)) {
-              const cleanKey = (t.subdomain || t.id).toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '').replace(/store$/, '');
-              if (!discoveredMap.has(cleanKey)) {
-                discoveredMap.set(cleanKey, { ...t, subdomain: cleanKey, isCustomTenant: true });
-              }
-            }
-          });
-        }
-      }
-    } catch (e) {}
-
-    // Ensure the 2 real user stores exist if not yet discovered
-    if (!discoveredMap.has('luxestudio')) {
-      discoveredMap.set('luxestudio', {
-        id: 'store_luxestudio',
-        name: 'luxe studio',
-        subdomain: 'luxestudio',
-        customDomain: 'luxestudio.in',
-        category: 'Fashion & Designer Apparel',
-        ownerName: 'Luxe Studio Owner',
-        ownerEmail: 'luxestudio@merchant.com',
-        planTier: 'SIX_MONTH',
-        planName: '6-Month Direct Launch (0% Fee)',
-        status: 'active',
-        productsCount: 4,
-        ordersCount: 0,
-        totalOrders: 0,
-        gmvINR: 0,
-        createdAt: '2026-09-01',
-        admin: {
-          name: 'Luxe Studio Owner',
-          email: 'luxestudio@merchant.com',
-          phone: ''
-        },
-        isCustomTenant: true
-      });
-    }
-
-    if (!discoveredMap.has('abisjewel')) {
-      discoveredMap.set('abisjewel', {
-        id: 'store_abisjewel',
-        name: "ABI's JEWELRY STORE",
-        subdomain: 'abisjewel',
-        customDomain: 'abisjewel.in',
-        category: 'Fine Jewelry & Luxury',
-        ownerName: 'Abinaya',
-        ownerEmail: 'abisjewel@merchant.com',
-        planTier: 'SIX_MONTH',
-        planName: '6-Month Direct Launch (0% Fee)',
-        status: 'active',
-        productsCount: 2,
-        ordersCount: 0,
-        totalOrders: 0,
-        gmvINR: 0,
-        createdAt: '2026-09-01',
-        admin: {
-          name: 'Abinaya',
-          email: 'abisjewel@merchant.com',
-          phone: ''
-        },
-        isCustomTenant: true
-      });
-    }
-
-    if (!discoveredMap.has('bookstore')) {
-      discoveredMap.set('bookstore', {
-        id: 'store_bookstore',
-        name: 'Book Haven Store',
-        subdomain: 'bookstore',
-        customDomain: 'bookstore.in',
-        category: 'Books & Literature',
-        ownerName: 'Abinaya',
-        ownerEmail: 'bookstore@merchant.com',
-        planTier: 'SIX_MONTH',
-        planName: '6-Month Direct Launch (0% Fee)',
-        status: 'active',
-        productsCount: 2,
-        ordersCount: 0,
-        totalOrders: 0,
-        gmvINR: 0,
-        createdAt: '2026-09-01',
-        admin: {
-          name: 'Abinaya',
-          email: 'bookstore@merchant.com',
-          phone: ''
-        },
-        isCustomTenant: true
-      });
-    }
-
-    const finalList = Array.from(discoveredMap.values());
-    try {
-      localStorage.setItem('gojulex_super_tenants', JSON.stringify(finalList));
-    } catch {}
-    return finalList;
-  };
-
-  const loadAllMerchantUsers = (tenantsList) => {
-    const usersMap = new Map();
-    if (Array.isArray(initialMerchantUsers)) {
-      initialMerchantUsers.forEach((u) => {
-        const av = u.avatarUrl || u.avatar || u.ownerAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=FAD4C0&color=9F1239&bold=true`;
-        usersMap.set(u.email.toLowerCase(), {
-          ...u,
-          avatar: av,
-          avatarUrl: av
-        });
-      });
-    }
-
-    tenantsList.forEach((t) => {
-      if (t.ownerEmail) {
-        const em = t.ownerEmail.toLowerCase();
-        const av = t.ownerAvatar || t.admin?.avatar || t.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.ownerName || t.name)}&background=FAD4C0&color=9F1239&bold=true`;
-        usersMap.set(em, {
-          id: `usr_${t.id}`,
-          name: t.ownerName || t.name,
-          email: t.ownerEmail,
-          storeName: t.name,
-          associatedStoreName: t.name,
-          associatedStoreId: t.id,
-          tenantId: t.id,
-          subdomain: t.subdomain,
-          planTier: t.planTier || 'SIX_MONTH',
-          status: (t.status || 'active').toLowerCase(),
-          joinedAt: t.createdAt || new Date().toISOString().split('T')[0],
-          avatar: av,
-          avatarUrl: av
-        });
-      }
-    });
-
-    // One merchant per physical store: normalize store identities (strip
-    // store_ prefix / domain suffix / trailing 'store') and keep the REAL
-    // account (canonical email) over auto-generated owner@ stubs
-    const normStore = (u) => String(u.associatedStoreId || u.tenantId || u.subdomain || u.storeName || u.email)
-      .toLowerCase()
-      .replace(/\.gojulex\.com$/, '')
-      .replace(/^store_/, '')
-      .replace(/store$/, '');
-    const byStore = new Map();
-    Array.from(usersMap.values()).forEach((u) => {
-      const k = normStore(u);
-      const prev = byStore.get(k);
-      const preferNew = !prev || (prev.email.startsWith('owner@') && !u.email.startsWith('owner@'));
-      if (preferNew) byStore.set(k, u);
-    });
-    return Array.from(byStore.values());
-  };
-
-  // State initialization
-  const [tenants, setTenants] = useState(() => loadAllTenants());
-  const [merchantUsers, setMerchantUsers] = useState(() => loadAllMerchantUsers(loadAllTenants()));
-  const [broadcasts, setBroadcasts] = useState(initialBroadcasts || []);
-  
-  const [plans, setPlans] = useState(() => {
-    try {
-      const saved = localStorage.getItem('gojulex_super_plans');
-      return saved ? JSON.parse(saved) : (initialPlans || []);
-    } catch {
-      return initialPlans || [];
-    }
-  });
+  // State initialization — empty until the backend API loads real rows.
+  // The database is the single source of truth: no mock fallbacks.
+  const [tenants, setTenants] = useState([]);
+  const [merchantUsers, setMerchantUsers] = useState([]);
+  const [broadcasts, setBroadcasts] = useState([]);
+  const [plans, setPlans] = useState([]);
 
   // Fetch REAL data from the database API on mount — replaces all
   // localStorage/mock tenant discovery with database truth.
@@ -363,219 +61,13 @@ export const SuperAdminProvider = ({ children }) => {
     return () => { cancelled = true; };
   }, []);
 
-  const [atRiskSubscriptions, setAtRiskSubscriptions] = useState(() => {
-    try {
-      const saved = localStorage.getItem('gojulex_super_at_risk');
-      return saved ? JSON.parse(saved) : (initialAtRiskSubscriptions || []);
-    } catch {
-      return initialAtRiskSubscriptions || [];
-    }
-  });
+  const [atRiskSubscriptions, setAtRiskSubscriptions] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [mrrHistory, setMrrHistory] = useState([]);
+  const [featureFlags, setFeatureFlags] = useState([]);
 
-  const [auditLogs, setAuditLogs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('gojulex_super_audit_logs');
-      return saved ? JSON.parse(saved) : (initialAuditLogs || []);
-    } catch {
-      return initialAuditLogs || [];
-    }
-  });
-
-  const [mrrHistory, setMrrHistory] = useState(initialMRRHistory || []);
-  
-  const [featureFlags, setFeatureFlags] = useState(() => {
-    try {
-      const saved = localStorage.getItem('gojulex_super_flags');
-      return saved ? JSON.parse(saved) : initialFeatureFlags;
-    } catch {
-      return initialFeatureFlags;
-    }
-  });
-
-  // Master Invoice Templates Registry
-  const [masterInvoiceTemplates, setMasterInvoiceTemplates] = useState(() => {
-    try {
-      const saved = localStorage.getItem('gojulex_super_invoice_templates');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'tpl_classic_tax_a4',
-          name: 'Classic Tax A4',
-          slug: 'classic-tax-a4',
-          description: 'Government-compliant GST tax invoice featuring dual CGST/SGST breakdowns, HSN codes, authorized signatory box, and QR payment stamp.',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
-          isPublished: true,
-          tierAccess: 'FREE',
-          installedCount: 420,
-          defaultLayout: {
-            headerStyle: 'split_left_right',
-            accentColor: '#E8927C',
-            fontFamily: 'Inter',
-            fontSize: 12,
-            columns: [
-              { id: 'sno', label: 'S.No', visible: true, width: '8%' },
-              { id: 'item', label: 'Item & SKU Details', visible: true, width: '42%' },
-              { id: 'hsn', label: 'HSN / SAC', visible: true, width: '12%' },
-              { id: 'qty', label: 'Qty', visible: true, width: '8%' },
-              { id: 'price', label: 'Unit Rate (₹)', visible: true, width: '15%' },
-              { id: 'total', label: 'Amount (₹)', visible: true, width: '15%' }
-            ],
-            taxFormat: 'split_cgst_sgst',
-            showSignatoryBox: true,
-            showQrCode: true,
-            showDiscountBreakdown: true,
-            defaultTerms: '1. Goods once sold can be exchanged within 7 days with original tax invoice.\n2. Warranty claims are subject to manufacturer terms.\n3. Issued under Go Julex 0% platform fee.'
-          }
-        },
-        {
-          id: 'tpl_minimalist_thermal',
-          name: 'Minimalist Thermal & POS',
-          slug: 'minimalist-thermal',
-          description: 'Ultra-compact, high-contrast monochrome layout optimized for thermal roll printers, WhatsApp instant delivery, and fast in-store pickup.',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&auto=format&fit=crop&q=80',
-          isPublished: true,
-          tierAccess: 'FREE',
-          installedCount: 310,
-          defaultLayout: {
-            headerStyle: 'centered_minimal',
-            accentColor: '#4A281E',
-            fontFamily: 'Space Grotesk',
-            fontSize: 11,
-            columns: [
-              { id: 'sno', label: '#', visible: false, width: '0%' },
-              { id: 'item', label: 'Description', visible: true, width: '55%' },
-              { id: 'hsn', label: 'HSN', visible: false, width: '0%' },
-              { id: 'qty', label: 'Qty', visible: true, width: '15%' },
-              { id: 'price', label: 'Rate', visible: true, width: '15%' },
-              { id: 'total', label: 'Total', visible: true, width: '15%' }
-            ],
-            taxFormat: 'unified_gst',
-            showSignatoryBox: false,
-            showQrCode: true,
-            showDiscountBreakdown: true,
-            defaultTerms: 'Thank you for supporting our independent store! Scan QR code to track delivery.'
-          }
-        },
-        {
-          id: 'tpl_modern_luxury_ribbon',
-          name: 'Modern Luxury Ribbon',
-          slug: 'modern-luxury-ribbon',
-          description: 'Editorial high-fashion layout with terracotta ribbon borders, serif Roman titles, elegant product thumbnails, and velvet gold accents.',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=400&auto=format&fit=crop&q=80',
-          isPublished: true,
-          tierAccess: 'PRO_EXCLUSIVE',
-          installedCount: 185,
-          defaultLayout: {
-            headerStyle: 'banner_strip',
-            accentColor: '#C86D51',
-            fontFamily: 'Playfair Display',
-            fontSize: 12,
-            columns: [
-              { id: 'sno', label: 'Item', visible: true, width: '10%' },
-              { id: 'item', label: 'Atelier Piece & Craft Notes', visible: true, width: '50%' },
-              { id: 'hsn', label: 'HSN', visible: false, width: '0%' },
-              { id: 'qty', label: 'Qty', visible: true, width: '10%' },
-              { id: 'price', label: 'Rate (₹)', visible: true, width: '15%' },
-              { id: 'total', label: 'Total (₹)', visible: true, width: '15%' }
-            ],
-            taxFormat: 'split_cgst_sgst',
-            showSignatoryBox: true,
-            showQrCode: true,
-            showDiscountBreakdown: true,
-            defaultTerms: 'Handcrafted luxury pieces. Complimentary appraisal certificate included. 100% authenticity guaranteed.'
-          }
-        },
-        {
-          id: 'tpl_earthy_kraft_farm',
-          name: 'Earthy Kraft Farm Slip',
-          slug: 'earthy-kraft-farm',
-          description: 'Organic rustic invoice with botanical emblems, batch harvest provenance notes, FSSAI registration stamp, and farm-to-table traceability.',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&auto=format&fit=crop&q=80',
-          isPublished: true,
-          tierAccess: 'FREE',
-          installedCount: 220,
-          defaultLayout: {
-            headerStyle: 'split_left_right',
-            accentColor: '#2D6A4F',
-            fontFamily: 'Outfit',
-            fontSize: 12,
-            columns: [
-              { id: 'sno', label: 'S.No', visible: true, width: '10%' },
-              { id: 'item', label: 'Organic Harvest & Grain Type', visible: true, width: '45%' },
-              { id: 'hsn', label: 'FSSAI/HSN', visible: true, width: '15%' },
-              { id: 'qty', label: 'Weight/Qty', visible: true, width: '15%' },
-              { id: 'price', label: 'Price (₹)', visible: false, width: '0%' },
-              { id: 'total', label: 'Amount (₹)', visible: true, width: '15%' }
-            ],
-            taxFormat: 'unified_gst',
-            showSignatoryBox: true,
-            showQrCode: true,
-            showDiscountBreakdown: true,
-            defaultTerms: 'Certified 100% Pesticide-Free Organic Produce. FSSAI Lic No. 13621014000123.'
-          }
-        },
-        {
-          id: 'tpl_boutique_atelier',
-          name: 'Boutique Atelier Slip',
-          slug: 'boutique-atelier',
-          description: 'Minimalist designer slip with bespoke signature seal, client loyalty point statements, and custom gift note section.',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&auto=format&fit=crop&q=80',
-          isPublished: true,
-          tierAccess: 'PRO_EXCLUSIVE',
-          installedCount: 140,
-          defaultLayout: {
-            headerStyle: 'split_left_right',
-            accentColor: '#9A3412',
-            fontFamily: 'Inter',
-            fontSize: 12,
-            columns: [
-              { id: 'sno', label: 'No.', visible: true, width: '8%' },
-              { id: 'item', label: 'Boutique Collection', visible: true, width: '47%' },
-              { id: 'hsn', label: 'Code', visible: true, width: '10%' },
-              { id: 'qty', label: 'Units', visible: true, width: '10%' },
-              { id: 'price', label: 'Price (₹)', visible: true, width: '12%' },
-              { id: 'total', label: 'Total (₹)', visible: true, width: '13%' }
-            ],
-            taxFormat: 'split_cgst_sgst',
-            showSignatoryBox: true,
-            showQrCode: true,
-            showDiscountBreakdown: true,
-            defaultTerms: 'Bespoke apparel custom fitted to your specifications. Exchanges accepted within 14 business days.'
-          }
-        },
-        {
-          id: 'tpl_neo_tech_digital',
-          name: 'Neo-Tech Digital Receipt',
-          slug: 'neo-tech-digital',
-          description: 'Clean modern electronics receipt with IMEI/Serial number fields, extended warranty registration barcode, and direct technical support link.',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=400&auto=format&fit=crop&q=80',
-          isPublished: true,
-          tierAccess: 'PRO_EXCLUSIVE',
-          installedCount: 95,
-          defaultLayout: {
-            headerStyle: 'banner_strip',
-            accentColor: '#1E3A8A',
-            fontFamily: 'Space Grotesk',
-            fontSize: 11,
-            columns: [
-              { id: 'sno', label: 'S.No', visible: true, width: '8%' },
-              { id: 'item', label: 'Device & Hardware Model', visible: true, width: '42%' },
-              { id: 'hsn', label: 'HSN / Serial', visible: true, width: '20%' },
-              { id: 'qty', label: 'Qty', visible: true, width: '10%' },
-              { id: 'price', label: 'Rate (₹)', visible: true, width: '10%' },
-              { id: 'total', label: 'Total (₹)', visible: true, width: '10%' }
-            ],
-            taxFormat: 'split_cgst_sgst',
-            showSignatoryBox: true,
-            showQrCode: true,
-            showDiscountBreakdown: true,
-            defaultTerms: '1 Year Manufacturer Limited Warranty. Scan QR code to register your hardware warranty.'
-          }
-        }
-      ];
-    } catch {
-      return [];
-    }
-  });
+  // Master Invoice Templates Registry — real rows from the DB API
+  const [masterInvoiceTemplates, setMasterInvoiceTemplates] = useState([]);
 
   // Global Impersonation State
   const [impersonatedTenant, setImpersonatedTenant] = useState(() => {
@@ -586,6 +78,60 @@ export const SuperAdminProvider = ({ children }) => {
       return null;
     }
   });
+
+  // Real audit logs + merchant accounts + master invoice templates from the DB
+  useEffect(() => {
+    let cancelled = false;
+    api.superAdmin.getAuditLogs({ limit: 100 })
+      .then((res) => {
+        if (cancelled || !res?.success || !Array.isArray(res.data)) return;
+        setAuditLogs(res.data.map((l) => ({
+          id: l.id,
+          adminName: l.actorEmail ? l.actorEmail.split('@')[0].replace(/[._]/g, ' ') : 'System',
+          adminEmail: l.actorEmail || 'system',
+          actionType: l.action,
+          targetTenantName: l.tenant?.name || null,
+          reason: l.detailsJson ? String(l.detailsJson) : '',
+          ipAddress: l.ipAddress || '—',
+          timestamp: l.createdAt
+        })));
+      })
+      .catch(() => {});
+    api.superAdmin.getMerchants()
+      .then((res) => {
+        if (cancelled || !res?.success || !Array.isArray(res.data)) return;
+        setMerchantUsers(res.data.map((u) => ({
+          id: u.id,
+          name: u.name || u.email.split('@')[0],
+          email: u.email,
+          // Display names matching the Merchants page role filters
+          role: u.role === 'MERCHANT_STAFF' ? 'Store Manager'
+            : (u.role === 'MERCHANT_OWNER' || u.role === 'ADMIN') ? 'Store Owner'
+            : (u.role || 'Store Owner'),
+          phone: u.phone || '',
+          avatar: u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || u.email)}&background=0D1117&color=D4A017&size=200`,
+          storeName: u.tenant?.name || 'No store linked',
+          associatedStoreName: u.tenant?.name || 'No store linked',
+          associatedStoreId: u.tenantId,
+          tenantId: u.tenantId,
+          subdomain: u.tenant?.subdomain || '',
+          status: (u.tenant?.status || 'active').toLowerCase(),
+          joinedAt: u.createdAt,
+          twoFactorEnabled: u.twoFactorEnabled
+        })));
+      })
+      .catch(() => {});
+    api.superAdmin.getInvoices()
+      .then((res) => {
+        if (cancelled || !res?.success || !Array.isArray(res.data)) return;
+        setMasterInvoiceTemplates(res.data.map((t) => ({
+          ...t,
+          installedCount: t.installedCount || 0
+        })));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Global Navigation & Modal Triggers
   const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -602,12 +148,7 @@ export const SuperAdminProvider = ({ children }) => {
     return {
       name: 'Super Admin',
       email: 'admin@gojulex.com',
-      role: 'Super Admin',
-      phone: '+91 98000 00000',
-      is2FAActive: true,
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-      lastSecurityCheck: 'Live Active',
-      ipAddress: '103.211.54.18'
+      role: 'Super Admin'
     };
   });
 
@@ -627,17 +168,17 @@ export const SuperAdminProvider = ({ children }) => {
             id: bt.id,
             name: bt.name,
             subdomain: bt.subdomain,
-            customDomain: bt.customDomain || `${bt.subdomain}.in`,
+            customDomain: bt.customDomain || null,
             category: bt.category || 'Custom E-Commerce Store',
             ownerName: bt.ownerUser?.name || bt.name,
-            ownerEmail: bt.ownerUser?.email || `${bt.subdomain}@merchant.com`,
+            ownerEmail: bt.ownerUser?.email || 'No owner linked',
             admin: {
               name: bt.ownerUser?.name || bt.name,
-              email: bt.ownerUser?.email || `${bt.subdomain}@merchant.com`,
+              email: bt.ownerUser?.email || 'No owner linked',
               phone: bt.ownerUser?.phone || '',
-              avatar: bt.ownerUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+              avatar: bt.ownerUser?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(bt.ownerUser?.name || bt.name || 'Owner')}&background=0D1117&color=D4A017&size=200`
             },
-            planTier: bt.planTier || 'SIX_MONTH',
+            planTier: bt.planTier || 'FREE',
             planName: bt.planTier === 'FREE' ? 'Free Trial (Not Paid)' : bt.planTier === 'ONE_YEAR' ? '1-Year Plan' : bt.planTier === 'SIX_MONTH' ? '6-Month Plan' : 'Free Trial',
             status: (bt.status || 'active').toLowerCase(),
             productsCount: bt.productCount || 0,
@@ -649,29 +190,8 @@ export const SuperAdminProvider = ({ children }) => {
             isLiveBackendTenant: true
           }));
 
-          // Merchant accounts are AUTHORITATIVE from the backend — real users
-          // only. This discards every ghost/duplicate entry derived from
-          // browser localStorage across demo sessions.
-          if (backendTenants.length > 0) {
-            const backendMerchants = backendTenants
-              .map((t) => ({
-                id: `usr_${t.id}`,
-                name: t.ownerName || t.name,
-                email: t.ownerEmail || `${(t.subdomain || t.id).replace(/^store_/, '')}@merchant.com`,
-                storeName: t.name,
-                associatedStoreName: t.name,
-                associatedStoreId: t.id,
-                tenantId: t.id,
-                subdomain: t.subdomain,
-                avatar: t.admin?.avatar || 'https://ui-avatars.com/api/?background=FAD4C0&color=9F1239&bold=true',
-                status: 'active'
-              }))
-              .filter((u, idx, arr) => arr.findIndex((x) => x.email.toLowerCase() === u.email.toLowerCase()) === idx);
-            if (backendMerchants.length > 0) {
-              setMerchantUsers(backendMerchants);
-              localStorage.setItem('gojulex_super_merchants', JSON.stringify(backendMerchants));
-            }
-          }
+          // Merchant accounts come from the dedicated /super-admin/merchants
+          // endpoint (real user rows) — fetched in the mount effect above.
 
           if (backendTenants.length > 0) {
             setTenants(prev => {
@@ -721,28 +241,7 @@ export const SuperAdminProvider = ({ children }) => {
     };
   }, []);
 
-  // Sync state to localStorage
-  useEffect(() => {
-    localStorage.setItem('gojulex_super_tenants', JSON.stringify(tenants));
-  }, [tenants]);
-
-  useEffect(() => {
-    localStorage.setItem('gojulex_super_plans', JSON.stringify(plans));
-  }, [plans]);
-
-  useEffect(() => {
-    localStorage.setItem('gojulex_super_audit_logs', JSON.stringify(auditLogs));
-  }, [auditLogs]);
-
-  useEffect(() => {
-    localStorage.setItem('gojulex_super_flags', JSON.stringify(featureFlags));
-  }, [featureFlags]);
-
-  useEffect(() => {
-    localStorage.setItem('gojulex_super_invoice_templates', JSON.stringify(masterInvoiceTemplates));
-  }, [masterInvoiceTemplates]);
-
-  // Master Invoice Template Handlers
+  // Master Invoice Template Handlers  // Master Invoice Template Handlers
   const addMasterInvoiceTemplate = (templateData) => {
     const newId = `tpl_${templateData.slug || Date.now().toString().slice(-6)}`;
     const newTemplate = {
@@ -838,7 +337,7 @@ export const SuperAdminProvider = ({ children }) => {
       actionType,
       targetTenantName,
       targetTenantId,
-      ipAddress: activeAdmin.ipAddress,
+      ipAddress: activeAdmin.ipAddress || '—',
       reason: reason || `Performed ${actionType} on ${targetTenantName}`,
       metadata
     };
@@ -937,7 +436,7 @@ export const SuperAdminProvider = ({ children }) => {
       slug: tenantData.slug || tenantData.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
       customDomain: tenantData.customDomain || undefined,
       subdomain: `${tenantData.slug || 'store'}.gojulex.com`,
-      logoUrl: tenantData.logoUrl || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=120&auto=format&fit=crop&q=80',
+      logoUrl: tenantData.logoUrl || null,
       planId: tenantData.planId || 'plan_6mo',
       planName: tenantData.planName || '6-Month Growth',
       billingInterval: tenantData.billingInterval || '6_months',
@@ -957,9 +456,9 @@ export const SuperAdminProvider = ({ children }) => {
         id: `usr_${newId}_adm`,
         name: tenantData.adminName || 'Store Owner',
         email: tenantData.adminEmail,
-        phone: tenantData.adminPhone || '+91 98000 00000',
+        phone: tenantData.adminPhone || '',
         role: 'Store Owner',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+        avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(tenantData.adminName || 'Owner')}&background=0D1117&color=D4A017&size=200`,
         lastLogin: new Date().toISOString()
       },
       features: {
@@ -1077,24 +576,38 @@ export const SuperAdminProvider = ({ children }) => {
   };
 
   // Broadcast Notification Handler
-  const createBroadcast = (broadcastData) => {
-    const newBc = {
-      id: `bc_${Date.now().toString().slice(-6)}`,
-      title: broadcastData.title,
-      message: broadcastData.message,
-      type: broadcastData.type || 'System Alert',
-      targetAudience: broadcastData.targetAudience || 'All Tenants',
-      channels: broadcastData.channels || ['in_app', 'email'],
-      sentAt: `${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST`,
-      sentBy: `${activeAdmin.name} (${activeAdmin.role})`,
-      deliveredCount: broadcastData.targetAudience === 'Active Only' ? tenants.filter(t => t.status === 'active').length : tenants.length,
-      openRatePercent: 100.0,
-      status: 'sent'
-    };
-
-    setBroadcasts(prev => [newBc, ...prev]);
-    logAuditEvent('Broadcast Sent', broadcastData.targetAudience, newBc.id, `Sent broadcast: "${broadcastData.title}"`);
-    showToast(`📢 Broadcast sent to ${broadcastData.targetAudience}!`, 'success');
+  const createBroadcast = async (broadcastData) => {
+    try {
+      const res = await api.superAdmin.sendBroadcast({
+        title: broadcastData.title,
+        message: broadcastData.message,
+        targetTier: broadcastData.targetAudience,
+        type: broadcastData.type
+      });
+      if (!res?.success) {
+        showToast(res?.message || 'Broadcast could not be sent.', 'error');
+        return false;
+      }
+      const newBc = {
+        id: res.data?.id || `bc_${Date.now().toString().slice(-6)}`,
+        title: broadcastData.title,
+        message: broadcastData.message,
+        type: broadcastData.type || 'System Alert',
+        targetAudience: broadcastData.targetAudience || 'All Tenants',
+        channels: broadcastData.channels || ['in_app', 'email'],
+        sentAt: `${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST`,
+        sentBy: `${activeAdmin.name} (${activeAdmin.role})`,
+        deliveredCount: res.data?.deliveredCount ?? tenants.length,
+        status: 'sent'
+      };
+      setBroadcasts(prev => [newBc, ...prev]);
+      logAuditEvent('Broadcast Sent', broadcastData.targetAudience, newBc.id, `Sent broadcast: "${broadcastData.title}"`);
+      showToast(`Broadcast sent to ${broadcastData.targetAudience}!`, 'success');
+      return true;
+    } catch (err) {
+      showToast('Cannot reach the server. Broadcast not sent.', 'error');
+      return false;
+    }
   };
 
   // At-Risk Resolution
@@ -1158,7 +671,13 @@ export const SuperAdminProvider = ({ children }) => {
   const [realMetrics, setRealMetrics] = useState(null);
   useEffect(() => {
     api.superAdmin.getMetrics()
-      .then((res) => { if (res?.success) setRealMetrics(res.data); })
+      .then((res) => {
+        if (!res?.success) return;
+        setRealMetrics(res.data);
+        // Honest MRR history: real months, Rs.0 until subscriptions exist
+        const trend = Array.isArray(res.data?.gmvTrend) ? res.data.gmvTrend : [];
+        setMrrHistory(trend.map((m) => ({ month: m.month, newMrr: 0, expansionMrr: 0, churnMrr: 0 })));
+      })
       .catch(() => {});
   }, []);
   const totalPlatformGMV = realMetrics?.totalPlatformGMV ?? tenants.reduce((sum, t) => sum + Number(t.gmvINR || 0), 0);
@@ -1184,9 +703,8 @@ export const SuperAdminProvider = ({ children }) => {
         isCommandPaletteOpen,
         is2FAModalOpen,
         toast,
-        conversionFunnelData,
         signupVelocity7Days,
-        platformGMVTrend,
+        platformGMVTrend: realMetrics?.gmvTrend || [],
 
         // Platform KPIs
         metrics: {

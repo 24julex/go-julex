@@ -13,27 +13,30 @@ export const InvoiceFullPreviewModal = ({ isOpen, onClose, template, storeContex
 
   // Template defaultLayout carries headerStyle / accent / fonts (seed data)
   const layout = template.defaultLayout || {};
+  // Template defaultLayout carries headerStyle / accent / fonts (seed data).
+  // Deliberately generic sample values — this renders a template layout
+  // preview, never real customer data.
   const sampleOrder = {
     id: 'ORD-PREVIEW',
-    orderNumber: 'ORD-10001',
-    invoiceNumber: 'INV-10001',
-    customerName: 'Aarav Sharma',
-    customerEmail: 'aarav@example.com',
-    customerPhone: '+91 98450 12345',
+    orderNumber: 'ORD-PREVIEW',
+    invoiceNumber: 'INV-PREVIEW',
+    customerName: 'Sample Customer',
+    customerEmail: 'sample@example.com',
+    customerPhone: '+91 90000 00000',
     tenantId: storeContext?.id,
     storeSubdomain: storeContext?.subdomain,
     createdAt: new Date().toISOString(),
-    paymentMethod: 'Instant UPI (demo@upi)',
+    paymentMethod: 'UPI',
     paymentStatus: 'PAID',
-    trackingNumber: 'TRK-IN-10001-EXP',
-    shippingAddress: { street: '42 Marine Drive', city: 'Mumbai', state: 'Maharashtra', postalCode: '400020' },
+    trackingNumber: 'TRK-PREVIEW',
+    shippingAddress: { street: 'Sample Address Line', city: 'City', state: 'State', postalCode: '000000' },
     items: [
-      { id: 'itm1', name: 'Signature Artisan Piece', variant: 'Ivory / Medium', unitPrice: 4850, price: 4850, quantity: 2, subtotalINR: 9700 },
-      { id: 'itm2', name: 'Bespoke Gift Wrap', variant: 'Gold', unitPrice: 250, price: 250, quantity: 1, subtotalINR: 250 }
+      { id: 'itm1', name: 'Sample Product A', variant: 'Variant / Size', unitPrice: 1000, price: 1000, quantity: 2, subtotalINR: 2000 },
+      { id: 'itm2', name: 'Sample Product B', variant: 'Variant', unitPrice: 500, price: 500, quantity: 1, subtotalINR: 500 }
     ],
-    actualCostINR: 9950,
-    totalAmountINR: 9950,
-    totalAmount: 9950,
+    actualCostINR: 2500,
+    totalAmountINR: 2500,
+    totalAmount: 2500,
     discountAppliedINR: 0
   };
 
@@ -60,12 +63,12 @@ export const InvoiceFullPreviewModal = ({ isOpen, onClose, template, storeContex
             fontFamily: layout.fontFamily || 'Inter',
             fontSize: layout.fontSize || 12,
             headerStyle: layout.headerStyle || 'split_left_right',
-            legalName: 'Preview Merchant Private Limited',
+            legalName: 'Sample Merchant Private Limited',
             tradeName: storeContext?.name || template.name,
-            gstin: '27AAACA1234A1Z5',
-            address: 'Preview Store, Marine Drive, Mumbai, Maharashtra - 400020',
-            phone: '+91 98201 54321',
-            email: 'orders@preview.gojulex.com',
+            gstin: 'SAMPLE GSTIN',
+            address: 'Sample Store Address, City, State - 000000',
+            phone: '+91 90000 00000',
+            email: 'sample@example.com',
             terms: layout.defaultTerms || '1. Goods once sold can be exchanged within 7 business days.\n2. Issued under Go Julex 0% platform fee.'
           }}
         />

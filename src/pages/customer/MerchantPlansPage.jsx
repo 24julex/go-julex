@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { GOJULEX_SAAS_PLANS } from '../../data/initialData';
+import { api } from '../../services/api';
 import {
   ShieldCheck,
   Zap,
@@ -19,15 +19,50 @@ import {
 
 export const MerchantPlansPage = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState(250000);
-  const [selectedPlanId, setSelectedPlanId] = useState('plan-1yr');
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [subscribedPlan, setSubscribedPlan] = useState(null);
+  // Real plans from the database — the same records the Super Admin manages
+  const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    api.plans.list()
+      .then((res) => {
+        if (res?.success && Array.isArray(res.data)) {
+          setPlans(res.data.map((p) => ({
+            id: p.id,
+            name: p.name,
+            tagline: p.description || '',
+            priceINR: Number(p.priceINR || 0),
+            billingCycle: p.billingPeriod === 'SIX_MONTH' ? '6 months' : p.billingPeriod === 'ONE_YEAR' ? 'year' : 'forever',
+            billingPeriod: p.billingPeriod,
+            isPopular: p.isPopular,
+            features: [
+              '0% platform fee — keep every rupee of revenue',
+              p.customDomain ? 'Custom domain support' : 'Free go.julex.shop subdomain',
+              p.productLimit ? `${p.productLimit} products` : 'Unlimited products',
+              'Full storefront theme builder'
+            ]
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPlanId && plans.length > 0) {
+      const oneYear = plans.find((p) => p.billingPeriod === 'ONE_YEAR');
+      setSelectedPlanId((oneYear || plans[0]).id);
+    }
+  }, [plans, selectedPlanId]);
 
   const legacyCommissionRate = 0.18;
   const legacyMonthlyCut = monthlyRevenue * legacyCommissionRate;
   const legacyAnnualCut = legacyMonthlyCut * 12;
 
-  const selectedPlan = GOJULEX_SAAS_PLANS.find((p) => p.id === selectedPlanId) || GOJULEX_SAAS_PLANS[1];
-  const gojulexAnnualCost = selectedPlan.id === 'plan-6mo' ? selectedPlan.priceINR * 2 : selectedPlan.priceINR;
+  const selectedPlan = plans.find((p) => p.id === selectedPlanId) || plans[0];
+  const gojulexAnnualCost = selectedPlan
+    ? (selectedPlan.billingPeriod === 'SIX_MONTH' ? selectedPlan.priceINR * 2 : selectedPlan.priceINR)
+    : 0;
   const netAnnualSavings = Math.max(0, legacyAnnualCut - gojulexAnnualCost);
 
   const handleSelectPlan = (plan) => {
@@ -96,7 +131,12 @@ export const MerchantPlansPage = () => {
 
       {/* Plans Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {GOJULEX_SAAS_PLANS.map((plan) => {
+        {plans.length === 0 && (
+          <p className="text-xs md:col-span-2 text-center" style={{ color: 'var(--text-muted)' }}>
+            Loading live plans from the platform…
+          </p>
+        )}
+        {plans.map((plan) => {
           const isSelected = selectedPlanId === plan.id;
           return (
             <div

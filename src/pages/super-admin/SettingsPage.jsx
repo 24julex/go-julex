@@ -72,6 +72,11 @@ export const SettingsPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2">
+          {featureFlags.length === 0 && (
+            <p className="text-xs md:col-span-2" style={{ color: 'var(--text-muted)' }}>
+              No feature flags configured yet.
+            </p>
+          )}
           {featureFlags.map((flag) => (
             <div
               key={flag.id}

@@ -26,10 +26,11 @@ export const NewBroadcastModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    createBroadcast(formData);
-    onClose();
+    // Sent through the backend API — close only on a confirmed delivery
+    const ok = await createBroadcast(formData);
+    if (ok) onClose();
   };
 
   const getTypeStyle = (type) => {

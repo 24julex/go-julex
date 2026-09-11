@@ -215,7 +215,7 @@ router.post('/register', async (req, res) => {
         name: name.trim(),
         phone: phone || null,
         role: 'USER',
-        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'
+        avatarUrl: null
       }
     });
 
@@ -246,18 +246,14 @@ const OAUTH_PROVIDERS = {
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenUrl: 'https://oauth2.googleapis.com/token',
     userInfoUrl: 'https://www.googleapis.com/oauth2/v3/userinfo',
-    scope: 'openid email profile',
-    demoEmail: 'merchant.google@mybrand.com',
-    demoName: 'Google Merchant'
+    scope: 'openid email profile'
   },
   microsoft: {
     clientId: () => process.env.MICROSOFT_CLIENT_ID,
     authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
     tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
     userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
-    scope: 'openid email profile',
-    demoEmail: 'merchant.microsoft@mybrand.com',
-    demoName: 'Microsoft Merchant'
+    scope: 'openid email profile'
   }
 };
 
@@ -298,11 +294,10 @@ const findOrCreateOAuthMerchant = async ({ email, name, avatarUrl, provider }) =
         data: {
           id: tenantId,
           name: `${(name || 'My Brand').split(' ')[0]}'s Store`,
-          subdomain,
-          customDomain: `${subdomain}.in`,
+          subdomain: `${subdomain}.go.julex.shop`,
           category: 'Custom E-Commerce Store',
-          planTier: 'SIX_MONTH',
-          status: 'ACTIVE'
+          planTier: 'FREE',
+          status: 'DRAFT'
         }
       });
     } catch (e) {
@@ -379,7 +374,8 @@ router.post('/oauth/firebase-google', async (req, res) => {
 });
 
 
-// Button click — real redirect when configured, instant demo session otherwise
+// Button click — real redirect when configured, honest
+// "not configured" error otherwise (never a fabricated session)
 router.post('/oauth/:provider', async (req, res) => {
   const cfg = OAUTH_PROVIDERS[(req.params.provider || '').toLowerCase()];
   if (!cfg) return res.status(400).json({ success: false, message: 'Unsupported provider.' });
