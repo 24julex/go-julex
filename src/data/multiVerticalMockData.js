@@ -23,11 +23,11 @@ export const DEMO_STORES = [
     city: 'Chennai, Tamil Nadu',
     ownerName: 'Luxe Studio Owner',
     ownerEmail: 'luxestudio@merchant.com',
-    ownerPhone: '+91 98765 43210',
+    ownerPhone: '',
     ownerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     is2FAEnabled: true,
     gstin: '33AABCL1234A1Z5',
-    address: '128 Heritage Avenue, Studio Lane, Chennai - 600001',
+    address: '',
     logo: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=120&q=80'
   },
   {
@@ -48,7 +48,7 @@ export const DEMO_STORES = [
     city: 'Chennai, Tamil Nadu',
     ownerName: 'Abinaya',
     ownerEmail: 'abisjewel@merchant.com',
-    ownerPhone: '+91 98765 43210',
+    ownerPhone: '',
     ownerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     is2FAEnabled: true,
     gstin: '33AABCU9603R1ZX',
@@ -73,7 +73,7 @@ export const DEMO_STORES = [
     city: 'Chennai, Tamil Nadu',
     ownerName: 'Abinaya',
     ownerEmail: 'bookstore@merchant.com',
-    ownerPhone: '+91 98765 43210',
+    ownerPhone: '',
     ownerAvatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=200&q=80',
     is2FAEnabled: true,
     gstin: '33AABCB5678A1Z9',
@@ -98,11 +98,11 @@ export const DEMO_STORES = [
     city: 'Chennai, Tamil Nadu',
     ownerName: 'Ram',
     ownerEmail: 'ramstshirt@merchant.com',
-    ownerPhone: '+91 98765 43210',
+    ownerPhone: '',
     ownerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     is2FAEnabled: true,
     gstin: '33AABCR1234T1Z8',
-    address: '128 Heritage Avenue, Studio Lane, Chennai, Tamil Nadu - 600001',
+    address: '',
     logo: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=120&q=80'
   }
 ];

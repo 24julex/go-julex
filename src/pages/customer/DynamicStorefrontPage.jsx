@@ -3792,7 +3792,7 @@ export const DynamicStorefrontPage = () => {
                         </a>
                         <a href="tel:+919876543210" className="flex items-start gap-3 hover:text-black transition">
                           <Phone className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
-                          <span>+91 98765 43210 (Mon–Sat, 10am–7pm)</span>
+                          <span>Contact store for support hours</span>
                         </a>
                         <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-black transition">
                           <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />

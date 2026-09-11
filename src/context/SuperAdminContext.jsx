@@ -129,7 +129,7 @@ export const SuperAdminProvider = ({ children }) => {
                   admin: {
                     name: profile.ownerName || profile.name || 'Store Owner',
                     email: profile.ownerEmail || `${sub}@merchant.com`,
-                    phone: profile.ownerPhone || '+91 98765 43210'
+                    phone: profile.ownerPhone || ''
                   },
                   isCustomTenant: true
                 };
@@ -181,7 +181,7 @@ export const SuperAdminProvider = ({ children }) => {
         admin: {
           name: 'Luxe Studio Owner',
           email: 'luxestudio@merchant.com',
-          phone: '+91 98765 43210'
+          phone: ''
         },
         isCustomTenant: true
       });
@@ -207,7 +207,7 @@ export const SuperAdminProvider = ({ children }) => {
         admin: {
           name: 'Abinaya',
           email: 'abisjewel@merchant.com',
-          phone: '+91 98765 43210'
+          phone: ''
         },
         isCustomTenant: true
       });
@@ -233,7 +233,7 @@ export const SuperAdminProvider = ({ children }) => {
         admin: {
           name: 'Abinaya',
           email: 'bookstore@merchant.com',
-          phone: '+91 98765 43210'
+          phone: ''
         },
         isCustomTenant: true
       });
@@ -634,7 +634,7 @@ export const SuperAdminProvider = ({ children }) => {
             admin: {
               name: bt.ownerUser?.name || bt.name,
               email: bt.ownerUser?.email || `${bt.subdomain}@merchant.com`,
-              phone: bt.ownerUser?.phone || '+91 98765 43210',
+              phone: bt.ownerUser?.phone || '',
               avatar: bt.ownerUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
             },
             planTier: bt.planTier || 'SIX_MONTH',

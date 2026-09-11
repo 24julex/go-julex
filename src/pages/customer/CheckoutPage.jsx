@@ -95,8 +95,8 @@ export const CheckoutPage = () => {
   const [formData, setFormData] = useState({
     fullName: currentUser?.name || 'Abinaya',
     email: currentUser?.email || 'customer@gojulex.com',
-    phone: '+91 98765 43210',
-    street: '128 Heritage Avenue, Studio Lane',
+    phone: '',
+    street: '',
     city: 'Chennai',
     state: 'Tamil Nadu',
     zipCode: '600001',
@@ -344,8 +344,8 @@ export const CheckoutPage = () => {
         subdomain: `${resolvedSubdomain}.gojulex.com`,
         gstin: '33AABCR1234T1Z8',
         ownerEmail: `${resolvedSubdomain}@merchant.com`,
-        ownerPhone: '+91 98765 43210',
-        address: '128 Heritage Avenue, Studio Lane, Chennai - 600001'
+        ownerPhone: '',
+        address: ''
       };
     }
 

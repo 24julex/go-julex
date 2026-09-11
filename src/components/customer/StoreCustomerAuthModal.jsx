@@ -129,7 +129,7 @@ export const StoreCustomerAuthModal = ({
           id: `usr_${Date.now()}`,
           name: cleanEmail.split('@')[0],
           email: cleanEmail,
-          phone: phone || '+91 98765 43210',
+          phone: phone || '',
           role: 'USER',
           joinedAt: new Date().toISOString().split('T')[0]
         };
@@ -163,7 +163,7 @@ export const StoreCustomerAuthModal = ({
     try {
       const cleanEmail = email.toLowerCase().trim();
       const cleanName = name.trim();
-      const cleanPhone = phone.trim() || '+91 98765 43210';
+      const cleanPhone = phone.trim() || '';
 
       let newCustomer = null;
 
