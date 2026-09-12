@@ -408,12 +408,27 @@ export const ProductDetailPage = () => {
             Artisan Specifications
           </h3>
           <div className="rounded-3xl bg-white border border-[#FBCBCB] divide-y divide-[#FBCBCB] text-xs shadow-xs overflow-hidden">
-            {product.specs && Object.entries(product.specs).map(([key, val]) => (
-              <div key={key} className="p-3.5 flex justify-between gap-4">
-                <span className="text-[#475569] font-medium">{key}</span>
-                <span className="text-[#0F172A] font-bold text-right">{val}</span>
-              </div>
-            ))}
+            {product.specs && (() => {
+              // Render plain spec values only — structured data like optionSets
+              // (variant definitions) is not displayable text
+              const rows = Object.entries(product.specs).filter(
+                ([key, val]) =>
+                  (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') &&
+                  String(val).trim() !== '' &&
+                  key !== 'optionSets'
+              );
+              if (rows.length === 0) {
+                return (
+                  <div className="p-3.5 text-[#475569]">No additional specifications listed for this piece.</div>
+                );
+              }
+              return rows.map(([key, val]) => (
+                <div key={key} className="p-3.5 flex justify-between gap-4">
+                  <span className="text-[#475569] font-medium">{key}</span>
+                  <span className="text-[#0F172A] font-bold text-right">{val}</span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </div>

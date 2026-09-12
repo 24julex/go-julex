@@ -60,12 +60,12 @@ export const AdminLoginPage = () => {
     const q = new URLSearchParams(window.location.search);
     if (q.get('oauth_cancelled')) {
       // User closed the account chooser — quietly back to the login form
-      window.history.replaceState({}, '', '/login');
+      window.history.replaceState({}, '', '/admin/login');
       return;
     }
     if (q.get('oauth_error')) {
       setError('Sign-in was cancelled or could not be completed. Please try again or use email and password.');
-      window.history.replaceState({}, '', '/login');
+      window.history.replaceState({}, '', '/admin/login');
       return;
     }
     const t = q.get('oauth_token');
@@ -80,7 +80,7 @@ export const AdminLoginPage = () => {
             localStorage.setItem('gojulex_auth_user', JSON.stringify(userObj));
             window.location.href = u.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin';
           } else {
-            window.location.href = '/login?oauth_error=1';
+            window.location.href = '/admin/login?oauth_error=1';
           }
         })
         .catch(() => {});

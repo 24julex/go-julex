@@ -115,7 +115,7 @@ export const Footer = () => {
               Buyer Protection
             </h4>
             <ul className="space-y-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-              <li><Link to="/orders" className="hover:opacity-80 transition">Real-Time Transit Tracking</Link></li>
+              <li><span>Real-Time Transit Tracking</span></li>
               <li><span>Instant UPI & 256-bit SSL</span></li>
               <li><span>100% Direct Maker Origin</span></li>
               <li><span>7-Day Craftsmanship Warranty</span></li>

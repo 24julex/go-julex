@@ -10,10 +10,8 @@ import { ProductDetailPage } from './pages/customer/ProductDetailPage';
 import { CartPage } from './pages/customer/CartPage';
 import { CheckoutPage } from './pages/customer/CheckoutPage';
 import { WishlistPage } from './pages/customer/WishlistPage';
-import { UserOrdersPage } from './pages/customer/UserOrdersPage';
 import { MerchantPlansPage } from './pages/customer/MerchantPlansPage';
 import { DynamicStorefrontPage } from './pages/customer/DynamicStorefrontPage';
-import { UserLoginPage } from './pages/UserLoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { StoreOnboardingPage } from './pages/customer/StoreOnboardingPage';
 import { AdminBilling } from './pages/admin/AdminBilling';
@@ -103,10 +101,11 @@ export const App = () => {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<ErrorBoundary><CheckoutPage /></ErrorBoundary>} />
           <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/orders" element={<UserOrdersPage />} />
+          {/* Platform users are merchants only — end-customers sign in on their own store subdomain */}
+          <Route path="/orders" element={<Navigate to="/" replace />} />
           <Route path="/pricing" element={<MerchantPlansPage />} />
           <Route path="/plans" element={<MerchantPlansPage />} />
-          <Route path="/login" element={<UserLoginPage />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/onboarding" element={<StoreOnboardingPage />} />
 
           {/* Admin / Merchant Console Authentication (dedicated merchant login) */}

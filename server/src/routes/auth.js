@@ -410,14 +410,14 @@ router.get('/oauth/:provider/callback', async (req, res) => {
   const provider = (req.params.provider || '').toLowerCase();
   const cfg = OAUTH_PROVIDERS[provider];
   if (!cfg || !cfg.clientId()) {
-    return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
+    return res.redirect(`${originUrl(req)}/admin/login?oauth_error=1`);
   }
   // User closed the chooser or clicked "Cancel" — not an error
   if (req.query.error === 'access_denied' || req.query.error === 'consent_required' || req.query.error === 'login_required') {
-    return res.redirect(`${originUrl(req)}/login?oauth_cancelled=1`);
+    return res.redirect(`${originUrl(req)}/admin/login?oauth_cancelled=1`);
   }
   if (!req.query.code) {
-    return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
+    return res.redirect(`${originUrl(req)}/admin/login?oauth_error=1`);
   }
   try {
     const redirectUri = `${originUrl(req)}/api/auth/oauth/${provider}/callback`;
@@ -449,7 +449,7 @@ router.get('/oauth/:provider/callback', async (req, res) => {
     return res.redirect(`${originUrl(req)}/login?${params.toString()}`);
   } catch (error) {
     console.error('OAuth callback error:', error);
-    return res.redirect(`${originUrl(req)}/login?oauth_error=1`);
+    return res.redirect(`${originUrl(req)}/admin/login?oauth_error=1`);
   }
 });
 

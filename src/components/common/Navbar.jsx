@@ -87,13 +87,6 @@ export const Navbar = () => {
             >
               <Zap className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} /> 0% Fee SaaS Plans
             </Link>
-            <Link
-              to="/orders"
-              className={`transition-colors ${isCurrentPath('/orders') ? 'font-bold' : ''}`}
-              style={{ color: isCurrentPath('/orders') ? 'var(--accent)' : 'var(--text-secondary)' }}
-            >
-              Tracking
-            </Link>
           </nav>
 
           {/* Search Bar */}
@@ -143,12 +136,13 @@ export const Navbar = () => {
               )}
             </Link>
 
-            {/* Auth */}
+            {/* Auth — platform accounts are merchants/super admins only */}
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link
-                  to="/orders"
+                  to="/admin"
                   className="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-2xl text-xs font-semibold"
+                  title="Merchant Console"
                   style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-card)', color: 'var(--text-primary)' }}
                 >
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-[11px] text-black" style={{ backgroundColor: 'var(--accent)' }}>
@@ -167,8 +161,9 @@ export const Navbar = () => {
               </div>
             ) : (
               <Link
-                to="/login"
+                to="/"
                 className="px-4 py-2 rounded-2xl font-bold text-xs transition flex items-center gap-1.5 text-black"
+                title="Merchant Sign In"
                 style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
               >
                 <LogIn className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sign In</span>
@@ -208,9 +203,6 @@ export const Navbar = () => {
             </Link>
             <Link to="/plans" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl transition flex items-center gap-2" style={{ color: 'var(--accent)' }}>
               <Zap className="w-4 h-4" /> 0% Fee SaaS Plans
-            </Link>
-            <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="py-2 px-3 rounded-xl transition">
-              Order Tracking
             </Link>
           </nav>
         </div>
