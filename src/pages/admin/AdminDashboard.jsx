@@ -262,7 +262,14 @@ export const AdminDashboard = () => {
               </span>
             </div>
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-              Domain: <span className="font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{storeAuth?.subdomain?.replace(/\.gojulex\.com$/,'')?.replace(/\.go\.julex\.shop$/,'') + '.go.julex.shop' || savedChannels?.customDomain || currentStore?.customDomain || null}</span>
+              Domain: <span className="font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{(() => {
+                const slug = String(storeAuth?.subdomain || currentStore?.subdomain || '')
+                  .replace(/\.gojulex\.com$/, '')
+                  .replace(/\.go\.julex\.shop$/, '')
+                  .replace(/^store_/, '');
+                if (slug) return `${slug}.go.julex.shop`;
+                return savedChannels?.customDomain || currentStore?.customDomain || 'Not set';
+              })()}</span>
             </p>
             <div className="pt-2 border-t text-[11px] flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
               <span>SSL: Active • Edge CDN</span>
@@ -329,7 +336,11 @@ export const AdminDashboard = () => {
       {/* Edit Sales Channel Modal */}
       <EditSalesChannelModal
         isOpen={isChannelModalOpen}
-        onClose={() => setChannelModalOpen(false)}
+        onClose={() => {
+          setChannelModalOpen(false);
+          // Re-read the store from the database so the card shows saved values
+          api.storeStatus.get().then((r) => { if (r?.success) setStoreAuth(r.data); });
+        }}
       />
 
       {/* 4. Main Two Column Row: Recent Orders & Onboarding Checklist */}

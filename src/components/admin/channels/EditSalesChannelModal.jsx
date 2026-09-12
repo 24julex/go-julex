@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, MessageSquare, Instagram, Globe, Check, Sliders, ShieldCheck, Sparkles } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
+import { api } from '../../../services/api';
 
 export const EditSalesChannelModal = ({ isOpen, onClose, initialChannel = 'all' }) => {
   const { currentStore, updateStoreProfile, showToast } = useMerchantAdmin();
@@ -16,7 +17,7 @@ export const EditSalesChannelModal = ({ isOpen, onClose, initialChannel = 'all' 
     return {
       whatsappNumber: currentStore?.whatsappNumber || currentStore?.ownerPhone || '',
       instagramHandle: currentStore?.instagramHandle || '',
-      customDomain: currentStore?.customDomain || `${(currentStore?.subdomain || 'store').replace(/^store_/, '')}.in`,
+      customDomain: currentStore?.customDomain || (currentStore?.subdomain || 'yourstore.go.julex.shop').replace(/^store_/, ''),
       isWhatsAppEnabled: true,
       isInstagramEnabled: true,
       isStorefrontEnabled: true
@@ -33,7 +34,7 @@ export const EditSalesChannelModal = ({ isOpen, onClose, initialChannel = 'all' 
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Clean formatting
@@ -47,24 +48,44 @@ export const EditSalesChannelModal = ({ isOpen, onClose, initialChannel = 'all' 
       instagramHandle: cleanInsta
     };
 
-    // Save to localStorage
+    // Persist to the DATABASE — the single source of truth
+    let saved = false;
+    try {
+      const res = await api.storeStatus.saveProfile({
+        whatsappNumber: updated.whatsappNumber,
+        ownerPhone: updated.whatsappNumber,
+        instagramHandle: updated.instagramHandle
+      });
+      saved = Boolean(res?.success);
+    } catch (err) {
+      saved = false;
+    }
+
+    // Local display cache (instant feedback on the dashboard card)
     try {
       localStorage.setItem(`gojulex_store_channels_${storeKey}`, JSON.stringify(updated));
       localStorage.setItem(`gojulex_store_channels_${currentStore?.subdomain}`, JSON.stringify(updated));
     } catch {}
 
-    // Update store profile in context
+    // Update store profile in context (guarded — a failure here must not
+    // block the save result feedback)
     if (updateStoreProfile) {
-      updateStoreProfile({
-        ...currentStore,
-        ownerPhone: updated.whatsappNumber,
-        instagramHandle: updated.instagramHandle,
-        customDomain: updated.customDomain
-      });
+      try {
+        updateStoreProfile({
+          ...currentStore,
+          ownerPhone: updated.whatsappNumber,
+          instagramHandle: updated.instagramHandle,
+          customDomain: updated.customDomain
+        });
+      } catch (e) {}
     }
 
-    showToast('Sales channels & social IDs updated successfully! 🎉', 'success');
-    onClose();
+    if (saved) {
+      showToast('Sales channels & social IDs updated successfully! 🎉', 'success');
+      onClose();
+    } else {
+      showToast('Could not reach the server — changes were NOT saved. Please try again.', 'error');
+    }
   };
 
   return (
