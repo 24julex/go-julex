@@ -134,202 +134,202 @@ body {
    COMPREHENSIVE DARK MODE OVERRIDES
    ========================================================================== */
 
-html.dark body,
-html.dark #root {
+html.dark:not(.jx-storefront) body,
+html.dark:not(.jx-storefront) #root {
   background-color: #111111 !important;
   color: #FFFFFF !important;
 }
 
-html.dark .min-h-screen {
+html.dark:not(.jx-storefront) .min-h-screen {
   background-color: #111111 !important;
 }
 
 /* Nav / Header */
-html.dark header {
+html.dark:not(.jx-storefront) header {
   background-color: rgba(17,17,17,0.97) !important;
   border-color: rgba(255,255,255,0.08) !important;
   color: #FFFFFF !important;
 }
 
 /* Sidebar */
-html.dark aside {
+html.dark:not(.jx-storefront) aside {
   background-color: #161616 !important;
   border-color: rgba(255,255,255,0.08) !important;
   color: #FFFFFF !important;
 }
 
 /* Footer */
-html.dark footer {
+html.dark:not(.jx-storefront) footer {
   background-color: #111111 !important;
   border-color: rgba(255,255,255,0.08) !important;
   color: #B8B8B8 !important;
 }
 
 /* Cards & panels */
-html.dark .glass-panel,
-html.dark .card-base,
-html.dark .card-white {
+html.dark:not(.jx-storefront) .glass-panel,
+html.dark:not(.jx-storefront) .card-base,
+html.dark:not(.jx-storefront) .card-white {
   background-color: #1C1C1C !important;
   border-color: rgba(255,255,255,0.10) !important;
   box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
 }
 
 /* Common dark-bg classes used throughout app */
-html.dark .bg-white {
+html.dark:not(.jx-storefront) .bg-white {
   background-color: #1C1C1C !important;
 }
 
-html.dark .bg-gray-50,
-html.dark .bg-slate-50,
-html.dark .bg-stone-50,
-html.dark .bg-zinc-50,
-html.dark .bg-neutral-50 {
+html.dark:not(.jx-storefront) .bg-gray-50,
+html.dark:not(.jx-storefront) .bg-slate-50,
+html.dark:not(.jx-storefront) .bg-stone-50,
+html.dark:not(.jx-storefront) .bg-zinc-50,
+html.dark:not(.jx-storefront) .bg-neutral-50 {
   background-color: #252525 !important;
 }
 
-html.dark .bg-gray-100,
-html.dark .bg-slate-100,
-html.dark .bg-stone-100,
-html.dark .bg-zinc-100 {
+html.dark:not(.jx-storefront) .bg-gray-100,
+html.dark:not(.jx-storefront) .bg-slate-100,
+html.dark:not(.jx-storefront) .bg-stone-100,
+html.dark:not(.jx-storefront) .bg-zinc-100 {
   background-color: #252525 !important;
 }
 
-html.dark .bg-gray-200,
-html.dark .bg-slate-200 {
+html.dark:not(.jx-storefront) .bg-gray-200,
+html.dark:not(.jx-storefront) .bg-slate-200 {
   background-color: #333333 !important;
 }
 
 /* Former blush/rose bg classes → dark surface */
-html.dark [class*="bg-\[#fedddd\]"],
-html.dark [class*="bg-rose-50"],
-html.dark [class*="bg-red-50"],
-html.dark [class*="bg-pink-50"],
-html.dark [class*="bg-\[#FFF1F2\]"],
-html.dark [class*="bg-\[#FEE2E2\]"],
-html.dark [class*="bg-\[#FECDD3\]"] {
+html.dark:not(.jx-storefront) [class*="bg-\[#fedddd\]"],
+html.dark:not(.jx-storefront) [class*="bg-rose-50"],
+html.dark:not(.jx-storefront) [class*="bg-red-50"],
+html.dark:not(.jx-storefront) [class*="bg-pink-50"],
+html.dark:not(.jx-storefront) [class*="bg-\[#FFF1F2\]"],
+html.dark:not(.jx-storefront) [class*="bg-\[#FEE2E2\]"],
+html.dark:not(.jx-storefront) [class*="bg-\[#FECDD3\]"] {
   background-color: #252525 !important;
 }
 
 /* Obsidian classes */
-html.dark [class*="bg-obsidian"] {
+html.dark:not(.jx-storefront) [class*="bg-obsidian"] {
   background-color: #1C1C1C !important;
 }
 
 /* Text overrides */
-html.dark .text-white { color: #FFFFFF !important; }
-html.dark .text-black { color: #FFFFFF !important; }
+html.dark:not(.jx-storefront) .text-white { color: #FFFFFF !important; }
+html.dark:not(.jx-storefront) .text-black { color: #FFFFFF !important; }
 
-html.dark h1, html.dark h2, html.dark h3,
-html.dark h4, html.dark h5, html.dark h6 {
+html.dark:not(.jx-storefront) h1, html.dark:not(.jx-storefront) h2, html.dark:not(.jx-storefront) h3,
+html.dark:not(.jx-storefront) h4, html.dark:not(.jx-storefront) h5, html.dark:not(.jx-storefront) h6 {
   color: #FFFFFF !important;
 }
 
-html.dark .text-gray-900,
-html.dark .text-slate-900,
-html.dark .text-stone-900,
-html.dark [class*="text-\[#0F172A\]"],
-html.dark [class*="text-\[#0D0D0D\]"],
-html.dark [class*="text-\[#1C1917\]"] {
+html.dark:not(.jx-storefront) .text-gray-900,
+html.dark:not(.jx-storefront) .text-slate-900,
+html.dark:not(.jx-storefront) .text-stone-900,
+html.dark:not(.jx-storefront) [class*="text-\[#0F172A\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#0D0D0D\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#1C1917\]"] {
   color: #FFFFFF !important;
 }
 
-html.dark .text-gray-800,
-html.dark .text-slate-800,
-html.dark [class*="text-\[#1E293B\]"] {
+html.dark:not(.jx-storefront) .text-gray-800,
+html.dark:not(.jx-storefront) .text-slate-800,
+html.dark:not(.jx-storefront) [class*="text-\[#1E293B\]"] {
   color: #E0E0E0 !important;
 }
 
-html.dark .text-gray-700,
-html.dark .text-slate-700,
-html.dark [class*="text-\[#374151\]"],
-html.dark [class*="text-\[#334155\]"] {
+html.dark:not(.jx-storefront) .text-gray-700,
+html.dark:not(.jx-storefront) .text-slate-700,
+html.dark:not(.jx-storefront) [class*="text-\[#374151\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#334155\]"] {
   color: #B8B8B8 !important;
 }
 
-html.dark .text-gray-600,
-html.dark .text-slate-600,
-html.dark [class*="text-\[#475569\]"] {
+html.dark:not(.jx-storefront) .text-gray-600,
+html.dark:not(.jx-storefront) .text-slate-600,
+html.dark:not(.jx-storefront) [class*="text-\[#475569\]"] {
   color: #999999 !important;
 }
 
-html.dark .text-gray-500,
-html.dark .text-slate-500,
-html.dark [class*="text-\[#64748B\]"] {
+html.dark:not(.jx-storefront) .text-gray-500,
+html.dark:not(.jx-storefront) .text-slate-500,
+html.dark:not(.jx-storefront) [class*="text-\[#64748B\]"] {
   color: #777777 !important;
 }
 
-html.dark .text-gray-400,
-html.dark .text-slate-400 {
+html.dark:not(.jx-storefront) .text-gray-400,
+html.dark:not(.jx-storefront) .text-slate-400 {
   color: #666666 !important;
 }
 
 /* Former rose/pink text → gold */
-html.dark [class*="text-\[#881337\]"],
-html.dark [class*="text-\[#9F1239\]"],
-html.dark [class*="text-\[#BE123C\]"],
-html.dark [class*="text-rose-700"],
-html.dark [class*="text-rose-800"],
-html.dark [class*="text-rose-900"] {
+html.dark:not(.jx-storefront) [class*="text-\[#881337\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#9F1239\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#BE123C\]"],
+html.dark:not(.jx-storefront) [class*="text-rose-700"],
+html.dark:not(.jx-storefront) [class*="text-rose-800"],
+html.dark:not(.jx-storefront) [class*="text-rose-900"] {
   color: #D4A017 !important;
 }
 
 /* Border overrides */
-html.dark .border,
-html.dark [class*="border-"] {
+html.dark:not(.jx-storefront) .border,
+html.dark:not(.jx-storefront) [class*="border-"] {
   border-color: rgba(255,255,255,0.10);
 }
 
-html.dark [class*="border-\[#FBCBCB\]"],
-html.dark [class*="border-\[#F8B4B4\]"],
-html.dark [class*="border-rose-"],
-html.dark [class*="border-red-"],
-html.dark [class*="border-slate-200"],
-html.dark [class*="border-slate-300"] {
+html.dark:not(.jx-storefront) [class*="border-\[#FBCBCB\]"],
+html.dark:not(.jx-storefront) [class*="border-\[#F8B4B4\]"],
+html.dark:not(.jx-storefront) [class*="border-rose-"],
+html.dark:not(.jx-storefront) [class*="border-red-"],
+html.dark:not(.jx-storefront) [class*="border-slate-200"],
+html.dark:not(.jx-storefront) [class*="border-slate-300"] {
   border-color: rgba(255,255,255,0.10) !important;
 }
 
 /* Inputs */
-html.dark input,
-html.dark select,
-html.dark textarea {
+html.dark:not(.jx-storefront) input,
+html.dark:not(.jx-storefront) select,
+html.dark:not(.jx-storefront) textarea {
   background-color: #1A1A1A !important;
   color: #FFFFFF !important;
   border-color: rgba(255,255,255,0.14) !important;
 }
 
-html.dark input::placeholder,
-html.dark textarea::placeholder {
+html.dark:not(.jx-storefront) input::placeholder,
+html.dark:not(.jx-storefront) textarea::placeholder {
   color: #666666 !important;
 }
 
-html.dark input:focus,
-html.dark select:focus,
-html.dark textarea:focus {
+html.dark:not(.jx-storefront) input:focus,
+html.dark:not(.jx-storefront) select:focus,
+html.dark:not(.jx-storefront) textarea:focus {
   border-color: #D4A017 !important;
   box-shadow: 0 0 0 2px rgba(212,160,23,0.25) !important;
 }
 
 /* Tables */
-html.dark table {
+html.dark:not(.jx-storefront) table {
   border-color: rgba(255,255,255,0.08);
 }
 
-html.dark thead tr {
+html.dark:not(.jx-storefront) thead tr {
   background-color: #252525 !important;
   color: #B8B8B8 !important;
   border-color: rgba(255,255,255,0.08) !important;
 }
 
-html.dark tbody tr {
+html.dark:not(.jx-storefront) tbody tr {
   border-color: rgba(255,255,255,0.06) !important;
 }
 
-html.dark tr:hover {
+html.dark:not(.jx-storefront) tr:hover {
   background-color: #252525 !important;
 }
 
 /* Dropdowns & modals */
-html.dark [class*="rounded"][class*="shadow"] {
+html.dark:not(.jx-storefront) [class*="rounded"][class*="shadow"] {
   background-color: #1E1E1E;
   border-color: rgba(255,255,255,0.10);
 }
@@ -598,7 +598,7 @@ textarea:focus {
 
 /* Landing page: one solid, uniform background (immune to bg-[...] overrides) */
 .julex-landing-bg { background-color: #FFF9E8; }
-html.dark .julex-landing-bg { background-color: #0A0A0A; }
+html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
 
 
 

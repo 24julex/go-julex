@@ -135,6 +135,14 @@ export const DynamicStorefrontPage = () => {
   // §19: unpublished stores are never publicly accessible. The merchant can
   // still preview privately via the customizer (julex_edit) or a preview token.
   const [storeNotLive, setStoreNotLive] = useState(null); // null=checking, true=blocked, false=ok
+  // Mark <html> as a merchant storefront while mounted: the global dark-mode
+  // overrides are scoped away from .jx-storefront so the store's published
+  // theme colors/fonts render exactly as designed (headers, footers, text).
+  useEffect(() => {
+    const rootEl = document.documentElement;
+    rootEl.classList.add('jx-storefront');
+    return () => rootEl.classList.remove('jx-storefront');
+  }, []);
   useEffect(() => {
     let cancelled = false;
     const ownerPreview = isJulexEditMode || isJulexDraftPreview;
