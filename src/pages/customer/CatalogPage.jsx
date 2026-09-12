@@ -14,7 +14,21 @@ export const CatalogPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { subdomain } = useParams();
 
-  const cleanSubdomain = (subdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '');
+  // On a store subdomain (beessweetssnacks.go.julex.shop/catalog) the catalog
+  // belongs to THAT store even without the /store/:subdomain route prefix —
+  // otherwise the platform showcase catalog would leak unrelated products
+  // onto a merchant's storefront.
+  const hostSubdomain = (() => {
+    try {
+      const host = window.location.hostname.toLowerCase();
+      if (host.endsWith('.go.julex.shop') && host !== 'go.julex.shop') {
+        return host.replace(/\.go\.julex\.shop$/, '');
+      }
+    } catch (e) {}
+    return '';
+  })();
+
+  const cleanSubdomain = (subdomain || hostSubdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '');
   const matchedStore = cleanSubdomain ? DEMO_STORES.find(s => s.subdomain?.includes(cleanSubdomain) || s.id?.includes(cleanSubdomain)) || { name: cleanSubdomain.toUpperCase() + ' STORE' } : null;
 
   // Resolve the store's saved theme (same keys as DynamicStorefrontPage) so the
