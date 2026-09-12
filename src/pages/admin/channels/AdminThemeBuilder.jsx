@@ -755,9 +755,11 @@ export const AVAILABLE_BLOCK_LIBRARY = [
     icon: Compass,
     defaultData: {
       title: 'Visit Our Flagship Atelier',
-      address: currentStore?.address || '',
+      // Static catalog defaults only — `currentStore` lives inside the
+      // component; real store values are merged when a block is applied.
+      address: '',
       hours: 'Mon - Sat: 10:30 AM – 8:30 PM | Sunday by Appointment',
-      phone: currentStore?.whatsappNumber || currentStore?.ownerPhone || '',
+      phone: '',
       ctaText: 'Get Driving Directions ↗'
     }
   },
