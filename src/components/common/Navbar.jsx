@@ -32,7 +32,13 @@ export const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+      const host = window.location.hostname.toLowerCase();
+      const isStoreHost = host.endsWith('.go.julex.shop') && host !== 'go.julex.shop';
+      if (isStoreHost) {
+        navigate(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+      } else {
+        navigate('/');
+      }
       setMobileMenuOpen(false);
     }
   };

@@ -60,7 +60,7 @@ export const Footer = () => {
 
       {/* Main Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2.5">
@@ -78,20 +78,6 @@ export const Footer = () => {
               <p className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} /> Koramangala 4th Block, Bengaluru, India</p>
               <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} /> support@gojulex.com</p>
             </div>
-          </div>
-
-          {/* D2C Categories */}
-          <div className="space-y-3">
-            <h4 className="font-serif text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>
-              Explore Catalog
-            </h4>
-            <ul className="space-y-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-              <li><Link to="/catalog?cat=Artisan+Leather+%26+Goods" className="hover:opacity-80 transition">Artisan Leather & Bags</Link></li>
-              <li><Link to="/catalog?cat=Boutique+Timepieces+%26+Jewels" className="hover:opacity-80 transition">Timepieces & Fine Jewels</Link></li>
-              <li><Link to="/catalog?cat=Sustainable+Apparel" className="hover:opacity-80 transition">Sustainable Handloom Wear</Link></li>
-              <li><Link to="/catalog?cat=Studio+Audio+%26+Tech" className="hover:opacity-80 transition">Studio Audio & Acoustic Tech</Link></li>
-              <li><Link to="/catalog?cat=Handcrafted+Living+%26+Decor" className="hover:opacity-80 transition">Ceramics & Home Living</Link></li>
-            </ul>
           </div>
 
           {/* For Merchants */}

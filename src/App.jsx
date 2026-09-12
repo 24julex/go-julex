@@ -60,6 +60,17 @@ const ProtectedAdminRoute = ({ children }) => {
   return children;
 };
 
+// The product catalog exists ONLY inside a store (its subdomain or the
+// /store/:subdomain route). The merchants-only platform home has none.
+const CatalogRouteGate = () => {
+  try {
+    const host = window.location.hostname.toLowerCase();
+    const isStoreHost = host.endsWith('.go.julex.shop') && host !== 'go.julex.shop';
+    if (isStoreHost) return <CatalogPage />;
+  } catch (e) {}
+  return <Navigate to="/" replace />;
+};
+
 // Protected Super Admin Route (Restricted strictly to Master Super Admin)
 const ProtectedSuperAdminRoute = ({ children }) => {
   const { currentUser, isSuperAdmin } = useAuth();
@@ -96,7 +107,10 @@ export const App = () => {
 
           {/* Customer / D2C Platform Routes */}
           <Route path="/" element={<AdminLoginPage />} />
-          <Route path="/catalog" element={<CatalogPage />} />
+          {/* go.julex.shop is a merchants-only platform — there is NO platform
+              product catalog. /catalog renders ONLY on a store subdomain
+              (that store's own catalog); anywhere else it goes home. */}
+          <Route path="/catalog" element={<CatalogRouteGate />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<ErrorBoundary><CheckoutPage /></ErrorBoundary>} />

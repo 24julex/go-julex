@@ -229,13 +229,9 @@ export const AdminBrands = () => {
                       <h4 className="font-serif font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>
                         {brandName}
                       </h4>
-                      <Link
-                        to={`/catalog?brand=${encodeURIComponent(brandName)}`}
-                        className="text-[11px] flex items-center gap-1 hover:underline"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        {watchCount} {watchCount === 1 ? 'timepiece' : 'timepieces'} in vault <ExternalLink className="w-2.5 h-2.5" />
-                      </Link>
+                      <span className="text-[11px] flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                        {watchCount} {watchCount === 1 ? 'timepiece' : 'timepieces'} in vault
+                      </span>
                     </div>
                   </div>
 
