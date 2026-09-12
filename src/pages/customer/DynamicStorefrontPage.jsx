@@ -85,13 +85,12 @@ export const DynamicStorefrontPage = () => {
     customDomain: `${cleanSubdomain}.in`
   };
 
-  // The store as the PUBLIC sees it: published backend facts win over
-  // local profiles so contact rows reflect the merchant's saved data.
-  const liveStore = { ...matchedStore, ...(publishedStore || {}) };
-
   const [isBagDrawerOpen, setIsBagDrawerOpen] = useState(false);
   // Published store facts from the backend (name, whatsapp, instagram…)
   const [publishedStore, setPublishedStore] = useState(null);
+  // The store as the PUBLIC sees it: published backend facts win over
+  // local profiles so contact rows reflect the merchant's saved data.
+  const liveStore = { ...matchedStore, ...(publishedStore || {}) };
   // Olive & Linen template: working storefront search
   const [isOliveSearchOpen, setIsOliveSearchOpen] = useState(false);
   const [oliveSearchQuery, setOliveSearchQuery] = useState('');
