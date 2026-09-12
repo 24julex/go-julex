@@ -345,7 +345,7 @@ export const SuperAdminProvider = ({ children }) => {
   };
 
   // Impersonation Handlers
-  const impersonateTenant = (tenantIdOrObject) => {
+  const impersonateTenant = async (tenantIdOrObject) => {
     let target = null;
     if (typeof tenantIdOrObject === 'string') {
       target = tenants.find(t => t.id === tenantIdOrObject);
@@ -355,6 +355,23 @@ export const SuperAdminProvider = ({ children }) => {
 
     if (!target) {
       showToast('Store tenant not found for impersonation', 'error');
+      return;
+    }
+
+    // Issue a REAL impersonation JWT via the backend so every store-scoped
+    // API call (profile save, products, orders) resolves to this tenant.
+    // A localStorage-only flag leaves the session tenant-less and every
+    // merchant-console save fails with "No store linked".
+    try {
+      const res = await api.auth.impersonate(target.id);
+      if (res?.success && res?.token) {
+        localStorage.setItem('gojulex_jwt_token', res.token);
+      } else {
+        showToast(res?.message || 'Impersonation could not be started on the server.', 'error');
+        return;
+      }
+    } catch (err) {
+      showToast('Cannot reach the server — impersonation not started.', 'error');
       return;
     }
 
@@ -387,6 +404,14 @@ export const SuperAdminProvider = ({ children }) => {
       try {
         localStorage.removeItem('gojulex_impersonated_tenant');
       } catch (e) {}
+      // Swap the impersonation JWT back to a clean Super Admin session
+      api.auth.stopImpersonate()
+        .then((res) => {
+          if (res?.success && res?.token) {
+            localStorage.setItem('gojulex_jwt_token', res.token);
+          }
+        })
+        .catch(() => {});
     }
   };
 
