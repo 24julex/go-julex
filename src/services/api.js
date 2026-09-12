@@ -128,6 +128,7 @@ export const api = {
     restore: (tenantId) => request('/store/super-admin/restore', { method: 'POST', body: JSON.stringify({ tenantId }) })
   },
   storePublicStatus: (subdomain) => request(`/store/public-status/${encodeURIComponent(subdomain)}`),
+  storeSubscribe: (subdomain, email) => request('/store/subscribe', { method: 'POST', body: JSON.stringify({ subdomain, email }) }),
   domains: {
     checkSlug: (slug) => request(`/domains/check?slug=${encodeURIComponent(slug)}`),
     setSubdomain: (payload) => request('/domains/subdomain', { method: 'PUT', body: JSON.stringify(payload) })

@@ -64,8 +64,22 @@ model Tenant {
   invoiceConfig            TenantInvoiceConfig?
   auditLogs                AuditLog[]
   subscription             Subscription?
+  newsletterSubscribers    NewsletterSubscriber[]
   createdAt                DateTime                @default(now())
   updatedAt                DateTime                @updatedAt
+}
+
+// ----------------------------------------------------
+// Storefront newsletter subscribers (per-tenant, real records)
+// ----------------------------------------------------
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, email])
 }
 
 // ----------------------------------------------------

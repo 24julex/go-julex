@@ -94,6 +94,38 @@ router.get('/public-status/:subdomain', async (req, res) => {
   }
 });
 
+// POST /api/store/subscribe — public: storefront newsletter signup.
+// Creates a real per-tenant subscriber record; idempotent per email.
+router.post('/subscribe', async (req, res) => {
+  try {
+    const { subdomain, email } = req.body || {};
+    const cleanEmail = String(email || '').toLowerCase().trim();
+    if (!subdomain || !cleanEmail) {
+      return res.status(400).json({ success: false, message: 'Store and email address are required.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+    const tenant = await findTenantBySub(subdomain);
+    if (!tenant) {
+      return res.status(404).json({ success: false, message: 'Store not found.' });
+    }
+    const existing = await prisma.newsletterSubscriber.findUnique({
+      where: { tenantId_email: { tenantId: tenant.id, email: cleanEmail } }
+    });
+    if (existing) {
+      return res.json({ success: true, message: 'You are already subscribed. Thank you!', alreadySubscribed: true });
+    }
+    await prisma.newsletterSubscriber.create({
+      data: { tenantId: tenant.id, email: cleanEmail }
+    });
+    return res.status(201).json({ success: true, message: 'Subscribed successfully. Welcome aboard!' });
+  } catch (error) {
+    console.error('Newsletter subscribe error:', error);
+    return res.status(500).json({ success: false, message: 'Could not subscribe right now. Please try again.' });
+  }
+});
+
 // POST /api/store/publish — merchant: publish the store (backend-enforced).
 // Rejects with 402 unless the store is authorised (legacy live or ACTIVE
 // subscription on a plan that allows publishing).
