@@ -191,18 +191,7 @@ router.get('/public/:subdomain', async (req, res) => {
         return res.status(403).json({ success: false, unpublished: true, message: 'This store is not live yet.' });
       }
     }
-    const parsedConfig = JSON.parse(tenant.themeConfig);
-    // Public storefront contact facts — the footer/newsletter render these
-    parsedConfig.store = {
-      id: tenant.id,
-      name: tenant.name,
-      subdomain: tenant.subdomain,
-      whatsappNumber: tenant.whatsappNumber || null,
-      ownerPhone: tenant.ownerPhone || null,
-      instagramHandle: tenant.instagramHandle || null,
-      logoUrl: tenant.logoUrl || null
-    };
-    return res.json({ success: true, data: parsedConfig });
+    return res.json({ success: true, data: JSON.parse(tenant.themeConfig) });
   } catch (error) {
     console.error('Fetch public theme config error:', error);
     return res.json({ success: true, data: null });

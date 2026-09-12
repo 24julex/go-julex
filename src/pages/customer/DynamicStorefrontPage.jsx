@@ -86,11 +86,6 @@ export const DynamicStorefrontPage = () => {
   };
 
   const [isBagDrawerOpen, setIsBagDrawerOpen] = useState(false);
-  // Published store facts from the backend (name, whatsapp, instagram…)
-  const [publishedStore, setPublishedStore] = useState(null);
-  // The store as the PUBLIC sees it: published backend facts win over
-  // local profiles so contact rows reflect the merchant's saved data.
-  const liveStore = { ...matchedStore, ...(publishedStore || {}) };
   // Olive & Linen template: working storefront search
   const [isOliveSearchOpen, setIsOliveSearchOpen] = useState(false);
   const [oliveSearchQuery, setOliveSearchQuery] = useState('');
@@ -99,34 +94,6 @@ export const DynamicStorefrontPage = () => {
   // Camel Editorial Fashion template: working category filter
   const [camelCategory, setCamelCategory] = useState('All');
   const [newsletterDone, setNewsletterDone] = useState(false);
-  // Real newsletter subscription — persists via POST /store/subscribe
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterBusy, setNewsletterBusy] = useState(false);
-  const [newsletterError, setNewsletterError] = useState('');
-  const handleStoreSubscribe = async (e) => {
-    e.preventDefault();
-    if (newsletterBusy) return;
-    setNewsletterError('');
-    const email = String(newsletterEmail || '').trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      setNewsletterError('Please enter a valid email address.');
-      return;
-    }
-    setNewsletterBusy(true);
-    try {
-      const res = await api.storeSubscribe(cleanSubdomain, email);
-      if (res?.success) {
-        setNewsletterDone(true);
-        setNewsletterEmail('');
-      } else {
-        setNewsletterError(res?.message || 'Could not subscribe right now. Please try again.');
-      }
-    } catch (err) {
-      setNewsletterError('Cannot reach the server. Please try again.');
-    } finally {
-      setNewsletterBusy(false);
-    }
-  };
   const [isCustomerAuthOpen, setIsCustomerAuthOpen] = useState(false);
   const [activeShowcaseTab, setActiveShowcaseTab] = useState('checkout');
   const [activeCustomer, setActiveCustomer] = useState(() => {
@@ -482,11 +449,6 @@ export const DynamicStorefrontPage = () => {
         // the store's saved config overwrite them.
         if (previewPresetId || isJulexDraftPreview) return;
         const cfg = res.data;
-        // Published store facts (contact/footer) from the database — merge
-        // over any stale local profile so every visitor sees real data
-        if (cfg.store) {
-          setPublishedStore(cfg.store);
-        }
         // Only accept a fully valid section list — a malformed/partial publish
         // must never take the live storefront down.
         const validSections = Array.isArray(cfg.sections)
@@ -2101,35 +2063,24 @@ export const DynamicStorefrontPage = () => {
                     {subText}
                   </p>
 
-                  {/* Newsletter capture row (Markly signature) — real signup */}
-                  {newsletterDone ? (
-                    <p className="text-sm font-bold" style={{ color: '#8E4356' }}>✓ Subscribed! Watch your inbox for early access.</p>
-                  ) : (
-                    <form
-                      onSubmit={handleStoreSubscribe}
-                      className="flex w-full max-w-md border border-[#111111]"
+                  {/* Newsletter capture row (Markly signature) */}
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); }}
+                    className="flex w-full max-w-md border border-[#111111]"
+                  >
+                    <input
+                      type="email"
+                      required
+                      placeholder="Enter your email address"
+                      className="flex-1 px-4 py-3 text-sm outline-none bg-white text-[#111111] placeholder:text-[#9C9C9C]"
+                    />
+                    <button
+                      type="submit"
+                      className="px-6 py-3 text-[12px] font-bold uppercase tracking-[0.15em] bg-[#111111] text-white hover:bg-[#A35A2B] transition cursor-pointer"
                     >
-                      <input
-                        type="email"
-                        required
-                        value={newsletterEmail}
-                        onChange={(e) => setNewsletterEmail(e.target.value)}
-                        placeholder="Enter your email address"
-                        aria-label="Email address for newsletter"
-                        className="flex-1 px-4 py-3 text-sm outline-none bg-white text-[#111111] placeholder:text-[#9C9C9C]"
-                      />
-                      <button
-                        type="submit"
-                        disabled={newsletterBusy}
-                        className="px-6 py-3 text-[12px] font-bold uppercase tracking-[0.15em] bg-[#111111] text-white hover:bg-[#A35A2B] transition cursor-pointer disabled:opacity-60"
-                      >
-                        {newsletterBusy ? 'Subscribing…' : 'Subscribe'}
-                      </button>
-                    </form>
-                  )}
-                  {newsletterError && (
-                    <p className="text-xs font-semibold text-red-600">{newsletterError}</p>
-                  )}
+                      Subscribe
+                    </button>
+                  </form>
 
                   <a
                     href="#products"
@@ -3379,31 +3330,20 @@ export const DynamicStorefrontPage = () => {
                   <p className="text-sm text-white/80 max-w-md leading-relaxed m-0">
                     {section.data.subtext || 'New arrivals, atelier stories and private sales. One email a month.'}
                   </p>
-                  {newsletterDone ? (
-                    <p className="text-sm font-bold text-white">✓ Subscribed! Watch your inbox for early access.</p>
-                  ) : (
-                    <form onSubmit={handleStoreSubscribe} className="flex w-full max-w-md">
-                      <input
-                        type="email"
-                        required
-                        value={newsletterEmail}
-                        onChange={(e) => setNewsletterEmail(e.target.value)}
-                        placeholder="Enter your email address"
-                        aria-label="Email address for newsletter"
-                        className="flex-1 min-w-0 px-4 py-3.5 text-sm outline-none bg-white/95 text-[#111111] placeholder:text-[#9C9C9C] border-2 border-white"
-                      />
-                      <button
-                        type="submit"
-                        disabled={newsletterBusy}
-                        className="px-6 py-3.5 text-[12px] font-bold uppercase tracking-[0.15em] bg-white text-[#111111] hover:bg-[#A35A2B] hover:text-white transition cursor-pointer disabled:opacity-60"
-                      >
-                        {newsletterBusy ? 'Subscribing…' : 'Subscribe'}
-                      </button>
-                    </form>
-                  )}
-                  {newsletterError && (
-                    <p className="text-xs font-semibold text-red-300">{newsletterError}</p>
-                  )}
+                  <form onSubmit={(e) => e.preventDefault()} className="flex w-full max-w-md">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Enter your email address"
+                      className="flex-1 min-w-0 px-4 py-3.5 text-sm outline-none bg-white/95 text-[#111111] placeholder:text-[#9C9C9C] border-2 border-white"
+                    />
+                    <button
+                      type="submit"
+                      className="px-6 py-3.5 text-[12px] font-bold uppercase tracking-[0.15em] bg-white text-[#111111] hover:bg-[#A35A2B] hover:text-white transition cursor-pointer"
+                    >
+                      Subscribe
+                    </button>
+                  </form>
                 </div>
               </section>
             );
@@ -3846,55 +3786,43 @@ export const DynamicStorefrontPage = () => {
                     <div className="rounded-2xl p-6 sm:p-8 space-y-5 h-full" style={{ backgroundColor: '#FCFAF7' }}>
                       <h4 className="text-xl uppercase" style={{ color: '#111111', fontFamily: styles?.headingFont || 'Archivo Black' }}>Get In Touch</h4>
                       <div className="space-y-3 text-sm" style={{ color: '#4A423B' }}>
-                        {liveStore.ownerEmail && (
-                          <a href={`mailto:${liveStore.ownerEmail}`} className="flex items-start gap-3 hover:text-black transition">
-                            <Mail className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
-                            <span>{liveStore.ownerEmail}</span>
-                          </a>
-                        )}
-                        {(liveStore.whatsappNumber || liveStore.ownerPhone) && (
-                          <a href={`tel:+91${String(liveStore.whatsappNumber || liveStore.ownerPhone).replace(/\D/g, '')}`} className="flex items-start gap-3 hover:text-black transition">
-                            <Phone className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
-                            <span>+91 {String(liveStore.whatsappNumber || liveStore.ownerPhone)}</span>
-                          </a>
-                        )}
-                        {(liveStore.whatsappNumber || liveStore.ownerPhone) && (
-                          <a href={`https://wa.me/91${String(liveStore.whatsappNumber || liveStore.ownerPhone).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-black transition">
-                            <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
-                            <span>WhatsApp us — replies within minutes</span>
-                          </a>
-                        )}
-                        {section.data.address && (
-                          <div className="flex items-start gap-3">
-                            <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
-                            <span>{section.data.address}</span>
-                          </div>
-                        )}
+                        <a href={`mailto:${matchedStore.ownerEmail || 'hello@' + (matchedStore.subdomain || 'store') + '.com'}`} className="flex items-start gap-3 hover:text-black transition">
+                          <Mail className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>{matchedStore.ownerEmail || 'hello@maisoncamel.com'}</span>
+                        </a>
+                        <a href="tel:+919876543210" className="flex items-start gap-3 hover:text-black transition">
+                          <Phone className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>Contact store for support hours</span>
+                        </a>
+                        <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-black transition">
+                          <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>WhatsApp us — replies within minutes</span>
+                        </a>
+                        <div className="flex items-start gap-3">
+                          <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#A97C50' }} />
+                          <span>{section.data.address || 'Studio 7, Design District, Bengaluru 560001'}</span>
+                        </div>
                       </div>
                       <div className="pt-4 border-t space-y-3" style={{ borderColor: '#E9E2D9' }}>
                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#111111' }}>Newsletter</p>
                         <p className="text-xs" style={{ color: '#4A423B' }}>Early access to every drop. No spam, ever.</p>
-                        {newsletterDone ? (
+                        <form
+                          onSubmit={(e) => { e.preventDefault(); setNewsletterDone(true); }}
+                          className="flex gap-2"
+                        >
+                          <input
+                            type="email"
+                            required
+                            placeholder="your@email.com"
+                            className="flex-1 px-4 py-2.5 rounded-full text-sm outline-none border"
+                            style={{ borderColor: '#E9E2D9', color: '#111111' }}
+                          />
+                          <button type="submit" className="px-5 py-2.5 rounded-full text-xs font-bold text-white cursor-pointer transition hover:opacity-85" style={{ backgroundColor: '#111111' }}>
+                            Join
+                          </button>
+                        </form>
+                        {newsletterDone && (
                           <p className="text-xs font-bold" style={{ color: '#8E4356' }}>✓ Subscribed! Watch your inbox for early access.</p>
-                        ) : (
-                          <form onSubmit={handleStoreSubscribe} className="flex gap-2">
-                            <input
-                              type="email"
-                              required
-                              value={newsletterEmail}
-                              onChange={(e) => setNewsletterEmail(e.target.value)}
-                              placeholder="your@email.com"
-                              aria-label="Email address for newsletter"
-                              className="flex-1 px-4 py-2.5 rounded-full text-sm outline-none border"
-                              style={{ borderColor: '#E9E2D9', color: '#111111' }}
-                            />
-                            <button type="submit" disabled={newsletterBusy} className="px-5 py-2.5 rounded-full text-xs font-bold text-white cursor-pointer transition hover:opacity-85 disabled:opacity-60" style={{ backgroundColor: '#111111' }}>
-                              {newsletterBusy ? 'Joining…' : 'Join'}
-                            </button>
-                          </form>
-                        )}
-                        {newsletterError && (
-                          <p className="text-[11px] font-semibold text-red-600">{newsletterError}</p>
                         )}
                       </div>
                     </div>
@@ -4133,65 +4061,19 @@ export const DynamicStorefrontPage = () => {
         // 10. FOOTER
         // ----------------------------------------------------
         if (section.type === 'footer') {
-          const tAccent = styles?.accentColor || '#9F1239';
-          const tHeading = styles?.headingColor || '#0F172A';
-          const tText = styles?.textColor || '#64748B';
-          const tBorder = styles?.cardBorder?.match(/#([0-9A-Fa-f]{6})/)?.[0] || 'rgba(0,0,0,0.08)';
           return (
             <footer
               key={section.id}
-              className="py-12 px-4 border-t border-black/5 space-y-6"
+              className="py-12 px-4 border-t border-black/5 text-center text-xs space-y-3"
               style={{
                 backgroundColor: styles?.surfaceColor || '#FFFFFF',
-                color: tText
+                color: styles?.textColor || '#64748B'
               }}
             >
-              {/* Newsletter subscription — real signup stored per store */}
-              {section.data.showNewsletter !== false && (
-                <div className="max-w-md mx-auto text-center space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: tAccent }}>
-                    {section.data.newsletterTitle || 'Join Our Newsletter'}
-                  </p>
-                  <p className="text-[11px] leading-relaxed">
-                    {section.data.newsletterText || `New arrivals, seasonal specials & early access from ${matchedStore.name}. No spam — unsubscribe anytime.`}
-                  </p>
-                  {newsletterDone ? (
-                    <p className="text-xs font-bold py-2" style={{ color: tAccent }}>
-                      ✓ Subscribed! Watch your inbox for early access.
-                    </p>
-                  ) : (
-                    <form onSubmit={handleStoreSubscribe} className="flex items-center gap-2">
-                      <input
-                        type="email"
-                        required
-                        value={newsletterEmail}
-                        onChange={(e) => setNewsletterEmail(e.target.value)}
-                        placeholder="Enter your email address"
-                        aria-label="Email address for newsletter"
-                        className="flex-1 min-w-0 px-4 py-2.5 rounded-full text-xs outline-none"
-                        style={{ backgroundColor: styles?.backgroundColor || '#FFFFFF', border: `1px solid ${tBorder}`, color: tHeading }}
-                      />
-                      <button
-                        type="submit"
-                        disabled={newsletterBusy}
-                        className="shrink-0 px-5 py-2.5 rounded-full text-xs font-bold text-white transition disabled:opacity-60"
-                        style={{ backgroundColor: tAccent }}
-                      >
-                        {newsletterBusy ? 'Subscribing…' : (section.data.newsletterButtonText || 'Subscribe')}
-                      </button>
-                    </form>
-                  )}
-                  {newsletterError && (
-                    <p className="text-[11px] font-semibold text-red-600">{newsletterError}</p>
-                  )}
-                </div>
-              )}
-              <div className="text-center text-xs space-y-3">
-                <p className="font-semibold">{section.data.aboutText || section.data.tagline || `Official storefront for ${matchedStore.name}. Powered by Go Julex 0% platform fee commerce cloud.`}</p>
-                <p className="text-[11px] opacity-75">
-                  {section.data.copyright || section.data.copyrightText || `© ${new Date().getFullYear()} ${matchedStore.name}. All rights reserved.`}
-                </p>
-              </div>
+              <p className="font-semibold">{section.data.aboutText || section.data.tagline || `Official storefront for ${matchedStore.name}. Powered by Go Julex 0% platform fee commerce cloud.`}</p>
+              <p className="text-[11px] opacity-75">
+                {section.data.copyright || section.data.copyrightText || `© ${new Date().getFullYear()} ${matchedStore.name}. All rights reserved.`}
+              </p>
             </footer>
           );
         }
