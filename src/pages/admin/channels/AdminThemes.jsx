@@ -116,6 +116,18 @@ export const AdminThemes = () => {
       return t.aesthetic === aestheticFilter;
     });
 
+  // The super admin can rename catalog themes (e.g. "GREEN HAVEN") — the
+  // Current Active Theme card must reflect that override, not the preset's
+  // factory name stored in the saved theme snapshot.
+  const activeOverride = activeTheme ? catalogOverrides[activeTheme.presetId] : null;
+  const displayActiveTheme = activeTheme && activeOverride
+    ? {
+        ...activeTheme,
+        name: activeOverride.name || activeTheme.name,
+        description: activeOverride.tagline || activeTheme.description
+      }
+    : activeTheme;
+
   const handleApplyTheme = (theme, redirect = false) => {
     const presetStyles = HARMONIOUS_THEME_PRESETS.find((p) => p.id === theme.presetId) || HARMONIOUS_THEME_PRESETS[0];
 
@@ -126,11 +138,16 @@ export const AdminThemes = () => {
       if (raw) currentThemeObj = JSON.parse(raw);
     } catch (e) {}
 
+    // Carry the super-admin's catalog overrides (renamed theme/tagline)
+    // into the applied + published payload so every surface shows them.
+    const ov = catalogOverrides[theme.presetId] || {};
     const newThemePayload = {
       presetId: theme.presetId,
       styles: {
         ...presetStyles,
-        presetId: theme.presetId
+        presetId: theme.presetId,
+        ...(ov.name ? { name: ov.name } : {}),
+        ...(ov.tagline ? { desc: ov.tagline } : {})
       },
       // Install the SAME sections the live preview renders, so the published
       // store is identical to the preview (brand copy, imagery, order).
@@ -205,7 +222,7 @@ export const AdminThemes = () => {
 
             <div className="space-y-2">
               <div className="flex items-center gap-2.5">
-                <h3 className="text-xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>{activeTheme.name}</h3>
+                <h3 className="text-xl font-bold font-serif" style={{ color: 'var(--text-primary)' }}>{displayActiveTheme.name}</h3>
                 <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold" style={{ backgroundColor: 'rgba(212,160,23,0.12)', color: 'var(--accent)', border: '1px solid rgba(212,160,23,0.25)' }}>
                   {activeTheme.version}
                 </span>
@@ -214,7 +231,7 @@ export const AdminThemes = () => {
                 </span>
               </div>
               <p className="text-xs max-w-xl leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {activeTheme.description}
+                {displayActiveTheme.description}
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {activeTheme.featureTags.map((tag, idx) => (
@@ -264,7 +281,7 @@ export const AdminThemes = () => {
                   <button
                     onClick={() => {
                       setActionsOpen(false);
-                      showToast(`Created duplicate of "${activeTheme.name}"`, 'info');
+                      showToast(`Created duplicate of "${displayActiveTheme.name}"`, 'info');
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition hover:bg-amber-500/10 cursor-pointer"
                   >
