@@ -4,70 +4,61 @@ import { requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/coupons (Public: Fetch all active coupons for customer checkout & showcase)
+// Tenant lookup by subdomain (accepts slug or full domain forms)
+const findTenantBySub = async (sub) => {
+  const clean = String(sub || '').toLowerCase()
+    .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+  if (!clean) return null;
+  const all = await prisma.tenant.findMany();
+  const norm = (v) => String(v || '').toLowerCase()
+    .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+  return all.find((t) => norm(t.subdomain) === clean || norm(t.id) === clean) || null;
+};
+
+// GET /api/coupons?subdomain=xyz (Active coupons — scoped to ONE store when
+// a subdomain is given; coupons are per-store, never platform-wide)
 router.get('/', async (req, res) => {
   try {
-    let coupons = await prisma.coupon.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    // Auto-seed default luxury coupons if registry is currently empty
-    if (coupons.length === 0) {
-      const defaultCoupons = [
-        {
-          code: 'CHRONOS10',
-          description: 'Welcome Customer Privilege Voucher (10% Off Entire Vault)',
-          discountType: 'PERCENT',
-          discountValue: 10,
-          minOrderAmount: 0,
-          maxDiscountAmount: 500000,
-          isActive: true
-        },
-        {
-          code: 'ROYAL50000',
-          description: 'Grand Horology Voucher (₹50,000 Off Orders over ₹10 Lakhs)',
-          discountType: 'FIXED',
-          discountValue: 50000,
-          minOrderAmount: 1000000,
-          isActive: true
-        },
-        {
-          code: 'FESTIVE15',
-          description: 'Festive Connoisseur Celebration (15% Off Orders over ₹5 Lakhs)',
-          discountType: 'PERCENT',
-          discountValue: 15,
-          minOrderAmount: 500000,
-          maxDiscountAmount: 300000,
-          isActive: true
-        }
-      ];
-
-      for (const c of defaultCoupons) {
-        await prisma.coupon.upsert({
-          where: { code: c.code },
-          update: {},
-          create: c
-        }).catch(() => {});
-      }
-
-      coupons = await prisma.coupon.findMany({
-        where: { isActive: true },
-        orderBy: { createdAt: 'desc' }
-      });
+    const where = { isActive: true };
+    if (req.query.subdomain) {
+      const tenant = await findTenantBySub(req.query.subdomain);
+      where.tenantId = tenant ? tenant.id : '__none__';
     }
-
+    const coupons = await prisma.coupon.findMany({ where, orderBy: { createdAt: 'desc' } });
     const now = new Date();
     const validCoupons = coupons.filter((c) => !c.expiresAt || new Date(c.expiresAt) > now);
-
-    return res.json({
-      success: true,
-      count: validCoupons.length,
-      data: validCoupons
-    });
+    return res.json({ success: true, count: validCoupons.length, data: validCoupons });
   } catch (error) {
     console.error('Fetch active coupons error:', error);
     return res.status(500).json({ success: false, message: 'Failed to retrieve available coupons.' });
+  }
+});
+
+// GET /api/coupons/public/:subdomain — storefront promo banner shows only
+// the real coupons this store's owner created
+router.get('/public/:subdomain', async (req, res) => {
+  try {
+    const tenant = await findTenantBySub(req.params.subdomain);
+    if (!tenant) return res.json({ success: true, data: [] });
+    const coupons = await prisma.coupon.findMany({
+      where: { tenantId: tenant.id, isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    const now = new Date();
+    const valid = coupons
+      .filter((c) => !c.expiresAt || new Date(c.expiresAt) > now)
+      .map((c) => ({
+        code: c.code,
+        description: c.description,
+        discountType: c.discountType,
+        discountValue: c.discountValue,
+        minOrderAmount: c.minOrderAmount,
+        maxDiscountAmount: c.maxDiscountAmount
+      }));
+    return res.json({ success: true, data: valid });
+  } catch (error) {
+    console.error('Public store coupons error:', error);
+    return res.json({ success: true, data: [] });
   }
 });
 
@@ -135,6 +126,7 @@ router.post('/', requireAdmin, async (req, res) => {
     const newCoupon = await prisma.coupon.create({
       data: {
         code: cleanCode,
+        tenantId: req.tenantId || null,
         description: description.trim(),
         discountType: discountType === 'FIXED' ? 'FIXED' : 'PERCENT',
         discountValue: value,
@@ -268,15 +260,27 @@ router.put('/:code', requireAdmin, async (req, res) => {
 
 router.post('/validate', async (req, res) => {
   try {
-    const { code, cartTotal } = req.body;
+    const { code, cartTotal, subdomain } = req.body;
     const cleanCode = code?.trim().toUpperCase();
 
     if (!cleanCode) {
       return res.status(400).json({ success: false, message: 'Please provide a coupon code.' });
     }
 
+    // Coupons belong to a store: when the checkout names its store, only
+    // that store's own coupon is valid there.
+    let tenantIdFilter = null;
+    if (subdomain) {
+      const tenant = await findTenantBySub(subdomain);
+      tenantIdFilter = tenant ? tenant.id : '__none__';
+    }
+
     const coupon = await prisma.coupon.findFirst({
-      where: { code: cleanCode, isActive: true }
+      where: {
+        code: cleanCode,
+        isActive: true,
+        ...(tenantIdFilter ? { tenantId: tenantIdFilter } : {})
+      }
     });
 
     if (!coupon) {

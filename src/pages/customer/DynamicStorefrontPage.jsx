@@ -143,6 +143,27 @@ export const DynamicStorefrontPage = () => {
     rootEl.classList.add('jx-storefront');
     return () => rootEl.classList.remove('jx-storefront');
   }, []);
+  // Real store coupons — the promo banner shows ONLY coupons the store's
+  // owner created in their Discounts page (never template/demo codes).
+  const [storeCoupons, setStoreCoupons] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    api.coupons.publicForStore(cleanSubdomain)
+      .then((res) => { if (!cancelled && res?.success && Array.isArray(res.data)) setStoreCoupons(res.data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [cleanSubdomain]);
+  const [couponToast, setCouponToast] = useState(null);
+  const handleCopyCoupon = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (e) {
+      // Clipboard unavailable (permissions/iframe) — the code is still visible
+    }
+    setCouponToast(`Code ${code} copied — apply it at checkout.`);
+    setTimeout(() => setCouponToast(null), 3200);
+  };
+
   useEffect(() => {
     let cancelled = false;
     const ownerPreview = isJulexEditMode || isJulexDraftPreview;
@@ -3369,12 +3390,26 @@ export const DynamicStorefrontPage = () => {
               <h3 className="text-2xl sm:text-3xl font-black font-serif">
                 {section.data.headline}
               </h3>
-              <div className="inline-flex items-center gap-2 p-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 text-xs font-bold">
-                <span>Voucher Code:</span>
-                <span className="font-mono px-2.5 py-0.5 rounded-lg bg-white text-[#0F172A] font-black">
-                  {section.data.couponCode || 'SAVE10'}
-                </span>
-              </div>
+              {storeCoupons.length > 0 && (() => {
+                const c = storeCoupons[0];
+                const cLabel = c.discountType === 'PERCENT'
+                  ? `${c.discountValue}% off${c.minOrderAmount > 0 ? ` orders over ₹${Number(c.minOrderAmount).toLocaleString('en-IN')}` : ''}`
+                  : `₹${Number(c.discountValue).toLocaleString('en-IN')} off`;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => handleCopyCoupon(c.code)}
+                    title={`Copy code ${c.code} — ${c.description || cLabel}`}
+                    className="inline-flex items-center gap-2 p-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 text-xs font-bold cursor-pointer transition hover:bg-white/25"
+                  >
+                    <span>Voucher Code:</span>
+                    <span className="font-mono px-2.5 py-0.5 rounded-lg bg-white text-[#0F172A] font-black">
+                      {c.code}
+                    </span>
+                    <span className="opacity-80 font-semibold">· {cLabel} · tap to copy</span>
+                  </button>
+                );
+              })()}
               <p className="text-xs opacity-90 max-w-sm mx-auto">{section.data.subtext}</p>
             </div>
           );
@@ -4115,6 +4150,13 @@ export const DynamicStorefrontPage = () => {
       )}
 
       {/* ---------------------------------------------------- */}
+      {/* Coupon copied confirmation */}
+      {couponToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold text-white" style={{ backgroundColor: 'rgba(17,17,17,0.92)' }}>
+          ✓ {couponToast}
+        </div>
+      )}
+
       {/* SLIDE-OVER SHOPPING BAG DRAWER — styled by the store's active theme */}
       {/* ---------------------------------------------------- */}
       {isBagDrawerOpen && (() => {

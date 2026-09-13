@@ -64,7 +64,7 @@ export const CheckoutPage = () => {
     if (!code) { setCheckoutPromoError('Please enter a coupon code.'); return; }
     setCouponBusy(true); setCheckoutPromoError('');
     try {
-      const res = await api.coupons.validate(code, finalAmount);
+      const res = await api.coupons.validate(code, finalAmount, resolvedSubdomain || subdomain);
       if (res?.success && res.data) {
         setAppliedCoupon({ code: res.data.code, discountINR: Math.round(res.data.calculatedDiscount || 0), description: res.data.label || res.data.description });
         setCheckoutPromoInput('');

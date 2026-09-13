@@ -283,11 +283,13 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(patch)
       }),
-    validate: (code, cartTotal) =>
+    validate: (code, cartTotal, subdomain) =>
       request('/coupons/validate', {
         method: 'POST',
-        body: JSON.stringify({ code, cartTotal })
+        body: JSON.stringify({ code, cartTotal, subdomain })
       }),
+    publicForStore: (subdomain) =>
+      request(`/coupons/public/${encodeURIComponent(subdomain)}`),
     getAll: () => request('/coupons/all'),
     create: (couponData) =>
       request('/coupons', {
