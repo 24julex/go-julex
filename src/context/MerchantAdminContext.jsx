@@ -605,9 +605,7 @@ export const MerchantAdminProvider = ({ children }) => {
             const synced = JSON.parse(localStorage.getItem(KEY) || '[]');
             if (!synced.includes(newDisc.code)) { synced.push(newDisc.code); localStorage.setItem(KEY, JSON.stringify(synced)); }
           } catch (e) {}
-        }
-      }).then(res => {
-        if (!res?.success) {
+        } else {
           showToast(`Coupon saved locally but backend rejected it: ${res?.message || 'unknown error'}. It will retry on next login.`, 'warning');
         }
       }).catch(() => {
