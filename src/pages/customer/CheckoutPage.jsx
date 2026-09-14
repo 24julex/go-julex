@@ -231,9 +231,15 @@ export const CheckoutPage = () => {
         createdAt: new Date().toISOString()
       };
 
-      // 1. Sync to Global ProductContext
+      // 1. Sync to Global ProductContext — the backend owns the official
+      // order number; adopt it so the confirmation matches the invoice email
       try {
-        await createOrder(orderPayload);
+        const backendOrder = await createOrder(orderPayload);
+        if (backendOrder?.orderNumber) {
+          orderPayload.orderNumber = backendOrder.orderNumber;
+          orderPayload.id = backendOrder.orderNumber;
+        }
+        if (backendOrder?.trackingNumber) orderPayload.trackingNumber = backendOrder.trackingNumber;
       } catch (err) {
         console.warn('ProductContext createOrder notice:', err);
       }
@@ -259,7 +265,7 @@ export const CheckoutPage = () => {
 
       const formattedConfirmedOrder = {
         ...orderPayload,
-        trackingNumber: `TRK-IN-${Math.floor(10000 + Math.random() * 90000)}-EXP`
+        trackingNumber: orderPayload.trackingNumber || `TRK-IN-${Math.floor(10000 + Math.random() * 90000)}-EXP`
       };
 
       setConfirmedOrder(formattedConfirmedOrder);
