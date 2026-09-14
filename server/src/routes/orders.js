@@ -160,8 +160,14 @@ const sendOrderInvoiceEmail = async (order) => {
     const subtotal = order.subtotalAmount || order.items.reduce((s2, i) => s2 + (i.priceAtPurchase * i.quantity), 0);
     const discount = order.discountAmount || 0;
     const shipping = order.shippingFee || 0;
-    const tax = order.taxAmount || Math.round((subtotal - discount) * 0.03);
+    const tax = order.taxAmount || 0;
+    // What the customer ACTUALLY paid — identical to the merchant dashboard
     const total = subtotal - discount + shipping + tax;
+    // Prices are tax-inclusive: show the GST content extracted from the
+    // total (platform 3% convention), never added on top of it
+    const gstIncluded = Math.round(total * 3 / 103);
+    const cgst = Math.round(gstIncluded / 2);
+    const sgst = gstIncluded - cgst;
 
     const storeName = config?.storeTradeName || config?.storeLegalName || order.tenant?.name || 'The Store';
     const storeGstin = config?.storeGstin || null;
@@ -232,8 +238,8 @@ const sendOrderInvoiceEmail = async (order) => {
           <tr><td style="padding:4px 0;font-size:12px;color:#475569">Subtotal</td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(subtotal)}</td></tr>
           ${discount > 0 ? `<tr><td style="padding:4px 0;font-size:12px;color:#475569">Discount${order.couponCodeApplied ? ` (${order.couponCodeApplied})` : ''}</td><td style="padding:4px 0;font-size:12px;color:#059669;text-align:right">&minus; ${inr(discount)}</td></tr>` : ''}
           <tr><td style="padding:4px 0;font-size:12px;color:#475569">Shipping</td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${shipping > 0 ? inr(shipping) : 'FREE'}</td></tr>
-          <tr><td style="padding:4px 0;font-size:12px;color:#475569">CGST</td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(tax / 2)}</td></tr>
-          <tr><td style="padding:4px 0;font-size:12px;color:#475569">SGST</td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(tax / 2)}</td></tr>
+          <tr><td style="padding:4px 0;font-size:12px;color:#475569">CGST <span style="color:#94a3b8">(included)</span></td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(cgst)}</td></tr>
+          <tr><td style="padding:4px 0;font-size:12px;color:#475569">SGST <span style="color:#94a3b8">(included)</span></td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(sgst)}</td></tr>
           <tr style="border-top:2px solid #0f172a"><td style="padding:8px 0;font-size:13px;font-weight:800;color:#0f172a">TOTAL PAID</td><td style="padding:8px 0;font-size:13px;font-weight:800;color:#0f172a;text-align:right">${inr(total)}</td></tr>
         </table>
       </div>
@@ -245,8 +251,16 @@ const sendOrderInvoiceEmail = async (order) => {
       </div>
     </div>`;
 
+    // Send AS the store: invoice-config store email, else the store owner's
+    // account, else the platform address — with a Reply-To back to the store
+    const storeFromEmail = config?.storeEmail || order.tenant?.users?.[0]?.email || null;
+    const fromHeader = storeFromEmail
+      ? `${storeName.replace(/["<>]/g, '')} <${storeFromEmail}>`
+      : undefined;
+
     return sendMail({
       to: order.customerEmail,
+      ...(fromHeader ? { from: fromHeader, replyTo: storeFromEmail } : {}),
       subject: `${storeName} - GST Invoice ${invoiceNo} (Order ${order.orderNumber})`,
       html,
       text: `${storeName} GST Invoice ${invoiceNo} for order ${order.orderNumber}. Total ${inr(total)}. Thank you for your purchase.`
@@ -319,6 +333,13 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Totals are computed from the LINE ITEMS — the single source of truth.
+    // (The checkout's post-discount total used to be stored as the subtotal,
+    // then the invoice subtracted the discount AGAIN and invented a 3% tax,
+    // producing totals that disagreed across dashboard/invoice/email.)
+    const computedSubtotal = preparedItems.reduce((acc, i) => acc + (i.priceAtPurchase * i.quantity), 0);
+    const orderDiscount = Math.min(computedSubtotal, Number(discountAmount ?? discountAppliedINR) || 0);
+
     const createdOrder = await prisma.order.create({
       data: {
         orderNumber,
@@ -327,12 +348,12 @@ router.post('/', async (req, res) => {
         customerName: customerName ? customerName.trim() : 'Valued Customer',
         customerEmail: customerEmail ? customerEmail.toLowerCase().trim() : '',
         customerPhone: customerPhone ? customerPhone.trim() : null,
-        subtotalAmount: Number(subtotalAmount) || Number(totalAmount) || 0,
-        discountAmount: Number(discountAmount ?? discountAppliedINR) || 0,
+        subtotalAmount: computedSubtotal,
+        discountAmount: orderDiscount,
         couponCodeApplied: couponCode ? String(couponCode).trim().toUpperCase() : null,
         shippingFee: Number(shippingFee) || 0,
         taxAmount: Number(taxAmount) || 0,
-        totalAmount: Number(totalAmount) || 0,
+        totalAmount: Math.max(0, computedSubtotal - orderDiscount + (Number(shippingFee) || 0) + (Number(taxAmount) || 0)),
         channel: channel || 'WEB',
         paymentStatus: paymentStatus || 'PAID',
         fulfillmentStatus: fulfillmentStatus || 'PROCESSING',
@@ -345,7 +366,7 @@ router.post('/', async (req, res) => {
           create: preparedItems
         }
       },
-      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true } } }
+      include: { items: true, tenant: { select: { id: true, name: true, subdomain: true, users: { select: { email: true }, take: 1 } } } }
     });
 
     // Deduct stock from products

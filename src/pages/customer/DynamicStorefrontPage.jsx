@@ -468,12 +468,20 @@ export const DynamicStorefrontPage = () => {
 
   // Load the PUBLISHED theme config from the backend so every visitor
   // sees the store exactly as the merchant designed it (localStorage is
-  // only a local draft fallback).
+  // only a local draft fallback). The storefront does NOT paint until this
+  // resolves — otherwise refreshes flash the local/default theme for a
+  // moment before the published one lands.
+  const [publishedThemeLoaded, setPublishedThemeLoaded] = useState(
+    // Preview/customizer modes render their own theme source — no gate.
+    () => Boolean(searchParams.get('theme')) || searchParams.get('julex_draft') === '1'
+  );
   useEffect(() => {
     let cancelled = false;
     api.themes.getPublicConfig(cleanSubdomain)
       .then((res) => {
-        if (cancelled || !res?.success || !res?.data) return;
+        if (cancelled) return;
+        setPublishedThemeLoaded(true);
+        if (!res?.success || !res?.data) return;
         // Theme live-preview / customizer draft own the screen — never let
         // the store's saved config overwrite them.
         if (previewPresetId || isJulexDraftPreview) return;
@@ -492,7 +500,7 @@ export const DynamicStorefrontPage = () => {
         // EVERY visitor — apply the backend config once sections have rendered.
         if (!cancelled) setTimeout(() => applyJuxConfig(cfg), 400);
       })
-      .catch(() => {});
+      .catch(() => { if (!cancelled) setPublishedThemeLoaded(true); });
     return () => { cancelled = true; };
   }, [cleanSubdomain]);
 
@@ -616,6 +624,17 @@ export const DynamicStorefrontPage = () => {
           <p className="text-sm text-[#475569]">The store owner is still setting things up. Please check back soon!</p>
           <a href="https://go.julex.shop" className="inline-block px-5 py-2.5 rounded-2xl bg-[#9F1239] hover:bg-[#881337] text-white text-xs font-bold transition">Explore Go Julex</a>
         </div>
+      </div>
+    );
+  }
+
+  // Theme gate: never paint a local/default theme placeholder. The store's
+  // PUBLISHED theme renders in one shot — no wrong-theme flash on refresh.
+  if (!publishedThemeLoaded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
+        <div className="w-10 h-10 rounded-full border-4 border-stone-200 border-t-stone-700 animate-spin" />
+        <p className="text-xs font-semibold tracking-widest uppercase text-stone-500">Loading {matchedStore?.name || 'store'}…</p>
       </div>
     );
   }

@@ -24,10 +24,10 @@ const transport = () => {
   return cachedTransport;
 };
 
-export const sendMail = async ({ to, subject, text, html }) => {
-  const from = process.env.MAIL_FROM || 'Go Julex <no-reply@go.julex.shop>';
+export const sendMail = async ({ to, subject, text, html, from, replyTo }) => {
+  const sender = from || process.env.MAIL_FROM || 'Go Julex <no-reply@go.julex.shop>';
   try {
-    const info = await transport().sendMail({ from, to, subject, text, html });
+    const info = await transport().sendMail({ from: sender, to, subject, text, html, ...(replyTo ? { replyTo } : {}) });
     return { sent: true, messageId: info?.messageId };
   } catch (e) {
     // Never break signup because mail failed — log (throttled) and surface

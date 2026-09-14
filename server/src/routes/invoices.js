@@ -429,7 +429,9 @@ router.get('/merchant/invoices/render/:orderId', requireMerchantAdmin, async (re
     const subtotal = order.subtotalAmount || order.items.reduce((s, i) => s + (i.priceAtPurchase * i.quantity), 0);
     const discount = order.discountAmount || 0;
     const shipping = order.shippingFee || 0;
-    const tax = order.taxAmount || Math.round((subtotal - discount) * 0.03);
+    // Stored tax only (0 for tax-inclusive pricing) — never invent a 3% on
+    // top; the printed invoice total must equal the merchant dashboard total
+    const tax = order.taxAmount || 0;
     const calculatedTotal = subtotal - discount + shipping + tax;
 
     const invoicePayload = {
