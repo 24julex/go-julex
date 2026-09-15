@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Users,
   Search,
@@ -8,6 +8,7 @@ import {
   X
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../context/MerchantAdminContext';
+import { api } from '../../services/api';
 import { CustomersTable } from '../../components/admin/customers/CustomersTable';
 import { CustomerDetailDrawer } from '../../components/admin/customers/CustomerDetailDrawer';
 
@@ -17,6 +18,38 @@ export const AdminCustomers = () => {
   const [segmentFilter, setSegmentFilter] = useState('All');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // REAL customer directory — derived from this store's orders in the
+  // database (guest checkout buyers included), refreshed whenever the
+  // merchant revisits the page so new orders show up immediately.
+  const [dbCustomers, setDbCustomers] = useState([]);
+  const [dbLoading, setDbLoading] = useState(true);
+  const storeKey = (currentStore?.subdomain || currentStore?.id || '')
+    .toLowerCase()
+    .replace(/\.go\.julex\.shop$/, '')
+    .replace(/\.gojulex\.com$/, '')
+    .replace(/^store_/, '');
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!storeKey) { setDbLoading(false); return undefined; }
+    setDbLoading(true);
+    api.customers.forStore(storeKey)
+      .then((res) => {
+        if (!cancelled && res?.success && Array.isArray(res.data)) setDbCustomers(res.data);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setDbLoading(false); });
+    return () => { cancelled = true; };
+  }, [storeKey]);
+
+  // Order-derived customers first; manually added local contacts appended
+  // only when not already present (matched by email)
+  const allCustomers = useMemo(() => {
+    const emails = new Set(dbCustomers.map((c) => String(c.email || '').toLowerCase()).filter(Boolean));
+    const manualExtras = customers.filter((c) => !c.email || !emails.has(String(c.email).toLowerCase()));
+    return [...dbCustomers, ...manualExtras];
+  }, [dbCustomers, customers]);
 
   const [newCustomerForm, setNewCustomerForm] = useState({
     name: '',
@@ -29,10 +62,10 @@ export const AdminCustomers = () => {
   });
 
   const metrics = useMemo(() => {
-    const total = customers.length;
-    const repeat = customers.filter((c) => (Number(c.ordersCount) || 0) > 1);
-    const firstTime = customers.filter((c) => (Number(c.ordersCount) || 0) === 1);
-    const viewers = customers.filter((c) => (Number(c.ordersCount) || 0) === 0);
+    const total = allCustomers.length;
+    const repeat = allCustomers.filter((c) => (Number(c.ordersCount) || 0) > 1);
+    const firstTime = allCustomers.filter((c) => (Number(c.ordersCount) || 0) === 1);
+    const viewers = allCustomers.filter((c) => (Number(c.ordersCount) || 0) === 0);
 
     const repeatPercent = total > 0 ? Math.round((repeat.length / total) * 100) : 0;
 
@@ -43,10 +76,10 @@ export const AdminCustomers = () => {
       firstTimeCount: firstTime.length,
       viewersCount: viewers.length
     };
-  }, [customers]);
+  }, [allCustomers]);
 
   const filteredCustomers = useMemo(() => {
-    return customers.filter((cust) => {
+    return allCustomers.filter((cust) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = cust.name?.toLowerCase().includes(q);
@@ -74,7 +107,7 @@ export const AdminCustomers = () => {
 
       return true;
     });
-  }, [customers, searchQuery, segmentFilter]);
+  }, [allCustomers, searchQuery, segmentFilter]);
 
   const handleCreateCustomer = (e) => {
     e.preventDefault();
@@ -214,10 +247,24 @@ export const AdminCustomers = () => {
       </div>
 
       {/* 4. Customers Responsive Table */}
-      <CustomersTable
-        customers={filteredCustomers}
-        onSelectCustomer={(cust) => setSelectedCustomer(cust)}
-      />
+      {dbLoading ? (
+        <div className="p-10 rounded-3xl border text-center space-y-3" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
+          <div className="w-8 h-8 rounded-full border-4 border-stone-200 border-t-stone-600 animate-spin mx-auto" />
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Loading your store's customers…</p>
+        </div>
+      ) : filteredCustomers.length === 0 ? (
+        <div className="p-10 rounded-3xl border text-center space-y-2" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-card)' }}>
+          <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>No customers yet</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Customers appear here automatically from their first order — name, contact and purchase history are captured at checkout.
+          </p>
+        </div>
+      ) : (
+        <CustomersTable
+          customers={filteredCustomers}
+          onSelectCustomer={(cust) => setSelectedCustomer(cust)}
+        />
+      )}
 
       {/* 5. Customer Profile Drawer */}
       <CustomerDetailDrawer

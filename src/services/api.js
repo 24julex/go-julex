@@ -326,6 +326,8 @@ export const api = {
 
   // Customers endpoints
   customers: {
+    // Real customer directory derived from a store's orders
+    forStore: (subdomain) => request(`/customers/store/${encodeURIComponent(subdomain)}`),
     getAll: (params = {}) => {
       const query = new URLSearchParams();
       if (params.search) query.append('search', params.search);

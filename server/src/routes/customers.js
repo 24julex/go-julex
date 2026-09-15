@@ -4,6 +4,84 @@ import { requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// GET /api/customers/store/:subdomain — the store's real customer directory,
+// DERIVED FROM ITS ORDERS. Storefront buyers are guest checkouts (name,
+// email, phone captured per order), so grouping orders by customer email is
+// the source of truth — works for every existing and future store.
+router.get('/store/:subdomain', requireAdmin, async (req, res) => {
+  try {
+    const clean = String(req.params.subdomain || '').toLowerCase()
+      .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const all = await prisma.tenant.findMany();
+    const norm = (v) => String(v || '').toLowerCase()
+      .replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    const tenant = all.find((t) => norm(t.subdomain) === clean || norm(t.id) === clean)
+      || null;
+
+    const tenantId = tenant?.id || req.tenantId || null;
+    if (!tenantId) {
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+      include: { items: { select: { productName: true, quantity: true, priceAtPurchase: true } } }
+    });
+
+    const byKey = new Map();
+    for (const o of orders) {
+      const email = String(o.customerEmail || '').toLowerCase().trim();
+      const phone = String(o.customerPhone || '').replace(/\D/g, '');
+      // Group by email; anonymous cash orders (no contact) group by phone
+      const key = email || (phone ? `phone:${phone}` : `order:${o.id}`);
+      if (!byKey.has(key)) {
+        byKey.set(key, {
+          id: key.startsWith('phone:') ? key : (email || key),
+          name: o.customerName,
+          email: email || null,
+          phone: o.customerPhone || null,
+          ordersCount: 0,
+          totalSpentINR: 0,
+          firstOrderDate: o.createdAt,
+          lastOrderDate: o.createdAt,
+          memberSince: new Date(o.createdAt).toISOString().split('-')[0],
+          pastOrders: []
+        });
+      }
+      const c = byKey.get(key);
+      c.ordersCount += 1;
+      c.totalSpentINR += Number(o.totalAmount || 0);
+      if (new Date(o.createdAt) < new Date(c.firstOrderDate)) c.firstOrderDate = o.createdAt;
+      if (new Date(o.createdAt) > new Date(c.lastOrderDate)) {
+        c.lastOrderDate = o.createdAt;
+        c.name = o.customerName || c.name; // latest known name
+        if (o.customerPhone) c.phone = o.customerPhone;
+      }
+      c.pastOrders.push({
+        orderNumber: o.orderNumber,
+        date: o.createdAt,
+        totalINR: o.totalAmount,
+        status: o.fulfillmentStatus,
+        paymentStatus: o.paymentStatus,
+        items: o.items.map((i) => ({ name: i.productName, qty: i.quantity, price: i.priceAtPurchase }))
+      });
+    }
+
+    const data = Array.from(byKey.values()).map((c) => ({
+      ...c,
+      averageOrderINR: c.ordersCount > 0 ? Math.round(c.totalSpentINR / c.ordersCount) : 0,
+      // Mirror the UI segment badges (derived from order count)
+      segment: c.ordersCount >= 5 ? 'VIP' : c.ordersCount >= 2 ? 'Repeat' : 'First-time'
+    }));
+
+    return res.json({ success: true, count: data.length, data });
+  } catch (error) {
+    console.error('Store customers error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch store customers.' });
+  }
+});
+
 // GET /api/customers — All customers with order count & total spent
 router.get('/', requireAdmin, async (req, res) => {
   try {
