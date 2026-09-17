@@ -173,7 +173,11 @@ export const DynamicStorefrontPage = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const ownerPreview = isJulexEditMode || isJulexDraftPreview;
+    // Theme Live Preview (?theme=…&preview=1) must render even for a store
+    // that is still DRAFT/unpublished — the whole point is choosing a theme
+    // before going live. Only real visitors get the "isn't live yet" page.
+    const themePreview = Boolean(searchParams.get('theme')) || searchParams.get('preview') === '1';
+    const ownerPreview = isJulexEditMode || isJulexDraftPreview || themePreview;
     if (ownerPreview) { setStoreNotLive(false); return; undefined; }
     api.storePublicStatus ? api.storePublicStatus(cleanSubdomain)
       .then((res) => { if (!cancelled) setStoreNotLive(!(res?.success && res.data?.published)); })
@@ -501,15 +505,15 @@ export const DynamicStorefrontPage = () => {
   );
 
   // Catch-all visibility pass: theme templates hardcode literal colors
-  // (e.g. #111111 prices) that the palette derivation cannot reach. In dark
-  // mode, any text that renders illegible against its background — inline
-  // style, utility class, anything — is flipped to the readable side, and
-  // neutral light card surfaces are deepened. Brand accents are kept.
-  // useLayoutEffect: corrected before the browser paints — no flash.
+  // (gray captions on cream, black prices, white chips) that the palette
+  // derivation cannot reach. Runs in BOTH modes — dark mode also deepens
+  // neutral light surfaces, light mode corrects text only — so every theme,
+  // existing or future, keeps all text readable in whichever mode the
+  // visitor picks. useLayoutEffect: corrected before the browser paints.
   // (Must sit below publishedThemeLoaded's declaration.)
   useLayoutEffect(() => {
-    if (jxMode !== 'dark' || !publishedThemeLoaded || !jxRootRef.current) return;
-    const restore = applyDarkContrast(jxRootRef.current);
+    if (!publishedThemeLoaded || !jxRootRef.current) return;
+    const restore = applyDarkContrast(jxRootRef.current, { mode: jxMode });
     return restore;
   }, [jxMode, publishedThemeLoaded]);
   useEffect(() => {

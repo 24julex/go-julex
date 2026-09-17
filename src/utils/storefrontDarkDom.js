@@ -104,10 +104,27 @@ const darkenSurface = (cssColor) => {
   return hslCss(h, Math.min(s, 0.14), 0.15);
 };
 
-export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE9E4' } = {}) => {
+// Text placed over a photo/gradient overlay (absolute label with an <img>
+// or gradient sibling) — its true background is the media, which we cannot
+// measure. Flipping it by page-background math would usually make it worse,
+// so it is left to the overlay the theme designed.
+const overMedia = (el) => {
+  try {
+    if (getComputedStyle(el).position === 'static') return false;
+    for (const sib of el.parentElement.children) {
+      if (sib === el) continue;
+      if (sib.tagName === 'IMG') return true;
+      if (sib.tagName === 'SPAN' && getComputedStyle(sib).backgroundImage !== 'none') return true;
+    }
+  } catch (e) {}
+  return false;
+};
+
+export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', lightText = '#ECE9E4' } = {}) => {
   if (!root) return () => {};
   const ink = parseAny(darkInk);
   const light = parseAny(lightText);
+  const isDark = mode === 'dark';
   // React may recreate the storefront root (remounts, async sections); the
   // pass re-anchors to the live [data-jx-mode] container when that happens.
   let liveRoot = root;
@@ -126,33 +143,35 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
       try {
         const cs = getComputedStyle(el);
 
-        // 1. Own background: deepen neutral light surfaces.
-        const ownBg = parseAny(cs.backgroundColor);
-        if (ownBg && ownBg.a > 0) {
-          const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
-          const darker = darkenSurface(cs.backgroundColor);
-          if (darker) {
-            remember(el, 'backgroundColor');
-            el.style.backgroundColor = darker;
-            effBg = parseAny(darker) || effective;
-          } else {
-            effBg = effective;
+        // 1 + 2. Surface/border deepening — dark mode only. In light mode
+        // the theme's surfaces ARE the design; only text is ever corrected.
+        if (isDark) {
+          const ownBg = parseAny(cs.backgroundColor);
+          if (ownBg && ownBg.a > 0) {
+            const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
+            const darker = darkenSurface(cs.backgroundColor);
+            if (darker) {
+              remember(el, 'backgroundColor');
+              el.style.backgroundColor = darker;
+              effBg = parseAny(darker) || effective;
+            } else {
+              effBg = effective;
+            }
           }
-        }
 
-        // 2. Neutral light borders -> dark borders (saturated ones kept).
-        const ownBorder = parseAny(cs.borderTopColor);
-        if (ownBorder && ownBorder.a > 0) {
-          const darkerBorder = darkenSurface(cs.borderTopColor);
-          if (darkerBorder) {
-            remember(el, 'borderColor');
-            el.style.borderColor = darkerBorder;
+          const ownBorder = parseAny(cs.borderTopColor);
+          if (ownBorder && ownBorder.a > 0) {
+            const darkerBorder = darkenSurface(cs.borderTopColor);
+            if (darkerBorder) {
+              remember(el, 'borderColor');
+              el.style.borderColor = darkerBorder;
+            }
           }
         }
 
         // 3. Text: flip whenever illegible against the effective background.
         const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-        if (hasText && cs.backgroundImage === 'none' && effBg) {
+        if (hasText && cs.backgroundImage === 'none' && effBg && !overMedia(el)) {
           const fg = parseAny(cs.color);
           if (fg) {
             const c = contrast(fg, effBg);
