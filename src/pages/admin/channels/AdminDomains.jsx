@@ -210,7 +210,7 @@ export const AdminDomains = () => {
               required
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              placeholder="e.g. Abinaya Luxe Studio"
+              placeholder="Enter your brand name"
               className="w-full px-3.5 py-2.5 bg-white border border-[#FBCBCB] rounded-2xl text-[#0F172A] font-bold focus:outline-none focus:border-[#BE123C]"
             />
           </div>

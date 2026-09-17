@@ -1006,7 +1006,7 @@ export const AdminLoginPage = () => {
                       required
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
-                      placeholder="e.g. Abinaya"
+                      placeholder="Enter your full name"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>
@@ -1023,7 +1023,7 @@ export const AdminLoginPage = () => {
                       required
                       value={regStoreName}
                       onChange={(e) => setRegStoreName(e.target.value)}
-                      placeholder="e.g. Abi's Jewelry Boutique"
+                      placeholder="Enter your brand name"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100"
                     />
                   </div>

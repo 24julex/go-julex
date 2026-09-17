@@ -658,7 +658,7 @@ export const CheckoutPage = () => {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    placeholder="e.g. Abinaya"
+                    placeholder="Enter your full name"
                     className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#BE123C] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>

@@ -1619,7 +1619,7 @@ export const AdminThemeBuilder = () => {
                                     updated[idx].data.logoText = e.target.value;
                                     setSections(updated);
                                   }}
-                                  placeholder="e.g. Abi's Jewelry Store"
+                                  placeholder="Enter your store name"
                                   className="w-full px-3 py-1.5 bg-white border border-[#FBCBCB] rounded-xl text-[#0F172A] font-bold"
                                 />
                               </div>
