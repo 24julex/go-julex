@@ -338,155 +338,155 @@ html.dark:not(.jx-storefront) [class*="rounded"][class*="shadow"] {
    COMPREHENSIVE LIGHT MODE OVERRIDES
    ========================================================================== */
 
-html.light body,
-html.light #root {
+html.light:not(.jx-storefront) body,
+html.light:not(.jx-storefront) #root {
   background-color: #FAFAF5 !important;
   color: #0D0D0D !important;
 }
 
-html.light .min-h-screen {
+html.light:not(.jx-storefront) .min-h-screen {
   background-color: #FAFAF5 !important;
 }
 
-html.light header {
+html.light:not(.jx-storefront) header {
   background-color: rgba(255,255,255,0.97) !important;
   border-color: #E8E8E0 !important;
   color: #0D0D0D !important;
 }
 
-html.light aside {
+html.light:not(.jx-storefront) aside {
   background-color: #FFFFFF !important;
   border-color: #E8E8E0 !important;
   color: #0D0D0D !important;
 }
 
-html.light footer {
+html.light:not(.jx-storefront) footer {
   background-color: #F5F5F0 !important;
   border-color: #E8E8E0 !important;
   color: #4A4A4A !important;
 }
 
-html.light .glass-panel,
-html.light .card-base,
-html.light .card-white {
+html.light:not(.jx-storefront) .glass-panel,
+html.light:not(.jx-storefront) .card-base,
+html.light:not(.jx-storefront) .card-white {
   background-color: #FFFFFF !important;
   border-color: #EBEBEB !important;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
 }
 
 /* Former dark bg classes → light surface */
-html.light [class*="bg-obsidian"],
-html.light [class*="bg-\[#0C0D12\]"],
-html.light [class*="bg-\[#07080A\]"],
-html.light [class*="bg-\[#111111\]"],
-html.light [class*="bg-\[#1C1C1C\]"] {
+html.light:not(.jx-storefront) [class*="bg-obsidian"],
+html.light:not(.jx-storefront) [class*="bg-\[#0C0D12\]"],
+html.light:not(.jx-storefront) [class*="bg-\[#07080A\]"],
+html.light:not(.jx-storefront) [class*="bg-\[#111111\]"],
+html.light:not(.jx-storefront) [class*="bg-\[#1C1C1C\]"] {
   background-color: #F5F5F0 !important;
 }
 
-html.light .bg-white {
+html.light:not(.jx-storefront) .bg-white {
   background-color: #FFFFFF !important;
 }
 
-html.light .bg-gray-50,
-html.light .bg-slate-50 {
+html.light:not(.jx-storefront) .bg-gray-50,
+html.light:not(.jx-storefront) .bg-slate-50 {
   background-color: #F5F5F0 !important;
 }
 
-html.light .bg-gray-100,
-html.light .bg-slate-100 {
+html.light:not(.jx-storefront) .bg-gray-100,
+html.light:not(.jx-storefront) .bg-slate-100 {
   background-color: #EBEBEB !important;
 }
 
 /* Former blush/rose bg → light surface */
-html.light [class*="bg-\[#fedddd\]"] {
+html.light:not(.jx-storefront) [class*="bg-\[#fedddd\]"] {
   background-color: #FFF9E8 !important;
 }
 
 /* Text overrides */
-html.light h1, html.light h2, html.light h3,
-html.light h4, html.light h5, html.light h6 {
+html.light:not(.jx-storefront) h1, html.light h2, html.light h3,
+html.light:not(.jx-storefront) h4, html.light h5, html.light h6 {
   color: #0D0D0D !important;
 }
 
-html.light .text-white {
+html.light:not(.jx-storefront) .text-white {
   color: #0D0D0D !important;
 }
 
-html.light .text-slate-100,
-html.light .text-slate-200 {
+html.light:not(.jx-storefront) .text-slate-100,
+html.light:not(.jx-storefront) .text-slate-200 {
   color: #0D0D0D !important;
 }
 
-html.light .text-slate-300 {
+html.light:not(.jx-storefront) .text-slate-300 {
   color: #4A4A4A !important;
 }
 
-html.light .text-slate-400 {
+html.light:not(.jx-storefront) .text-slate-400 {
   color: #888888 !important;
 }
 
-html.light .text-gray-900,
-html.light .text-slate-900,
-html.light [class*="text-\[#0F172A\]"] {
+html.light:not(.jx-storefront) .text-gray-900,
+html.light:not(.jx-storefront) .text-slate-900,
+html.light:not(.jx-storefront) [class*="text-\[#0F172A\]"] {
   color: #0D0D0D !important;
 }
 
-html.light .text-gray-700,
-html.light .text-slate-700,
-html.light [class*="text-\[#374151\]"] {
+html.light:not(.jx-storefront) .text-gray-700,
+html.light:not(.jx-storefront) .text-slate-700,
+html.light:not(.jx-storefront) [class*="text-\[#374151\]"] {
   color: #4A4A4A !important;
 }
 
 /* Former rose accent → gold */
-html.light [class*="text-\[#881337\]"],
-html.light [class*="text-\[#9F1239\]"],
-html.light [class*="text-\[#BE123C\]"],
-html.light [class*="text-rose-700"],
-html.light [class*="text-rose-800"] {
+html.light:not(.jx-storefront) [class*="text-\[#881337\]"],
+html.light:not(.jx-storefront) [class*="text-\[#9F1239\]"],
+html.light:not(.jx-storefront) [class*="text-\[#BE123C\]"],
+html.light:not(.jx-storefront) [class*="text-rose-700"],
+html.light:not(.jx-storefront) [class*="text-rose-800"] {
   color: #C89B00 !important;
 }
 
 /* Borders */
-html.light [class*="border-\[#FBCBCB\]"],
-html.light [class*="border-\[#F8B4B4\]"],
-html.light [class*="border-rose-"],
-html.light [class*="border-red-200"] {
+html.light:not(.jx-storefront) [class*="border-\[#FBCBCB\]"],
+html.light:not(.jx-storefront) [class*="border-\[#F8B4B4\]"],
+html.light:not(.jx-storefront) [class*="border-rose-"],
+html.light:not(.jx-storefront) [class*="border-red-200"] {
   border-color: #E8E8E0 !important;
 }
 
 /* Inputs */
-html.light input,
-html.light select,
-html.light textarea {
+html.light:not(.jx-storefront) input,
+html.light:not(.jx-storefront) select,
+html.light:not(.jx-storefront) textarea {
   background-color: #FFFFFF !important;
   color: #0D0D0D !important;
   border-color: #D0D0C8 !important;
 }
 
-html.light input::placeholder,
-html.light textarea::placeholder {
+html.light:not(.jx-storefront) input::placeholder,
+html.light:not(.jx-storefront) textarea::placeholder {
   color: #888888 !important;
 }
 
-html.light input:focus,
-html.light select:focus,
-html.light textarea:focus {
+html.light:not(.jx-storefront) input:focus,
+html.light:not(.jx-storefront) select:focus,
+html.light:not(.jx-storefront) textarea:focus {
   border-color: #D4A017 !important;
   box-shadow: 0 0 0 2px rgba(212,160,23,0.20) !important;
 }
 
 /* Tables */
-html.light thead tr {
+html.light:not(.jx-storefront) thead tr {
   background-color: #F5F5F0 !important;
   color: #4A4A4A !important;
 }
 
-html.light tr:hover {
+html.light:not(.jx-storefront) tr:hover {
   background-color: #FAF9F2 !important;
 }
 
 /* Gold gradient text in light mode keeps gold */
-html.light .gold-gradient-text {
+html.light:not(.jx-storefront) .gold-gradient-text {
   background: linear-gradient(135deg, #A87A00 0%, #C89B00 50%, #D4A017 100%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
