@@ -26,7 +26,7 @@ export const AdminDashboard = () => {
   const [plansOpen, setPlansOpen] = useState(false);
   // Welcome card shows ONLY for a merchant's first login — never for
   // super admins or impersonation sessions.
-  const { currentUser, impersonatedTenant } = useAuth();
+  const { currentUser, impersonatedTenant, refreshSession } = useAuth();
   const isImpersonating = Boolean(impersonatedTenant);
   const isMerchantOwner = currentUser?.role === 'MERCHANT_OWNER' || currentUser?.role === 'MERCHANT_STAFF' || currentUser?.role === 'ADMIN';
   const [showWelcomeCard, setShowWelcomeCard] = useState(() => {
@@ -137,7 +137,7 @@ export const AdminDashboard = () => {
             Welcome back, {ownerName} 👋
           </h1>
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            Managing <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{currentStore?.name || 'My Store'}</span> on Go Julex Merchant Cloud.
+            Managing <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{displayStoreName}</span> on Go Julex Merchant Cloud.
           </p>
           {/* TEMP OAuth setup shortcuts — removed after setup */}
           <div className="flex gap-2 pt-1">
@@ -492,6 +492,9 @@ export const AdminDashboard = () => {
           onDone={() => {
             setShowWelcomeCard(false);
             api.storeStatus.get().then((r) => { if (r?.success) setStoreAuth(r.data); });
+            // Re-sync the session so the header store name, logo and avatar
+            // (which read the auth snapshot) update immediately too.
+            refreshSession();
           }}
         />
       )}

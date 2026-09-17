@@ -61,6 +61,30 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+  // Silently re-sync the cached session with the database — tenant link,
+  // store name, logo, avatar. Runs once on app load so a stale snapshot
+  // (e.g. a signup completed before a server fix) heals itself without the
+  // merchant having to sign out and back in. Never fabricates a session:
+  // no token, no update; a failed call keeps the local snapshot.
+  const refreshSession = async () => {
+    try {
+      const token = localStorage.getItem('gojulex_jwt_token') || localStorage.getItem('chronos_jwt_token');
+      if (!token) return;
+      const res = await api.auth.me();
+      // Ignore a late response that lands after a logout.
+      const stillSignedIn = localStorage.getItem('gojulex_jwt_token') || localStorage.getItem('chronos_jwt_token');
+      if (!res?.success || !res?.user || !stillSignedIn) return;
+      setCurrentUser({
+        ...res.user,
+        avatar: res.user.avatarUrl || fallbackAvatar(res.user.name, res.user.email)
+      });
+    } catch (e) {
+      /* offline / server unreachable — keep the cached session */
+    }
+  };
+
+  useEffect(() => { refreshSession(); }, []);
+
   // Google Sign-In via Firebase (real Google account chooser).
   const googleSignIn = async () => {
     setLoading(true);
@@ -309,6 +333,7 @@ export const AuthProvider = ({ children }) => {
         loginUser: login,
         registerUser,
         adoptBackendSession,
+        refreshSession,
         logout,
         logoutAdmin: logout,
         logoutUser: logout,

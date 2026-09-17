@@ -38,8 +38,12 @@ export const TopHeader = ({ onToggleMobileNav, searchQuery, setSearchQuery }) =>
     if (raw.includes('Eleanor') || raw.includes('Aditya') || raw.includes('Rajesh')) return 'Super Admin';
     return raw;
   })();
-  const ownerDisplayEmail = currentUser?.email || currentStore?.ownerEmail || 'admin@gojulex.com';
-  const ownerDisplayAvatar = currentUser?.avatar || currentStore?.ownerAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
+  const ownerDisplayEmail = currentUser?.email || currentStore?.ownerEmail || '';
+  // Uploaded profile picture / store logo from the merchant's own data —
+  // never a stock photo of a stranger. Falls back to initials.
+  const ownerDisplayAvatar = currentUser?.avatar || currentStore?.ownerAvatar || null;
+  const ownerInitials = (ownerDisplayName || 'S')
+    .split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
   const getVerticalIcon = (vertical) => {
     switch (vertical) {
@@ -76,8 +80,10 @@ export const TopHeader = ({ onToggleMobileNav, searchQuery, setSearchQuery }) =>
             style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-card)' }}
             title={isSuperAdmin ? "Switch between stores (Super Admin)" : currentStore.name}
           >
-            <div className="w-7 h-7 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: 'rgba(212,160,23,0.12)', border: '1px solid rgba(212,160,23,0.25)' }}>
-              {getVerticalIcon(currentStore.vertical)}
+            <div className="w-7 h-7 rounded-xl flex items-center justify-center text-sm shrink-0 overflow-hidden" style={{ backgroundColor: 'rgba(212,160,23,0.12)', border: '1px solid rgba(212,160,23,0.25)' }}>
+              {currentStore?.logoUrl
+                ? <img src={currentStore.logoUrl} alt={currentStore.name} className="w-full h-full object-cover" />
+                : getVerticalIcon(currentStore.vertical)}
             </div>
 
             <div className="hidden sm:block">
@@ -223,12 +229,21 @@ export const TopHeader = ({ onToggleMobileNav, searchQuery, setSearchQuery }) =>
             className="flex items-center gap-2 p-1.5 rounded-2xl transition cursor-pointer"
             style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-card)' }}
           >
-            <img
-              src={ownerDisplayAvatar}
-              alt={ownerDisplayName}
-              className="w-7 h-7 rounded-xl object-cover"
-              style={{ border: '1px solid var(--border-card)' }}
-            />
+            {ownerDisplayAvatar ? (
+              <img
+                src={ownerDisplayAvatar}
+                alt={ownerDisplayName}
+                className="w-7 h-7 rounded-xl object-cover"
+                style={{ border: '1px solid var(--border-card)' }}
+              />
+            ) : (
+              <div
+                className="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0"
+                style={{ backgroundColor: 'rgba(212,160,23,0.12)', border: '1px solid rgba(212,160,23,0.25)', color: 'var(--accent)' }}
+              >
+                {ownerInitials}
+              </div>
+            )}
             <div className="hidden lg:block text-left pr-1">
               <p className="font-bold text-xs leading-tight" style={{ color: 'var(--text-primary)' }}>
                 {ownerDisplayName}

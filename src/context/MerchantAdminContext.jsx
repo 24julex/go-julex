@@ -74,7 +74,15 @@ export const MerchantAdminProvider = ({ children }) => {
     if (currentUser && !isSuperAdmin) {
       const cleanEmail = (currentUser.email || '').toLowerCase().trim();
       const tenantId = (currentUser.tenantId || '').toLowerCase().trim();
-      const userSub = (currentUser.tenant?.subdomain || cleanEmail.split('@')[0] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const tenant = currentUser.tenant || null;
+      // The store slug comes ONLY from the linked tenant's subdomain —
+      // never invented from the owner's email (abinaya.23ad@… must not
+      // become abinaya23ad.go.julex.shop).
+      const userSub = (tenant?.subdomain || '')
+        .toLowerCase()
+        .replace(/\.go\.julex\.shop$/, '')
+        .replace(/\.gojulex\.com$/, '')
+        .replace(/[^a-z0-9]/g, '');
 
       // Check DEMO_STORES
       const matchedDemo = DEMO_STORES.find(s => 
@@ -113,24 +121,28 @@ export const MerchantAdminProvider = ({ children }) => {
         }
       } catch (e) {}
 
-      // Fallback custom store object for logged in merchant
+      // Fallback custom store object for logged in merchant — built from the
+      // REAL linked tenant; nothing is invented from the email. A missing
+      // tenant (broken signup) shows a neutral "My Store" instead.
       return {
-        id: tenantId || `store_${userSub}`,
-        name: currentUser.tenant?.name || `${userSub.charAt(0).toUpperCase() + userSub.slice(1)} Store`,
+        id: tenant?.id || tenantId || (userSub ? `store_${userSub}` : 'store_mystore'),
+        name: tenant?.name || 'My Store',
         subdomain: userSub || 'mystore',
-        customDomain: currentUser.tenant?.customDomain || `${userSub || 'mystore'}.in`,
-        vertical: cleanEmail.includes('book') ? 'books' : cleanEmail.includes('jewel') ? 'jewelry' : 'clothes',
-        categoryLabel: cleanEmail.includes('book') ? 'Books & Literature' : cleanEmail.includes('jewel') ? 'Fine Jewelry & Luxury' : 'Fashion & Designer Apparel',
+        customDomain: tenant?.customDomain || null,
+        logoUrl: tenant?.logoUrl || null,
+        profileImageUrl: tenant?.profileImageUrl || null,
+        vertical: (tenant?.category || '').toLowerCase().includes('jewel') ? 'jewelry' : (tenant?.category || '').toLowerCase().includes('book') ? 'books' : 'clothes',
+        categoryLabel: tenant?.category || 'Custom E-Commerce Store',
         ownerName: currentUser.name || 'Store Owner',
         ownerEmail: currentUser?.email || cleanEmail,
-        ownerAvatar: currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-        planTier: 'SIX_MONTH',
-        planName: '6-Month Direct Launch (0% Fee)',
-        status: 'active',
-        city: 'Chennai',
-        state: 'Tamil Nadu',
-        gstin: '33AABCL1234A1Z5',
-        is2FAEnabled: true
+        ownerAvatar: currentUser.avatar || tenant?.profileImageUrl || tenant?.logoUrl || null,
+        planTier: tenant?.planTier || 'FREE',
+        planName: 'Go Julex Plan (0% Platform Fee)',
+        status: (tenant?.status || 'draft').toLowerCase(),
+        city: tenant?.city || null,
+        state: tenant?.state || null,
+        gstin: tenant?.gstin || null,
+        is2FAEnabled: Boolean(currentUser.twoFactorEnabled)
       };
     }
 
