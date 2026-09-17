@@ -6,7 +6,8 @@ import {
   readStorefrontMode,
   STOREFRONT_MODE_EVENT
 } from '../../utils/storefrontTheme';
-import React, { useState, useEffect } from 'react';
+import { applyDarkContrast } from '../../utils/storefrontDarkDom';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -354,12 +355,25 @@ export const DynamicStorefrontPage = () => {
   // Visitor's light/dark preference. Dark mode re-derives every theme color
   // (hue kept, lightness flipped) so text stays visible for ANY theme.
   const [jxMode, setJxMode] = useState(readStorefrontMode);
+  const jxRootRef = useRef(null);
   useEffect(() => {
     document.documentElement.setAttribute('data-jx-mode', jxMode);
     const onModeChange = (e) => setJxMode(e.detail === 'dark' ? 'dark' : 'light');
     window.addEventListener(STOREFRONT_MODE_EVENT, onModeChange);
     return () => window.removeEventListener(STOREFRONT_MODE_EVENT, onModeChange);
   }, [jxMode]);
+
+  // Catch-all visibility pass: theme templates hardcode literal colors
+  // (e.g. #111111 prices) that the palette derivation cannot reach. In dark
+  // mode, any text that renders illegible against its background — inline
+  // style, utility class, anything — is flipped to the readable side, and
+  // neutral light card surfaces are deepened. Brand accents are kept.
+  // useLayoutEffect: corrected before the browser paints — no flash.
+  useLayoutEffect(() => {
+    if (jxMode !== 'dark' || !jxRootRef.current) return;
+    const restore = applyDarkContrast(jxRootRef.current);
+    return restore;
+  }, [jxMode, publishedThemeLoaded]);
 
   const { sections } = themeConfig;
   // Dark mode: every color field (backgrounds, surfaces, text, accent) is
@@ -663,6 +677,7 @@ export const DynamicStorefrontPage = () => {
 
   return (
     <div
+      ref={jxRootRef}
       data-jx-mode={jxMode}
       className="min-h-screen selection:bg-[#FFE4E6] selection:text-[#881337] transition-colors duration-300"
       style={{
