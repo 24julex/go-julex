@@ -363,18 +363,6 @@ export const DynamicStorefrontPage = () => {
     return () => window.removeEventListener(STOREFRONT_MODE_EVENT, onModeChange);
   }, [jxMode]);
 
-  // Catch-all visibility pass: theme templates hardcode literal colors
-  // (e.g. #111111 prices) that the palette derivation cannot reach. In dark
-  // mode, any text that renders illegible against its background — inline
-  // style, utility class, anything — is flipped to the readable side, and
-  // neutral light card surfaces are deepened. Brand accents are kept.
-  // useLayoutEffect: corrected before the browser paints — no flash.
-  useLayoutEffect(() => {
-    if (jxMode !== 'dark' || !jxRootRef.current) return;
-    const restore = applyDarkContrast(jxRootRef.current);
-    return restore;
-  }, [jxMode, publishedThemeLoaded]);
-
   const { sections } = themeConfig;
   // Dark mode: every color field (backgrounds, surfaces, text, accent) is
   // re-derived automatically from the published palette — fonts and buttons
@@ -511,6 +499,19 @@ export const DynamicStorefrontPage = () => {
     // Preview/customizer modes render their own theme source — no gate.
     () => Boolean(searchParams.get('theme')) || searchParams.get('julex_draft') === '1'
   );
+
+  // Catch-all visibility pass: theme templates hardcode literal colors
+  // (e.g. #111111 prices) that the palette derivation cannot reach. In dark
+  // mode, any text that renders illegible against its background — inline
+  // style, utility class, anything — is flipped to the readable side, and
+  // neutral light card surfaces are deepened. Brand accents are kept.
+  // useLayoutEffect: corrected before the browser paints — no flash.
+  // (Must sit below publishedThemeLoaded's declaration.)
+  useLayoutEffect(() => {
+    if (jxMode !== 'dark' || !publishedThemeLoaded || !jxRootRef.current) return;
+    const restore = applyDarkContrast(jxRootRef.current);
+    return restore;
+  }, [jxMode, publishedThemeLoaded]);
   useEffect(() => {
     let cancelled = false;
     api.themes.getPublicConfig(cleanSubdomain)
