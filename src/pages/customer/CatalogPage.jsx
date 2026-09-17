@@ -4,6 +4,7 @@ import { useProducts } from '../../context/ProductContext';
 import { WatchCard } from '../../components/customer/WatchCard';
 import { FilterSidebar } from '../../components/customer/FilterSidebar';
 import { calculateDiscount } from '../../utils/formatters';
+import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
 import { INITIAL_PRODUCTS_BY_STORE, DEMO_STORES } from '../../data/multiVerticalMockData';
 import { HARMONIOUS_THEME_PRESETS } from '../admin/channels/AdminThemeBuilder';
 import { api } from '../../services/api';
@@ -230,6 +231,7 @@ export const CatalogPage = () => {
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 min-h-screen"
       style={{ ...themeVars, backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}
     >
+      <StorefrontModeToggle accent="#D4A017" />
       {/* Header Banner */}
       <div className="pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <div>

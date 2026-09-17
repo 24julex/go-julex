@@ -6,6 +6,7 @@ import { useProducts } from '../../context/ProductContext';
 import { InvoiceTemplate } from '../../components/admin/orders/InvoiceTemplate';
 import { DEMO_STORES } from '../../data/multiVerticalMockData';
 import { formatCurrency, formatINR, formatDateTime } from '../../utils/formatters';
+import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
 import { api } from '../../services/api';
 import confetti from 'canvas-confetti';
 import {
@@ -372,6 +373,7 @@ export const CheckoutPage = () => {
     const shipping = confirmedOrder.shippingAddress || {};
     return (
       <div className="min-h-screen bg-[#fedddd] py-10 px-4 text-[#0F172A] animate-fade-in">
+      <StorefrontModeToggle accent="#D4A017" />
         {/* Render Official Tax Invoice Modal */}
         <InvoiceTemplate
           order={confirmedOrder}
@@ -595,6 +597,7 @@ export const CheckoutPage = () => {
   // ----------------------------------------------------
   return (
     <div className="min-h-screen bg-[#fedddd] text-[#0F172A] py-6 sm:py-10">
+      <StorefrontModeToggle accent="#D4A017" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Top Minimalist Brand Header */}
         <div className="flex items-center justify-between pb-2 border-b border-[#FBCBCB]">

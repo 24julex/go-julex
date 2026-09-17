@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { formatCurrency, formatINR } from '../../utils/formatters';
+import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
 import {
   ShoppingBag,
   Trash2,
@@ -98,6 +99,7 @@ export const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-[#fedddd] text-[#0F172A] py-8 sm:py-12">
+      <StorefrontModeToggle accent="#D4A017" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header */}
         <div className="p-6 rounded-3xl bg-white border border-[#FBCBCB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">

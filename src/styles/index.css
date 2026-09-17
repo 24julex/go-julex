@@ -679,3 +679,44 @@ html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
 .jux-toolbar .jux-tool-color input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .jux-toolbar .jux-tool-color-icon { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #333; background: #fff; border: 1px solid #d4d4d4; border-radius: 8px; cursor: pointer; }
 [data-jx-float] { cursor: grab; }
+
+/* ============================================================================
+   STOREFRONT VISITOR DARK MODE — html[data-jx-mode="dark"]
+   Set only on store subdomains when the END CUSTOMER toggles dark mode
+   (StorefrontModeToggle). The storefront page itself re-derives its theme
+   colors via deriveDarkStyles(); these rules cover the shared customer
+   routes (cart / checkout / catalog / modals) that use fixed utility
+   classes, so text stays visible everywhere the visitor goes.
+   Scope is the data attribute — the merchant admin never sets it.
+   ============================================================================ */
+html[data-jx-mode="dark"] .bg-white { background-color: #221C20 !important; }
+html[data-jx-mode="dark"] .bg-stone-50 { background-color: #262024 !important; }
+html[data-jx-mode="dark"] .bg-stone-100 { background-color: #2C2529 !important; }
+html[data-jx-mode="dark"] .bg-\[\#fedddd\] { background-color: #171114 !important; }
+html[data-jx-mode="dark"] .bg-\[\#FFF9F6\] { background-color: #1A1518 !important; }
+html[data-jx-mode="dark"] .bg-\[\#FDFAEE\] { background-color: #221D1A !important; }
+html[data-jx-mode="dark"] .bg-\[\#FBF0D2\] { background-color: #26211A !important; }
+html[data-jx-mode="dark"] .bg-\[\#FFE4E6\] { background-color: #3A2229 !important; }
+html[data-jx-mode="dark"] .bg-rose-50 { background-color: #2C1B21 !important; }
+html[data-jx-mode="dark"] .bg-emerald-50 { background-color: #16261E !important; }
+html[data-jx-mode="dark"] .bg-amber-50 { background-color: #2A2318 !important; }
+html[data-jx-mode="dark"] .bg-blue-50 { background-color: #1B2230 !important; }
+
+html[data-jx-mode="dark"] .text-\[\#0F172A\] { color: #F2ECEA !important; }
+html[data-jx-mode="dark"] .text-stone-400 { color: #A79DA3 !important; }
+html[data-jx-mode="dark"] .text-stone-500 { color: #B3A9AE !important; }
+html[data-jx-mode="dark"] .text-stone-600 { color: #C4BABC !important; }
+html[data-jx-mode="dark"] .text-stone-700 { color: #D2CACC !important; }
+html[data-jx-mode="dark"] .text-stone-800 { color: #E0D8DA !important; }
+html[data-jx-mode="dark"] .text-\[\#475569\] { color: #C9C2C4 !important; }
+html[data-jx-mode="dark"] .text-\[\#94A3B8\] { color: #A79DA3 !important; }
+html[data-jx-mode="dark"] .text-\[\#881337\] { color: #F3C8CE !important; }
+html[data-jx-mode="dark"] .text-rose-700 { color: #F0AEB8 !important; }
+html[data-jx-mode="dark"] .text-emerald-700 { color: #8FD8B4 !important; }
+html[data-jx-mode="dark"] .text-amber-800 { color: #EBCF9A !important; }
+
+html[data-jx-mode="dark"] .border-\[\#FBCBCB\],
+html[data-jx-mode="dark"] .border-\[\#EFE2BC\],
+html[data-jx-mode="dark"] .border-\[\#E7D49E\],
+html[data-jx-mode="dark"] .border-stone-200,
+html[data-jx-mode="dark"] .border-black\/5 { border-color: rgba(255,255,255,0.12) !important; }

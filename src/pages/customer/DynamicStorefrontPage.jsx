@@ -1,5 +1,11 @@
 import { JuxInlineEditor, applyJuxInlineStyles, applyJuxConfig } from '../../components/customer/JuxInlineEditor';
 import { StoreCustomerAuthModal } from '../../components/customer/StoreCustomerAuthModal';
+import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
+import {
+  deriveDarkStyles,
+  readStorefrontMode,
+  STOREFRONT_MODE_EVENT
+} from '../../utils/storefrontTheme';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -345,7 +351,23 @@ export const DynamicStorefrontPage = () => {
     };
   });
 
-  const { styles, sections } = themeConfig;
+  // Visitor's light/dark preference. Dark mode re-derives every theme color
+  // (hue kept, lightness flipped) so text stays visible for ANY theme.
+  const [jxMode, setJxMode] = useState(readStorefrontMode);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-jx-mode', jxMode);
+    const onModeChange = (e) => setJxMode(e.detail === 'dark' ? 'dark' : 'light');
+    window.addEventListener(STOREFRONT_MODE_EVENT, onModeChange);
+    return () => window.removeEventListener(STOREFRONT_MODE_EVENT, onModeChange);
+  }, [jxMode]);
+
+  const { sections } = themeConfig;
+  // Dark mode: every color field (backgrounds, surfaces, text, accent) is
+  // re-derived automatically from the published palette — fonts and buttons
+  // stay visible without any per-theme tuning.
+  const styles = jxMode === 'dark'
+    ? deriveDarkStyles(themeConfig.styles)
+    : themeConfig.styles;
 
   // Load custom products for this specific store (Strict Multi-Tenant Isolation)
   const localStoreProducts = (() => {
@@ -641,7 +663,8 @@ export const DynamicStorefrontPage = () => {
 
   return (
     <div
-      className="min-h-screen selection:bg-[#FFE4E6] selection:text-[#881337]"
+      data-jx-mode={jxMode}
+      className="min-h-screen selection:bg-[#FFE4E6] selection:text-[#881337] transition-colors duration-300"
       style={{
         backgroundColor: styles?.backgroundColor || '#FFF9F6',
         color: styles?.textColor || '#1E293B',
@@ -649,6 +672,8 @@ export const DynamicStorefrontPage = () => {
         fontSize: `${styles?.baseFontSize || 15}px`
       }}
     >
+      {/* Visitor light/dark preference — themed to this store's accent */}
+      <StorefrontModeToggle accent={styles?.accentColor || '#D4A017'} />
       {/* Toast Notification */}
       {addedItemNotice && (
         <div className="fixed bottom-6 right-6 z-50 animate-bounce-short">
