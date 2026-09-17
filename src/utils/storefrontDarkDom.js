@@ -101,9 +101,19 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
   if (!root) return () => {};
   const ink = parse(darkInk);
   const light = parse(lightText);
+  // React may recreate the storefront root (remounts, async sections); the
+  // pass re-anchors to the live [data-jx-mode] container when that happens.
+  let liveRoot = root;
 
   const enforce = () => {
-    const rootBg = parseAny(getComputedStyle(root).backgroundColor) || { r: 16, g: 20, b: 16, a: 1 };
+    if (!liveRoot.isConnected) {
+      const next = document.querySelector('div[data-jx-mode]');
+      if (!next || !next.isConnected) return;
+      liveRoot = next;
+      observer.disconnect();
+      observer.observe(liveRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    }
+    const rootBg = parseAny(getComputedStyle(liveRoot).backgroundColor) || { r: 16, g: 20, b: 16, a: 1 };
     const walk = (el, inheritedBg) => {
       let effBg = inheritedBg;
       try {
@@ -153,24 +163,24 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
 
       for (const child of el.children) walk(child, effBg);
     };
-    walk(root, rootBg);
+    walk(liveRoot, rootBg);
   };
 
-  enforce();
-
-  // React re-renders (drawer opens, cart updates) recreate nodes with the
-  // original literals — re-enforce, debounced. Idempotent, so re-runs are
-  // cheap and never fight themselves.
   let timer = null;
   const schedule = () => {
     if (timer) return;
     timer = setTimeout(() => { timer = null; enforce(); }, 150);
   };
   const observer = new MutationObserver(schedule);
-  observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+  observer.observe(liveRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+  // Belt and braces: a light interval catches anything the observer misses
+  // (detached roots, edge-case mutations). Enforce is idempotent.
+  const interval = setInterval(enforce, 800);
+  enforce();
 
   return () => {
     observer.disconnect();
+    clearInterval(interval);
     if (timer) { clearTimeout(timer); timer = null; }
     // Restore every inline value we touched.
     const walkRestore = (el) => {
@@ -180,6 +190,6 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
       }
       for (const child of el.children) walkRestore(child);
     };
-    walkRestore(root);
+    walkRestore(liveRoot);
   };
 };
