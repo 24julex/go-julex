@@ -46,16 +46,23 @@ const toHsl = ({ r, g, b }) => {
 
 const hslCss = (h, s, l) => `hsl(${((h % 360) + 360) % 360}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
 
-// Parse to RGB any CSS color the pass produces or reads (rgb/rgba AND the
-// hsl form we generate). Never returns a partial object.
+// Parse to RGB any CSS color the pass produces or reads (hex, rgb/rgba AND
+// the hsl form we generate). Never returns a partial object.
 const parseAny = (value) => {
   const rgb = parse(value);
   if (rgb) return rgb;
-  const m = String(value || '').match(/hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/);
+  const s = String(value || '').trim();
+  if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+    return { r: parseInt(s[1] + s[1], 16), g: parseInt(s[2] + s[2], 16), b: parseInt(s[3] + s[3], 16), a: 1 };
+  }
+  if (/^#[0-9a-fA-F]{6}$/.test(s)) {
+    return { r: parseInt(s.slice(1, 3), 16), g: parseInt(s.slice(3, 5), 16), b: parseInt(s.slice(5, 7), 16), a: 1 };
+  }
+  const m = s.match(/hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/);
   if (!m) return null;
-  const [h, s, l] = [+m[1], +m[2] / 100, +m[3] / 100];
+  const [h, sat, l] = [+m[1], +m[2] / 100, +m[3] / 100];
   const a = m[4] === undefined ? 1 : +m[4];
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const q = l < 0.5 ? l * (1 + sat) : l + sat - l * sat;
   const p = 2 * l - q;
   const f = (t) => {
     if (t < 0) t += 1;
@@ -99,8 +106,8 @@ const darkenSurface = (cssColor) => {
 
 export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE9E4' } = {}) => {
   if (!root) return () => {};
-  const ink = parse(darkInk);
-  const light = parse(lightText);
+  const ink = parseAny(darkInk);
+  const light = parseAny(lightText);
   // React may recreate the storefront root (remounts, async sections); the
   // pass re-anchors to the live [data-jx-mode] container when that happens.
   let liveRoot = root;
