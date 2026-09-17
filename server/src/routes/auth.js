@@ -573,6 +573,11 @@ router.post('/signup-store', async (req, res) => {
     if (!existingUser?.emailVerified) {
       return res.status(403).json({ success: false, message: 'Please verify your email with the OTP code first.', needsVerification: true });
     }
+    // One store per account — a retry after a completed signup must not
+    // create a second orphan tenant for the same owner.
+    if (existingUser.tenantId) {
+      return res.status(409).json({ success: false, message: 'This account already has a store — please sign in instead.' });
+    }
     // A verified shell (created during OTP) is ADOPTED: set the real password
     // and profile instead of rejecting as duplicate.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
@@ -609,8 +614,15 @@ router.post('/signup-store', async (req, res) => {
       }
     });
 
+    // The OTP flow pre-creates a shell account, so the normal path here is
+    // ADOPTING it — which must also link the new tenant to the owner,
+    // otherwise the merchant lands on a dashboard with no store.
     const user = existingUser
-      ? await prisma.user.findUnique({ where: { id: existingUser.id }, include: { tenant: true } })
+      ? await prisma.user.update({
+          where: { id: existingUser.id },
+          data: { tenantId: tenant.id },
+          include: { tenant: true }
+        })
       : await prisma.user.create({
           data: {
             email: cleanEmail,
