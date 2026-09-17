@@ -4,7 +4,7 @@
 
 /* ==========================================================================
    JULEX THEME CSS VARIABLES
-   Dark = default, Light via html.light class
+   Dark = default, Light via html.light:not(.jx-storefront) class
    ========================================================================== */
 
 /* DARK THEME (Default) */
@@ -403,8 +403,8 @@ html.light:not(.jx-storefront) [class*="bg-\[#fedddd\]"] {
 }
 
 /* Text overrides */
-html.light:not(.jx-storefront) h1, html.light h2, html.light h3,
-html.light:not(.jx-storefront) h4, html.light h5, html.light h6 {
+html.light:not(.jx-storefront) h1, html.light:not(.jx-storefront) h2, html.light:not(.jx-storefront) h3,
+html.light:not(.jx-storefront) h4, html.light:not(.jx-storefront) h5, html.light:not(.jx-storefront) h6 {
   color: #0D0D0D !important;
 }
 
