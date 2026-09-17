@@ -139,12 +139,13 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
       try {
         const cs = getComputedStyle(el);
 
-        // 1 + 2. Surface/border deepening — dark mode only. In light mode
-        // the theme's surfaces ARE the design; only text is ever corrected.
-        if (isDark) {
-          const ownBg = parseAny(cs.backgroundColor);
-          if (ownBg && ownBg.a > 0) {
-            const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
+        // 1. Track the element's own background in BOTH modes — text
+        // decisions depend on it (a black badge keeps white text in light
+        // mode too). Only the darkening WRITES are dark-mode-only.
+        const ownBg = parseAny(cs.backgroundColor);
+        if (ownBg && ownBg.a > 0) {
+          const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
+          if (isDark) {
             const darker = darkenSurface(cs.backgroundColor);
             if (darker) {
               el.style.backgroundColor = darker;
@@ -152,8 +153,13 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
             } else {
               effBg = effective;
             }
+          } else {
+            effBg = effective;
           }
+        }
 
+        // 2. Neutral light borders -> dark borders (saturated ones kept).
+        if (isDark) {
           const ownBorder = parseAny(cs.borderTopColor);
           if (ownBorder && ownBorder.a > 0) {
             const darkerBorder = darkenSurface(cs.borderTopColor);
