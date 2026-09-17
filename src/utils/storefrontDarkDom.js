@@ -46,6 +46,28 @@ const toHsl = ({ r, g, b }) => {
 
 const hslCss = (h, s, l) => `hsl(${((h % 360) + 360) % 360}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
 
+// Parse to RGB any CSS color the pass produces or reads (rgb/rgba AND the
+// hsl form we generate). Never returns a partial object.
+const parseAny = (value) => {
+  const rgb = parse(value);
+  if (rgb) return rgb;
+  const m = String(value || '').match(/hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/);
+  if (!m) return null;
+  const [h, s, l] = [+m[1], +m[2] / 100, +m[3] / 100];
+  const a = m[4] === undefined ? 1 : +m[4];
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const f = (t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return { r: Math.round(f(h + 1 / 3) * 255), g: Math.round(f(h) * 255), b: Math.round(f(h - 1 / 3) * 255), a };
+};
+
 // Composite rgba `top` over opaque `bottom`.
 const composite = (top, bottom) => {
   const a = top.a;
@@ -68,7 +90,7 @@ const remember = (el, prop) => {
 // Deepen a neutral light surface (white/cream/gray card) into a dark one,
 // keeping a whisper of its hue. Saturated colors are brand accents — kept.
 const darkenSurface = (cssColor) => {
-  const c = parse(cssColor);
+  const c = parseAny(cssColor);
   if (!c || c.a === 0) return null;
   const [h, s, l] = toHsl(c);
   if (l <= 0.5 || s > 0.35) return null; // already dark or a brand color
@@ -81,51 +103,53 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
   const light = parse(lightText);
 
   const enforce = () => {
-    const rootBg = parse(getComputedStyle(root).backgroundColor) || { r: 16, g: 20, b: 16, a: 1 };
+    const rootBg = parseAny(getComputedStyle(root).backgroundColor) || { r: 16, g: 20, b: 16, a: 1 };
     const walk = (el, inheritedBg) => {
-      const cs = getComputedStyle(el);
-      let bg = inheritedBg;
+      try {
+        const cs = getComputedStyle(el);
+        let bg = inheritedBg;
 
-      // 1. Own background: deepen neutral light surfaces.
-      const ownBg = parse(cs.backgroundColor);
-      if (ownBg && ownBg.a > 0) {
-        const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
-        const darker = darkenSurface(cs.backgroundColor);
-        if (darker) {
-          remember(el, 'backgroundColor');
-          el.style.backgroundColor = darker;
-          bg = parse(darker);
-        } else {
-          bg = effective;
-        }
-      }
-
-      // 2. Neutral light borders -> dark borders (saturated ones kept).
-      const ownBorder = parse(cs.borderTopColor);
-      if (ownBorder && ownBorder.a > 0) {
-        const darkerBorder = darkenSurface(cs.borderTopColor);
-        if (darkerBorder) {
-          remember(el, 'borderColor');
-          el.style.borderColor = darkerBorder;
-        }
-      }
-
-      // 3. Text: flip whenever illegible against the effective background.
-      const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-      if (hasText && cs.backgroundImage === 'none') {
-        const fg = parse(cs.color);
-        if (fg) {
-          const c = contrast(fg, bg);
-          if (c < 4.5) {
-            const viaLight = contrast(light, bg);
-            const viaInk = contrast(ink, bg);
-            remember(el, 'color');
-            el.style.color = viaLight >= viaInk
-              ? (viaLight >= 4.5 ? lightText : '#FFFFFF')
-              : (viaInk >= 4.5 ? darkInk : '#000000');
+        // 1. Own background: deepen neutral light surfaces.
+        const ownBg = parseAny(cs.backgroundColor);
+        if (ownBg && ownBg.a > 0) {
+          const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
+          const darker = darkenSurface(cs.backgroundColor);
+          if (darker) {
+            remember(el, 'backgroundColor');
+            el.style.backgroundColor = darker;
+            bg = parseAny(darker) || effective;
+          } else {
+            bg = effective;
           }
         }
-      }
+
+        // 2. Neutral light borders -> dark borders (saturated ones kept).
+        const ownBorder = parseAny(cs.borderTopColor);
+        if (ownBorder && ownBorder.a > 0) {
+          const darkerBorder = darkenSurface(cs.borderTopColor);
+          if (darkerBorder) {
+            remember(el, 'borderColor');
+            el.style.borderColor = darkerBorder;
+          }
+        }
+
+        // 3. Text: flip whenever illegible against the effective background.
+        const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        if (hasText && cs.backgroundImage === 'none' && bg) {
+          const fg = parseAny(cs.color);
+          if (fg) {
+            const c = contrast(fg, bg);
+            if (c < 4.5) {
+              const viaLight = contrast(light, bg);
+              const viaInk = contrast(ink, bg);
+              remember(el, 'color');
+              el.style.color = viaLight >= viaInk
+                ? (viaLight >= 4.5 ? lightText : '#FFFFFF')
+                : (viaInk >= 4.5 ? darkInk : '#000000');
+            }
+          }
+        }
+      } catch (e) { /* a single odd element must never break the page */ }
 
       for (const child of el.children) walk(child, bg);
     };
