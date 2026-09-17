@@ -35,6 +35,9 @@ router.get('/status', requireMerchantAdmin, async (req, res) => {
         logoUrl: tenant.logoUrl,
         profileImageUrl: tenant.profileImageUrl,
         whatsappNumber: tenant.whatsappNumber,
+        ownerPhone: tenant.ownerPhone,
+        category: tenant.category,
+        customDomain: tenant.customDomain,
         instagramHandle: tenant.instagramHandle,
         ...auth
       }
