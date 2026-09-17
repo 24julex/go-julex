@@ -1,8 +1,10 @@
 import express from 'express';
 import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../db.js';
 import { generateToken, requireAuth, requireSuperAdmin } from '../middleware/auth.js';
+import { generateTotpSecret, verifyTotp, totpAuthUrl } from '../utils/totp.js';
 
 const router = express.Router();
 
@@ -33,6 +35,18 @@ router.post('/login', async (req, res) => {
     const isMatch = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials. Please verify your email and password.' });
+    }
+
+    // Two-factor gate: a TOTP-enabled account never receives its session
+    // token from the password step alone. A short-lived challenge token is
+    // issued instead and exchanged for the real session at POST /2fa/login.
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const challenge = jwt.sign(
+        { sub: user.id, purpose: '2fa_challenge' },
+        process.env.JWT_SECRET || 'dev-jwt-secret',
+        { expiresIn: '5m' }
+      );
+      return res.json({ success: true, requiresTwoFactor: true, twoFactorToken: challenge });
     }
 
     const token = generateToken(user);
@@ -339,6 +353,10 @@ const oauthSession = (user) => ({
   }
 });
 
+// A TOTP-protected account must never get a session from a social login —
+// that would bypass the second factor entirely.
+const twoFactorBlocked = (user) => Boolean(user?.twoFactorEnabled && user?.twoFactorSecret);
+
 // Google Sign-In via Firebase: the frontend signs in with the Firebase SDK
 // (Google account chooser) and posts the ID token here. We verify it with
 // Google's Identity Toolkit, then create/login the merchant from the verified
@@ -366,6 +384,9 @@ router.post('/oauth/firebase-google', async (req, res) => {
       avatarUrl: user.photoUrl || null,
       provider: 'google'
     });
+    if (twoFactorBlocked(account)) {
+      return res.status(403).json({ success: false, message: 'This account has two-factor authentication enabled — please sign in with your email and password.' });
+    }
     return res.json(oauthSession(account));
   } catch (error) {
     console.error('Firebase Google sign-in error:', error);
@@ -444,6 +465,9 @@ router.get('/oauth/:provider/callback', async (req, res) => {
       avatarUrl: profile.picture || null,
       provider
     });
+    if (twoFactorBlocked(user)) {
+      return res.redirect(`${originUrl(req)}/admin/login?oauth_error=2fa`);
+    }
     const session = oauthSession(user);
     const params = new URLSearchParams({ oauth_token: session.token, role: session.user.role });
     return res.redirect(`${originUrl(req)}/login?${params.toString()}`);
@@ -722,6 +746,160 @@ router.put('/password', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Password change error:', error);
     return res.status(500).json({ success: false, message: 'Failed to change password.' });
+  }
+});
+
+// ----------------------------------------------------
+// 8. Two-Factor Authentication (TOTP — Google Authenticator)
+// ----------------------------------------------------
+// POST /auth/2fa/setup — generate a fresh secret + otpauth URL (QR target).
+// The account is NOT protected until /2fa/enable verifies a real code.
+router.post('/2fa/setup', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (user.twoFactorEnabled) {
+      return res.status(400).json({ success: false, message: 'Two-factor authentication is already enabled.' });
+    }
+    const secret = generateTotpSecret();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { twoFactorSecret: secret, twoFactorEnabled: false }
+    });
+    return res.json({
+      success: true,
+      secret,
+      otpauthUrl: totpAuthUrl(secret, user.email)
+    });
+  } catch (error) {
+    console.error('2FA setup error:', error);
+    return res.status(500).json({ success: false, message: 'Could not start 2FA setup.' });
+  }
+});
+
+// POST /auth/2fa/enable { code } — confirm the authenticator with one code.
+router.post('/2fa/enable', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (user.twoFactorEnabled) {
+      return res.status(400).json({ success: false, message: 'Two-factor authentication is already enabled.' });
+    }
+    if (!user.twoFactorSecret) {
+      return res.status(400).json({ success: false, message: 'Start the 2FA setup first.' });
+    }
+    if (!verifyTotp(user.twoFactorSecret, req.body?.code)) {
+      return res.status(401).json({ success: false, message: 'That code is not valid. Check your authenticator app and try again.' });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { twoFactorEnabled: true }
+    });
+    await prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        actorEmail: user.email,
+        action: 'TWO_FACTOR_ENABLED',
+        entityType: 'AUTH',
+        entityId: user.id,
+        ipAddress: req.ip || '127.0.0.1'
+      }
+    });
+    return res.json({ success: true, message: 'Two-factor authentication is now active on your account.' });
+  } catch (error) {
+    console.error('2FA enable error:', error);
+    return res.status(500).json({ success: false, message: 'Could not enable 2FA.' });
+  }
+});
+
+// POST /auth/2fa/disable { code } — one valid code turns it off.
+router.post('/2fa/disable', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user.twoFactorEnabled) {
+      return res.status(400).json({ success: false, message: 'Two-factor authentication is not enabled.' });
+    }
+    if (!verifyTotp(user.twoFactorSecret, req.body?.code)) {
+      return res.status(401).json({ success: false, message: 'That code is not valid. Check your authenticator app and try again.' });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { twoFactorEnabled: false, twoFactorSecret: null }
+    });
+    await prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        actorEmail: user.email,
+        action: 'TWO_FACTOR_DISABLED',
+        entityType: 'AUTH',
+        entityId: user.id,
+        ipAddress: req.ip || '127.0.0.1'
+      }
+    });
+    return res.json({ success: true, message: 'Two-factor authentication has been turned off.' });
+  } catch (error) {
+    console.error('2FA disable error:', error);
+    return res.status(500).json({ success: false, message: 'Could not disable 2FA.' });
+  }
+});
+
+// POST /auth/2fa/login { twoFactorToken, code } — second login step.
+// Exchanges the short-lived challenge token + a valid TOTP code for the
+// real session. A wrong code burns nothing; the challenge stays valid
+// until it expires so the user can retry.
+router.post('/2fa/login', async (req, res) => {
+  try {
+    const { twoFactorToken, code } = req.body || {};
+    if (!twoFactorToken || !code) {
+      return res.status(400).json({ success: false, message: 'Verification code is required.' });
+    }
+    let payload;
+    try {
+      payload = jwt.verify(twoFactorToken, process.env.JWT_SECRET || 'dev-jwt-secret');
+    } catch (e) {
+      return res.status(401).json({ success: false, message: 'This sign-in attempt expired. Please sign in again.' });
+    }
+    if (payload.purpose !== '2fa_challenge') {
+      return res.status(401).json({ success: false, message: 'Invalid sign-in challenge.' });
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      include: { tenant: true }
+    });
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      return res.status(400).json({ success: false, message: 'Two-factor is not active on this account.' });
+    }
+    if (!verifyTotp(user.twoFactorSecret, code)) {
+      return res.status(401).json({ success: false, message: 'Incorrect code. Please check your authenticator app and try again.' });
+    }
+    const token = generateToken(user);
+    if (user.role === 'SUPER_ADMIN') {
+      await prisma.auditLog.create({
+        data: {
+          actorId: user.id,
+          actorEmail: user.email,
+          action: 'SUPER_ADMIN_LOGIN',
+          entityType: 'AUTH',
+          entityId: user.id,
+          ipAddress: req.ip || '127.0.0.1'
+        }
+      });
+    }
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
+        avatarUrl: user.avatarUrl,
+        twoFactorEnabled: user.twoFactorEnabled,
+        tenant: user.tenant || null
+      }
+    });
+  } catch (error) {
+    console.error('2FA login error:', error);
+    return res.status(500).json({ success: false, message: 'Could not verify the code.' });
   }
 });
 

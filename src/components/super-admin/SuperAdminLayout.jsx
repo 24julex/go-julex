@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { SuperAdminCommandPalette } from './SuperAdminCommandPalette';
-import { TwoFactorAuthModal } from './TwoFactorAuthModal';
+import { TwoFactorSetupModal } from '../common/TwoFactorSetupModal';
 import { EditAdminProfileModal } from './EditAdminProfileModal';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';
 import {
@@ -34,6 +34,7 @@ export const SuperAdminLayout = () => {
     stopImpersonation,
     activeAdmin,
     setCommandPaletteOpen,
+    is2FAModalOpen,
     set2FAModalOpen,
     metrics,
     tenants,
@@ -65,8 +66,8 @@ export const SuperAdminLayout = () => {
       {/* Global Command Palette (Ctrl+K) */}
       <SuperAdminCommandPalette />
 
-      {/* 2FA Modal */}
-      <TwoFactorAuthModal />
+      {/* 2FA Modal — real TOTP setup/disable */}
+      <TwoFactorSetupModal open={is2FAModalOpen} onClose={() => set2FAModalOpen(false)} />
 
       {/* Edit Profile Modal */}
       <EditAdminProfileModal isOpen={isEditProfileOpen} onClose={() => setEditProfileOpen(false)} />

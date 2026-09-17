@@ -64,7 +64,11 @@ export const AdminLoginPage = () => {
       return;
     }
     if (q.get('oauth_error')) {
-      setError('Sign-in was cancelled or could not be completed. Please try again or use email and password.');
+      setError(
+        q.get('oauth_error') === '2fa'
+          ? 'This account has two-factor authentication enabled — please sign in with your email and password.'
+          : 'Sign-in was cancelled or could not be completed. Please try again or use email and password.'
+      );
       window.history.replaceState({}, '', '/admin/login');
       return;
     }
@@ -94,6 +98,10 @@ export const AdminLoginPage = () => {
   // Sign In Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // TOTP second-step state — set when the password step succeeds on a
+  // 2FA-protected account; the real session arrives after a valid code.
+  const [twoFactorToken, setTwoFactorToken] = useState(null);
+  const [twoFaCode, setTwoFaCode] = useState('');
 
   // Sign Up Form State
   const [regName, setRegName] = useState('');
@@ -515,6 +523,14 @@ export const AdminLoginPage = () => {
 
     try {
       const result = await loginAdmin(email.trim(), password);
+      if (result && result.requiresTwoFactor) {
+        // Password accepted — now the authenticator code decides.
+        setTwoFactorToken(result.twoFactorToken);
+        setTwoFaCode('');
+        setError('');
+        setLoading(false);
+        return;
+      }
       if (result && result.success) {
         if (result.user?.role === 'SUPER_ADMIN') {
           navigate('/super-admin');
@@ -525,6 +541,34 @@ export const AdminLoginPage = () => {
         setError(result?.message || 'Invalid credentials. Please verify your email and password.');
         setLoading(false);
       }
+    } catch (err) {
+      setError('Authentication connection error.');
+      setLoading(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // TOTP SECOND STEP — exchange the challenge token + code for the session
+  // ----------------------------------------------------
+  const handleTwoFactorSignIn = async (e) => {
+    e.preventDefault();
+    setError('');
+    const clean = twoFaCode.replace(/\D/g, '');
+    if (clean.length !== 6) {
+      setError('Enter the 6-digit code from your authenticator app.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.auth.login2fa(twoFactorToken, clean);
+      if (res?.success && res.token) {
+        adoptBackendSession(res);
+        window.location.href = res.user?.role === 'SUPER_ADMIN' ? '/super-admin' : '/admin';
+        return;
+      }
+      setError(res?.message || 'That code was not accepted. Please try again.');
+      if (res?.message?.toLowerCase().includes('expired')) setTwoFactorToken(null);
+      setLoading(false);
     } catch (err) {
       setError('Authentication connection error.');
       setLoading(false);
@@ -878,14 +922,14 @@ export const AdminLoginPage = () => {
             <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E] text-sm font-bold">
               <button
                 type="button"
-                onClick={() => { setAuthMode('signin'); setError(''); }}
+                onClick={() => { setAuthMode('signin'); setError(''); setTwoFactorToken(null); setTwoFaCode(''); }}
                 className={'py-2 rounded-xl transition cursor-pointer ' + (authMode === 'signin' ? 'bg-white text-[#8A6200] shadow-xs' : 'text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100')}
               >
                 Sign In
               </button>
               <button
                 type="button"
-                onClick={() => { setAuthMode('signup'); setError(''); }}
+                onClick={() => { setAuthMode('signup'); setError(''); setTwoFactorToken(null); setTwoFaCode(''); }}
                 className={'py-2 rounded-xl transition cursor-pointer ' + (authMode === 'signup' ? 'bg-white text-[#8A6200] shadow-xs' : 'text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:text-slate-100')}
               >
                 Create Store
@@ -899,8 +943,63 @@ export const AdminLoginPage = () => {
               </div>
             )}
 
-            {/* TAB 1: SIGN IN FORM */}
+            {/* TAB 1: SIGN IN FORM (or TOTP second step) */}
             {authMode === 'signin' ? (
+              twoFactorToken ? (
+              /* 2FA CODE STEP — password accepted, authenticator code decides */
+              <form onSubmit={handleTwoFactorSignIn} className="space-y-4 text-left">
+                <div className="p-3.5 rounded-2xl bg-[#FBF0D2] dark:bg-obsidian-800 border border-[#E7D49E] text-xs flex items-start gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[#8A6200] mt-0.5" />
+                  <span className="text-[#475569] dark:text-slate-300">
+                    Password accepted for <strong>{email.trim()}</strong>. Enter the 6-digit code from your authenticator app to finish signing in.
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1.5">
+                    Authenticator Code
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoFocus
+                      maxLength={6}
+                      required
+                      value={twoFaCode}
+                      onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="••••••"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-lg font-mono font-bold tracking-[0.35em] placeholder:text-slate-400 focus:outline-none focus:border-[#9F1239] focus:ring-2 focus:ring-rose-100 transition"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl bg-[#A87A00] hover:bg-[#8A6200] text-white font-bold text-sm shadow-lg shadow-amber-900/20 transition transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Verifying code...
+                    </>
+                  ) : (
+                    <>
+                      Verify & Enter Dashboard <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setTwoFactorToken(null); setTwoFaCode(''); setError(''); }}
+                  className="w-full text-[11px] font-bold text-[#94A3B8] hover:text-[#475569] dark:hover:text-slate-200 transition cursor-pointer"
+                >
+                  ← Back to sign in
+                </button>
+              </form>
+              ) : (
               <form onSubmit={handleSignIn} className="space-y-4 text-left">
                 <div>
                   <label className="text-sm font-semibold text-[#475569] dark:text-slate-400 block mb-1.5">
@@ -992,6 +1091,7 @@ export const AdminLoginPage = () => {
                   </button>
                 </div>
               </form>
+              )
             ) : (
               /* TAB 2: SIGN UP FORM */
               <form onSubmit={handleSignUp} className="space-y-3.5 text-left">

@@ -7,6 +7,7 @@ import {
 import { useMerchantAdmin } from '../../context/MerchantAdminContext';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
+import { TwoFactorSetupModal } from '../../components/common/TwoFactorSetupModal';
 
 export const AdminSettings = () => {
   const { currentStore, showToast } = useMerchantAdmin();
@@ -15,6 +16,7 @@ export const AdminSettings = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [twoFactorOpen, setTwoFactorOpen] = useState(false);
 
   // Store profile — populated from the DATABASE
   const [storeProfile, setStoreProfile] = useState({
@@ -239,8 +241,38 @@ export const AdminSettings = () => {
           <div className="p-3 rounded-xl bg-[#FFF9F6] border border-[#FBCBCB] text-xs space-y-1">
             <p><strong>Account:</strong> {currentUser?.email || 'Unknown'}</p>
             <p><strong>Role:</strong> {currentUser?.role || 'Unknown'}</p>
-            <p><strong>2FA:</strong> {currentUser?.twoFactorEnabled ? 'Enabled' : 'Disabled'}</p>
+            <p className="flex items-center gap-1.5">
+              <strong>2FA:</strong>
+              <span className={currentUser?.twoFactorEnabled ? 'text-emerald-700 font-bold' : 'text-slate-500 font-bold'}>
+                {currentUser?.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </p>
           </div>
+
+          {/* Real TOTP two-factor — setup + disable both via the modal */}
+          <div className="p-4 rounded-2xl border border-[#FBCBCB] space-y-3" style={{ backgroundColor: currentUser?.twoFactorEnabled ? '#F0FDF4' : '#FFF9F6' }}>
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(212,160,23,0.12)', border: '1px solid rgba(212,160,23,0.3)' }}>
+                <KeyRound className="w-4 h-4 text-[#9F1239]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-800">Authenticator App (TOTP)</p>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  {currentUser?.twoFactorEnabled
+                    ? 'Your sign-ins require a 6-digit code from Google Authenticator in addition to your password.'
+                    : 'Add a second factor: scan one QR code with Google Authenticator and enter a code to activate. Required at every sign-in.'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setTwoFactorOpen(true)}
+              className="w-full py-2.5 rounded-xl font-black text-xs text-black transition cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
+            >
+              {currentUser?.twoFactorEnabled ? 'Turn Off 2FA' : 'Enable 2FA'}
+            </button>
+          </div>
+
           <button
             onClick={() => { logout(); window.location.href = '/'; }}
             className="px-4 py-2 rounded-xl bg-[#9F1239] hover:bg-[#881337] text-white text-xs font-bold cursor-pointer"
@@ -249,6 +281,8 @@ export const AdminSettings = () => {
           </button>
         </div>
       )}
+
+      <TwoFactorSetupModal open={twoFactorOpen} onClose={() => setTwoFactorOpen(false)} />
     </div>
   );
 };

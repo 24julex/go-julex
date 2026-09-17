@@ -213,6 +213,12 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const res = await api.auth.login(cleanEmail, password);
+      // TOTP-protected account: password step succeeded, but the session is
+      // only issued after a valid authenticator code (see /auth/2fa/login).
+      if (res?.requiresTwoFactor && res.twoFactorToken) {
+        setLoading(false);
+        return { success: true, requiresTwoFactor: true, twoFactorToken: res.twoFactorToken };
+      }
       if (res.success && res.user) {
         localStorage.setItem('gojulex_jwt_token', res.token);
         const userObj = {
