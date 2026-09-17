@@ -86,14 +86,6 @@ const composite = (top, bottom) => {
   };
 };
 
-const orig = new WeakMap(); // el -> { bg, color, border } ORIGINAL inline values
-
-const remember = (el, prop) => {
-  let rec = orig.get(el);
-  if (!rec) { rec = {}; orig.set(el, rec); }
-  if (!(prop in rec)) rec[prop] = el.style[prop];
-};
-
 // Deepen a neutral light surface (white/cream/gray card) into a dark one,
 // keeping a whisper of its hue. Saturated colors are brand accents — kept.
 const darkenSurface = (cssColor) => {
@@ -129,6 +121,10 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
   // pass re-anchors to the live [data-jx-mode] container when that happens.
   let liveRoot = root;
 
+  // Fix-only and idempotent: writes happen exclusively when a violation is
+  // detected, so re-running converges and never oscillates. There is
+  // deliberately NO restore — the visitor's mode switch reloads the page,
+  // giving the next pass a clean DOM.
   const enforce = () => {
     if (!liveRoot.isConnected) {
       const next = document.querySelector('div[data-jx-mode]');
@@ -151,7 +147,6 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
             const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
             const darker = darkenSurface(cs.backgroundColor);
             if (darker) {
-              remember(el, 'backgroundColor');
               el.style.backgroundColor = darker;
               effBg = parseAny(darker) || effective;
             } else {
@@ -163,7 +158,6 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
           if (ownBorder && ownBorder.a > 0) {
             const darkerBorder = darkenSurface(cs.borderTopColor);
             if (darkerBorder) {
-              remember(el, 'borderColor');
               el.style.borderColor = darkerBorder;
             }
           }
@@ -178,7 +172,6 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
             if (c < 4.5) {
               const viaLight = contrast(light, effBg);
               const viaInk = contrast(ink, effBg);
-              remember(el, 'color');
               el.style.color = viaLight >= viaInk
                 ? (viaLight >= 4.5 ? lightText : '#FFFFFF')
                 : (viaInk >= 4.5 ? darkInk : '#000000');
@@ -208,14 +201,5 @@ export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', li
     observer.disconnect();
     clearInterval(interval);
     if (timer) { clearTimeout(timer); timer = null; }
-    // Restore every inline value we touched.
-    const walkRestore = (el) => {
-      const rec = orig.get(el);
-      if (rec) {
-        for (const [prop, value] of Object.entries(rec)) el.style[prop] = value;
-      }
-      for (const child of el.children) walkRestore(child);
-    };
-    walkRestore(liveRoot);
   };
 };

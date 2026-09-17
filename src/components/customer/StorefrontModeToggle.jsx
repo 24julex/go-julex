@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import {
   STOREFRONT_MODE_KEY,
@@ -16,11 +16,16 @@ import {
 export const StorefrontModeToggle = ({ accent = '#D4A017', className = '' }) => {
   const [mode, setMode] = useState(readStorefrontMode());
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-jx-mode', mode);
-    try { localStorage.setItem(STOREFRONT_MODE_KEY, mode); } catch (e) {}
-    window.dispatchEvent(new CustomEvent(STOREFRONT_MODE_EVENT, { detail: mode }));
-  }, [mode]);
+  // Persist the choice, then reload: the storefront applies its palette and
+  // the contrast pass ONCE against a clean DOM for the new mode. In-place
+  // re-derivation (restore + re-apply over live React DOM) proved fragile —
+  // inline overrides and React re-renders fought each other into mixed
+  // states. A reload is instant and always correct.
+  const switchMode = (next) => {
+    try { localStorage.setItem(STOREFRONT_MODE_KEY, next); } catch (e) {}
+    window.dispatchEvent(new CustomEvent(STOREFRONT_MODE_EVENT, { detail: next }));
+    window.location.reload();
+  };
 
   const isDark = mode === 'dark';
   const ink = readableInk(accent);
@@ -28,7 +33,7 @@ export const StorefrontModeToggle = ({ accent = '#D4A017', className = '' }) => 
   return (
     <button
       type="button"
-      onClick={() => setMode(isDark ? 'light' : 'dark')}
+      onClick={() => switchMode(isDark ? 'light' : 'dark')}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={`fixed bottom-5 left-5 z-[60] w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-transform duration-200 active:scale-90 hover:scale-105 cursor-pointer ${className}`}
