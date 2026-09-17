@@ -40,8 +40,9 @@ export const TopHeader = ({ onToggleMobileNav, searchQuery, setSearchQuery }) =>
   })();
   const ownerDisplayEmail = currentUser?.email || currentStore?.ownerEmail || '';
   // Uploaded profile picture / store logo from the merchant's own data —
-  // never a stock photo of a stranger. Falls back to initials.
-  const ownerDisplayAvatar = currentUser?.avatar || currentStore?.ownerAvatar || null;
+  // never a stock photo of a stranger. currentUser.avatar is only a
+  // generated initials fallback, so the store's real images win first.
+  const ownerDisplayAvatar = currentStore?.ownerAvatar || currentUser?.avatar || null;
   const ownerInitials = (ownerDisplayName || 'S')
     .split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 

@@ -135,7 +135,9 @@ export const MerchantAdminProvider = ({ children }) => {
         categoryLabel: tenant?.category || 'Custom E-Commerce Store',
         ownerName: currentUser.name || 'Store Owner',
         ownerEmail: currentUser?.email || cleanEmail,
-        ownerAvatar: currentUser.avatar || tenant?.profileImageUrl || tenant?.logoUrl || null,
+        // The merchant's OWN uploaded images win over the generated
+        // initials avatar (currentUser.avatar is always set).
+        ownerAvatar: tenant?.profileImageUrl || tenant?.logoUrl || currentUser.avatar || null,
         planTier: tenant?.planTier || 'FREE',
         planName: 'Go Julex Plan (0% Platform Fee)',
         status: (tenant?.status || 'draft').toLowerCase(),
