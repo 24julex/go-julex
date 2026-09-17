@@ -105,9 +105,9 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
   const enforce = () => {
     const rootBg = parseAny(getComputedStyle(root).backgroundColor) || { r: 16, g: 20, b: 16, a: 1 };
     const walk = (el, inheritedBg) => {
+      let effBg = inheritedBg;
       try {
         const cs = getComputedStyle(el);
-        let bg = inheritedBg;
 
         // 1. Own background: deepen neutral light surfaces.
         const ownBg = parseAny(cs.backgroundColor);
@@ -117,9 +117,9 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
           if (darker) {
             remember(el, 'backgroundColor');
             el.style.backgroundColor = darker;
-            bg = parseAny(darker) || effective;
+            effBg = parseAny(darker) || effective;
           } else {
-            bg = effective;
+            effBg = effective;
           }
         }
 
@@ -135,13 +135,13 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
 
         // 3. Text: flip whenever illegible against the effective background.
         const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-        if (hasText && cs.backgroundImage === 'none' && bg) {
+        if (hasText && cs.backgroundImage === 'none' && effBg) {
           const fg = parseAny(cs.color);
           if (fg) {
-            const c = contrast(fg, bg);
+            const c = contrast(fg, effBg);
             if (c < 4.5) {
-              const viaLight = contrast(light, bg);
-              const viaInk = contrast(ink, bg);
+              const viaLight = contrast(light, effBg);
+              const viaInk = contrast(ink, effBg);
               remember(el, 'color');
               el.style.color = viaLight >= viaInk
                 ? (viaLight >= 4.5 ? lightText : '#FFFFFF')
@@ -151,7 +151,7 @@ export const applyDarkContrast = (root, { darkInk = '#14100E', lightText = '#ECE
         }
       } catch (e) { /* a single odd element must never break the page */ }
 
-      for (const child of el.children) walk(child, bg);
+      for (const child of el.children) walk(child, effBg);
     };
     walk(root, rootBg);
   };
