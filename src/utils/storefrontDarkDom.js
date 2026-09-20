@@ -1,0 +1,211 @@
+// ============================================================================
+// STOREFRONT DARK DOM PASS — the catch-all visibility guarantee.
+//
+// deriveDarkStyles() flips the theme's palette fields, but theme section
+// templates also contain HARDCODED literal colors (e.g. color: '#111111' on
+// prices). Those survive into dark mode as black-on-black. CSS cannot
+// override inline styles selectively, so this pass inspects the RENDERED
+// storefront: any text whose effective background makes it illegible is
+// flipped to the readable side, and neutral light surfaces (white/cream
+// cards) are deepened. Brand-colored accents are detected by saturation and
+// left untouched. Idempotent — safe to re-run; original inline values are
+// captured once and restored when the visitor switches back to light.
+// ============================================================================
+
+const parse = (value) => {
+  const m = String(value || '').match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+  if (!m) return null;
+  return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] };
+};
+
+const wcagLum = ({ r, g, b }) => {
+  const f = (v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+};
+
+const contrast = (a, b) => {
+  const l1 = wcagLum(a), l2 = wcagLum(b);
+  const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1];
+  return (hi + 0.05) / (lo + 0.05);
+};
+
+const toHsl = ({ r, g, b }) => {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return [h * 360, s, l];
+};
+
+const hslCss = (h, s, l) => `hsl(${((h % 360) + 360) % 360}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+
+// Parse to RGB any CSS color the pass produces or reads (hex, rgb/rgba AND
+// the hsl form we generate). Never returns a partial object.
+const parseAny = (value) => {
+  const rgb = parse(value);
+  if (rgb) return rgb;
+  const s = String(value || '').trim();
+  if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+    return { r: parseInt(s[1] + s[1], 16), g: parseInt(s[2] + s[2], 16), b: parseInt(s[3] + s[3], 16), a: 1 };
+  }
+  if (/^#[0-9a-fA-F]{6}$/.test(s)) {
+    return { r: parseInt(s.slice(1, 3), 16), g: parseInt(s.slice(3, 5), 16), b: parseInt(s.slice(5, 7), 16), a: 1 };
+  }
+  const m = s.match(/hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/);
+  if (!m) return null;
+  const [h, sat, l] = [+m[1], +m[2] / 100, +m[3] / 100];
+  const a = m[4] === undefined ? 1 : +m[4];
+  const q = l < 0.5 ? l * (1 + sat) : l + sat - l * sat;
+  const p = 2 * l - q;
+  const f = (t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return { r: Math.round(f(h + 1 / 3) * 255), g: Math.round(f(h) * 255), b: Math.round(f(h - 1 / 3) * 255), a };
+};
+
+// Composite rgba `top` over opaque `bottom`.
+const composite = (top, bottom) => {
+  const a = top.a;
+  return {
+    r: top.r * a + bottom.r * (1 - a),
+    g: top.g * a + bottom.g * (1 - a),
+    b: top.b * a + bottom.b * (1 - a),
+    a: 1
+  };
+};
+
+// Deepen a neutral light surface (white/cream/gray card) into a dark one,
+// keeping a whisper of its hue. Saturated colors are brand accents — kept.
+const darkenSurface = (cssColor) => {
+  const c = parseAny(cssColor);
+  if (!c || c.a === 0) return null;
+  const [h, s, l] = toHsl(c);
+  if (l <= 0.5 || s > 0.35) return null; // already dark or a brand color
+  return hslCss(h, Math.min(s, 0.14), 0.15);
+};
+
+// Text placed over a photo/gradient overlay (absolute label with an <img>
+// or gradient sibling) — its true background is the media, which we cannot
+// measure. Flipping it by page-background math would usually make it worse,
+// so it is left to the overlay the theme designed.
+const overMedia = (el) => {
+  try {
+    if (getComputedStyle(el).position === 'static') return false;
+    for (const sib of el.parentElement.children) {
+      if (sib === el) continue;
+      if (sib.tagName === 'IMG') return true;
+      if (sib.tagName === 'SPAN' && getComputedStyle(sib).backgroundImage !== 'none') return true;
+    }
+  } catch (e) {}
+  return false;
+};
+
+export const applyDarkContrast = (root, { mode = 'dark', darkInk = '#14100E', lightText = '#ECE9E4' } = {}) => {
+  if (!root) return () => {};
+  const ink = parseAny(darkInk);
+  const light = parseAny(lightText);
+  const isDark = mode === 'dark';
+  // React may recreate the storefront root (remounts, async sections); the
+  // pass re-anchors to the live [data-jx-mode] container when that happens.
+  let liveRoot = root;
+
+  // Fix-only and idempotent: writes happen exclusively when a violation is
+  // detected, so re-running converges and never oscillates. There is
+  // deliberately NO restore — the visitor's mode switch reloads the page,
+  // giving the next pass a clean DOM.
+  const enforce = () => {
+    if (!liveRoot.isConnected) {
+      const next = document.querySelector('div[data-jx-mode]');
+      if (!next || !next.isConnected) return;
+      liveRoot = next;
+      observer.disconnect();
+      observer.observe(liveRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    }
+    const rootBg = parseAny(getComputedStyle(liveRoot).backgroundColor) || { r: 16, g: 20, b: 16, a: 1 };
+    const walk = (el, inheritedBg) => {
+      let effBg = inheritedBg;
+      try {
+        const cs = getComputedStyle(el);
+
+        // 1. Track the element's own background in BOTH modes — text
+        // decisions depend on it (a black badge keeps white text in light
+        // mode too). Only the darkening WRITES are dark-mode-only.
+        const ownBg = parseAny(cs.backgroundColor);
+        if (ownBg && ownBg.a > 0) {
+          const effective = ownBg.a < 1 ? composite(ownBg, inheritedBg) : ownBg;
+          if (isDark) {
+            const darker = darkenSurface(cs.backgroundColor);
+            if (darker) {
+              el.style.backgroundColor = darker;
+              effBg = parseAny(darker) || effective;
+            } else {
+              effBg = effective;
+            }
+          } else {
+            effBg = effective;
+          }
+        }
+
+        // 2. Neutral light borders -> dark borders (saturated ones kept).
+        if (isDark) {
+          const ownBorder = parseAny(cs.borderTopColor);
+          if (ownBorder && ownBorder.a > 0) {
+            const darkerBorder = darkenSurface(cs.borderTopColor);
+            if (darkerBorder) {
+              el.style.borderColor = darkerBorder;
+            }
+          }
+        }
+
+        // 3. Text: flip whenever illegible against the effective background.
+        const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        if (hasText && cs.backgroundImage === 'none' && effBg && !overMedia(el)) {
+          const fg = parseAny(cs.color);
+          if (fg) {
+            const c = contrast(fg, effBg);
+            if (c < 4.5) {
+              const viaLight = contrast(light, effBg);
+              const viaInk = contrast(ink, effBg);
+              el.style.color = viaLight >= viaInk
+                ? (viaLight >= 4.5 ? lightText : '#FFFFFF')
+                : (viaInk >= 4.5 ? darkInk : '#000000');
+            }
+          }
+        }
+      } catch (e) { /* a single odd element must never break the page */ }
+
+      for (const child of el.children) walk(child, effBg);
+    };
+    walk(liveRoot, rootBg);
+  };
+
+  let timer = null;
+  const schedule = () => {
+    if (timer) return;
+    timer = setTimeout(() => { timer = null; enforce(); }, 150);
+  };
+  const observer = new MutationObserver(schedule);
+  observer.observe(liveRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+  // Belt and braces: a light interval catches anything the observer misses
+  // (detached roots, edge-case mutations). Enforce is idempotent.
+  const interval = setInterval(enforce, 800);
+  enforce();
+
+  return () => {
+    observer.disconnect();
+    clearInterval(interval);
+    if (timer) { clearTimeout(timer); timer = null; }
+  };
+};

@@ -1,0 +1,729 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   JULEX THEME CSS VARIABLES
+   Golden-white platform default, optional dark mode
+   ========================================================================== */
+
+/* DARK THEME (Default) */
+:root,
+html.dark {
+  --bg-page: #111111;
+  --bg-surface: #1C1C1C;
+  --bg-subtle: #252525;
+  --bg-input: #1A1A1A;
+  --bg-nav: rgba(17,17,17,0.97);
+  --bg-sidebar: #161616;
+  --bg-dropdown: #1E1E1E;
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-card: rgba(255,255,255,0.10);
+  --border-input: rgba(255,255,255,0.14);
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8B8B8;
+  --text-muted: #777777;
+  --accent: #D4A017;
+  --accent-light: #F5C842;
+  --accent-dark: #A87A00;
+  --accent-pink: #D4A017;
+  --accent-pink-to: #F5C842;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.6);
+  --shadow-nav: 0 2px 20px rgba(0,0,0,0.4);
+  --scrollbar-track: #111111;
+  --scrollbar-thumb: #333333;
+  --scrollbar-thumb-hover: #D4A017;
+}
+
+/* LIGHT THEME */
+html.light {
+  --bg-page: #FAFAF5;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F5F5F0;
+  --bg-input: #FFFFFF;
+  --bg-nav: rgba(255,255,255,0.97);
+  --bg-sidebar: #FFFFFF;
+  --bg-dropdown: #FFFFFF;
+  --border-subtle: #E8E8E0;
+  --border-card: #EBEBEB;
+  --border-input: #D0D0C8;
+  --text-primary: #0D0D0D;
+  --text-secondary: #4A4A4A;
+  --text-muted: #888888;
+  --accent: #C89B00;
+  --accent-light: #D4A017;
+  --accent-dark: #A87A00;
+  --accent-pink: #D4A017;
+  --accent-pink-to: #F5C842;
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.06);
+  --shadow-nav: 0 2px 12px rgba(0,0,0,0.08);
+  --scrollbar-track: #F5F5F0;
+  --scrollbar-thumb: #CCCCCC;
+  --scrollbar-thumb-hover: #C89B00;
+}
+
+/* ==========================================================================
+   BASE STYLING
+   ========================================================================== */
+
+html {
+  background-color: var(--bg-page);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+  @apply antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ==========================================================================
+   GLOBAL COMPONENT TOKENS
+   ========================================================================== */
+
+.card-base {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-base:hover {
+  border-color: var(--accent);
+}
+
+.glass-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ==========================================================================
+   BRAND LOGO
+   ========================================================================== */
+
+.brand-gojulex-logo {
+  font-family: 'Great Vibes', 'Alex Brush', 'Pinyon Script', cursive;
+  background: linear-gradient(135deg, #FDE68A 0%, #F5C842 30%, #D4A017 65%, #A87A00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  display: inline-block;
+  line-height: 1.1;
+  filter: drop-shadow(0 2px 4px rgba(180, 140, 9, 0.30));
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #A87A00 0%, #D4A017 50%, #F5C842 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #A87A00 0%, #D4A017 50%, #F5C842 100%);
+}
+
+.pink-gradient-bg {
+  background: linear-gradient(135deg, #A87A00 0%, #F5C842 100%);
+}
+
+/* ==========================================================================
+   COMPREHENSIVE DARK MODE OVERRIDES
+   ========================================================================== */
+
+html.dark:not(.jx-storefront) body,
+html.dark:not(.jx-storefront) #root {
+  background-color: #111111 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark:not(.jx-storefront) .min-h-screen {
+  background-color: #111111 !important;
+}
+
+/* Nav / Header */
+html.dark:not(.jx-storefront) header {
+  background-color: rgba(17,17,17,0.97) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #FFFFFF !important;
+}
+
+/* Sidebar */
+html.dark:not(.jx-storefront) aside {
+  background-color: #161616 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #FFFFFF !important;
+}
+
+/* Footer */
+html.dark:not(.jx-storefront) footer {
+  background-color: #111111 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #B8B8B8 !important;
+}
+
+/* Cards & panels */
+html.dark:not(.jx-storefront) .glass-panel,
+html.dark:not(.jx-storefront) .card-base,
+html.dark:not(.jx-storefront) .card-white {
+  background-color: #1C1C1C !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
+}
+
+/* Common dark-bg classes used throughout app */
+html.dark:not(.jx-storefront) .bg-white {
+  background-color: #1C1C1C !important;
+}
+
+html.dark:not(.jx-storefront) .bg-gray-50,
+html.dark:not(.jx-storefront) .bg-slate-50,
+html.dark:not(.jx-storefront) .bg-stone-50,
+html.dark:not(.jx-storefront) .bg-zinc-50,
+html.dark:not(.jx-storefront) .bg-neutral-50 {
+  background-color: #252525 !important;
+}
+
+html.dark:not(.jx-storefront) .bg-gray-100,
+html.dark:not(.jx-storefront) .bg-slate-100,
+html.dark:not(.jx-storefront) .bg-stone-100,
+html.dark:not(.jx-storefront) .bg-zinc-100 {
+  background-color: #252525 !important;
+}
+
+html.dark:not(.jx-storefront) .bg-gray-200,
+html.dark:not(.jx-storefront) .bg-slate-200 {
+  background-color: #333333 !important;
+}
+
+/* Former blush/rose bg classes → dark surface */
+html.dark:not(.jx-storefront) [class*="bg-\[#FFFDF5\]"],
+html.dark:not(.jx-storefront) [class*="bg-rose-50"],
+html.dark:not(.jx-storefront) [class*="bg-red-50"],
+html.dark:not(.jx-storefront) [class*="bg-pink-50"],
+html.dark:not(.jx-storefront) [class*="bg-\[#FFF1F2\]"],
+html.dark:not(.jx-storefront) [class*="bg-\[#FFF3CE\]"],
+html.dark:not(.jx-storefront) [class*="bg-\[#F8E8BD\]"] {
+  background-color: #252525 !important;
+}
+
+/* Obsidian classes */
+html.dark:not(.jx-storefront) [class*="bg-obsidian"] {
+  background-color: #1C1C1C !important;
+}
+
+/* Text overrides */
+html.dark:not(.jx-storefront) .text-white { color: #FFFFFF !important; }
+html.dark:not(.jx-storefront) .text-black { color: #FFFFFF !important; }
+
+html.dark:not(.jx-storefront) h1, html.dark:not(.jx-storefront) h2, html.dark:not(.jx-storefront) h3,
+html.dark:not(.jx-storefront) h4, html.dark:not(.jx-storefront) h5, html.dark:not(.jx-storefront) h6 {
+  color: #FFFFFF !important;
+}
+
+html.dark:not(.jx-storefront) .text-gray-900,
+html.dark:not(.jx-storefront) .text-slate-900,
+html.dark:not(.jx-storefront) .text-stone-900,
+html.dark:not(.jx-storefront) [class*="text-\[#0F172A\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#0D0D0D\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#1C1917\]"] {
+  color: #FFFFFF !important;
+}
+
+html.dark:not(.jx-storefront) .text-gray-800,
+html.dark:not(.jx-storefront) .text-slate-800,
+html.dark:not(.jx-storefront) [class*="text-\[#1E293B\]"] {
+  color: #E0E0E0 !important;
+}
+
+html.dark:not(.jx-storefront) .text-gray-700,
+html.dark:not(.jx-storefront) .text-slate-700,
+html.dark:not(.jx-storefront) [class*="text-\[#374151\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#334155\]"] {
+  color: #B8B8B8 !important;
+}
+
+html.dark:not(.jx-storefront) .text-gray-600,
+html.dark:not(.jx-storefront) .text-slate-600,
+html.dark:not(.jx-storefront) [class*="text-\[#475569\]"] {
+  color: #999999 !important;
+}
+
+html.dark:not(.jx-storefront) .text-gray-500,
+html.dark:not(.jx-storefront) .text-slate-500,
+html.dark:not(.jx-storefront) [class*="text-\[#64748B\]"] {
+  color: #777777 !important;
+}
+
+html.dark:not(.jx-storefront) .text-gray-400,
+html.dark:not(.jx-storefront) .text-slate-400 {
+  color: #666666 !important;
+}
+
+/* Former rose/pink text → gold */
+html.dark:not(.jx-storefront) [class*="text-\[#6B4D00\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#8A6200\]"],
+html.dark:not(.jx-storefront) [class*="text-\[#A87A00\]"],
+html.dark:not(.jx-storefront) [class*="text-rose-700"],
+html.dark:not(.jx-storefront) [class*="text-rose-800"],
+html.dark:not(.jx-storefront) [class*="text-rose-900"] {
+  color: #D4A017 !important;
+}
+
+/* Border overrides */
+html.dark:not(.jx-storefront) .border,
+html.dark:not(.jx-storefront) [class*="border-"] {
+  border-color: rgba(255,255,255,0.10);
+}
+
+html.dark:not(.jx-storefront) [class*="border-\[#E7D9B5\]"],
+html.dark:not(.jx-storefront) [class*="border-\[#DCC78B\]"],
+html.dark:not(.jx-storefront) [class*="border-rose-"],
+html.dark:not(.jx-storefront) [class*="border-red-"],
+html.dark:not(.jx-storefront) [class*="border-slate-200"],
+html.dark:not(.jx-storefront) [class*="border-slate-300"] {
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* Inputs */
+html.dark:not(.jx-storefront) input,
+html.dark:not(.jx-storefront) select,
+html.dark:not(.jx-storefront) textarea {
+  background-color: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255,255,255,0.14) !important;
+}
+
+html.dark:not(.jx-storefront) input::placeholder,
+html.dark:not(.jx-storefront) textarea::placeholder {
+  color: #666666 !important;
+}
+
+html.dark:not(.jx-storefront) input:focus,
+html.dark:not(.jx-storefront) select:focus,
+html.dark:not(.jx-storefront) textarea:focus {
+  border-color: #D4A017 !important;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.25) !important;
+}
+
+/* Tables */
+html.dark:not(.jx-storefront) table {
+  border-color: rgba(255,255,255,0.08);
+}
+
+html.dark:not(.jx-storefront) thead tr {
+  background-color: #252525 !important;
+  color: #B8B8B8 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html.dark:not(.jx-storefront) tbody tr {
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+html.dark:not(.jx-storefront) tr:hover {
+  background-color: #252525 !important;
+}
+
+/* Dropdowns & modals */
+html.dark:not(.jx-storefront) [class*="rounded"][class*="shadow"] {
+  background-color: #1E1E1E;
+  border-color: rgba(255,255,255,0.10);
+}
+
+/* ==========================================================================
+   COMPREHENSIVE LIGHT MODE OVERRIDES
+   ========================================================================== */
+
+html.light:not(.jx-storefront) body,
+html.light:not(.jx-storefront) #root {
+  background-color: #FAFAF5 !important;
+  color: #0D0D0D !important;
+}
+
+html.light:not(.jx-storefront) .min-h-screen {
+  background-color: #FAFAF5 !important;
+}
+
+html.light:not(.jx-storefront) header {
+  background-color: rgba(255,255,255,0.97) !important;
+  border-color: #E8E8E0 !important;
+  color: #0D0D0D !important;
+}
+
+html.light:not(.jx-storefront) aside {
+  background-color: #FFFFFF !important;
+  border-color: #E8E8E0 !important;
+  color: #0D0D0D !important;
+}
+
+html.light:not(.jx-storefront) footer {
+  background-color: #F5F5F0 !important;
+  border-color: #E8E8E0 !important;
+  color: #4A4A4A !important;
+}
+
+html.light:not(.jx-storefront) .glass-panel,
+html.light:not(.jx-storefront) .card-base,
+html.light:not(.jx-storefront) .card-white {
+  background-color: #FFFFFF !important;
+  border-color: #EBEBEB !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
+}
+
+/* Former dark bg classes → light surface */
+html.light:not(.jx-storefront) [class*="bg-obsidian"],
+html.light:not(.jx-storefront) [class*="bg-\[#0C0D12\]"],
+html.light:not(.jx-storefront) [class*="bg-\[#07080A\]"],
+html.light:not(.jx-storefront) [class*="bg-\[#111111\]"],
+html.light:not(.jx-storefront) [class*="bg-\[#1C1C1C\]"] {
+  background-color: #F5F5F0 !important;
+}
+
+html.light:not(.jx-storefront) .bg-white {
+  background-color: #FFFFFF !important;
+}
+
+html.light:not(.jx-storefront) .bg-gray-50,
+html.light:not(.jx-storefront) .bg-slate-50 {
+  background-color: #F5F5F0 !important;
+}
+
+html.light:not(.jx-storefront) .bg-gray-100,
+html.light:not(.jx-storefront) .bg-slate-100 {
+  background-color: #EBEBEB !important;
+}
+
+/* Former blush/rose bg → light surface */
+html.light:not(.jx-storefront) [class*="bg-\[#FFFDF5\]"] {
+  background-color: #FFF9E8 !important;
+}
+
+/* Text overrides */
+html.light:not(.jx-storefront) h1, html.light:not(.jx-storefront) h2, html.light:not(.jx-storefront) h3,
+html.light:not(.jx-storefront) h4, html.light:not(.jx-storefront) h5, html.light:not(.jx-storefront) h6 {
+  color: #0D0D0D !important;
+}
+
+html.light:not(.jx-storefront) .text-white {
+  color: #0D0D0D !important;
+}
+
+/* Dark gold action buttons keep readable white labels on the light canvas. */
+html.light:not(.jx-storefront) [class*="bg-[#8A6200]"].text-white,
+html.light:not(.jx-storefront) [class*="bg-[#6B4D00]"].text-white,
+html.light:not(.jx-storefront) [class*="bg-[#A87A00]"].text-white {
+  color: #FFFFFF !important;
+}
+
+html.light:not(.jx-storefront) .text-slate-100,
+html.light:not(.jx-storefront) .text-slate-200 {
+  color: #0D0D0D !important;
+}
+
+html.light:not(.jx-storefront) .text-slate-300 {
+  color: #4A4A4A !important;
+}
+
+html.light:not(.jx-storefront) .text-slate-400 {
+  color: #888888 !important;
+}
+
+html.light:not(.jx-storefront) .text-gray-900,
+html.light:not(.jx-storefront) .text-slate-900,
+html.light:not(.jx-storefront) [class*="text-\[#0F172A\]"] {
+  color: #0D0D0D !important;
+}
+
+html.light:not(.jx-storefront) .text-gray-700,
+html.light:not(.jx-storefront) .text-slate-700,
+html.light:not(.jx-storefront) [class*="text-\[#374151\]"] {
+  color: #4A4A4A !important;
+}
+
+/* Former rose accent → gold */
+html.light:not(.jx-storefront) [class*="text-\[#6B4D00\]"],
+html.light:not(.jx-storefront) [class*="text-\[#8A6200\]"],
+html.light:not(.jx-storefront) [class*="text-\[#A87A00\]"],
+html.light:not(.jx-storefront) [class*="text-rose-700"],
+html.light:not(.jx-storefront) [class*="text-rose-800"] {
+  color: #C89B00 !important;
+}
+
+/* Borders */
+html.light:not(.jx-storefront) [class*="border-\[#E7D9B5\]"],
+html.light:not(.jx-storefront) [class*="border-\[#DCC78B\]"],
+html.light:not(.jx-storefront) [class*="border-rose-"],
+html.light:not(.jx-storefront) [class*="border-red-200"] {
+  border-color: #E8E8E0 !important;
+}
+
+/* Inputs */
+html.light:not(.jx-storefront) input,
+html.light:not(.jx-storefront) select,
+html.light:not(.jx-storefront) textarea {
+  background-color: #FFFFFF !important;
+  color: #0D0D0D !important;
+  border-color: #D0D0C8 !important;
+}
+
+html.light:not(.jx-storefront) input::placeholder,
+html.light:not(.jx-storefront) textarea::placeholder {
+  color: #888888 !important;
+}
+
+html.light:not(.jx-storefront) input:focus,
+html.light:not(.jx-storefront) select:focus,
+html.light:not(.jx-storefront) textarea:focus {
+  border-color: #D4A017 !important;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.20) !important;
+}
+
+/* Tables */
+html.light:not(.jx-storefront) thead tr {
+  background-color: #F5F5F0 !important;
+  color: #4A4A4A !important;
+}
+
+html.light:not(.jx-storefront) tr:hover {
+  background-color: #FAF9F2 !important;
+}
+
+/* Gold gradient text in light mode keeps gold */
+html.light:not(.jx-storefront) .gold-gradient-text {
+  background: linear-gradient(135deg, #A87A00 0%, #C89B00 50%, #D4A017 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ==========================================================================
+   SCROLLBARS
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ==========================================================================
+   FOCUS RINGS
+   ========================================================================== */
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.20) !important;
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+
+.theme-bg-page { background-color: var(--bg-page); }
+.theme-bg-surface { background-color: var(--bg-surface); }
+.theme-bg-subtle { background-color: var(--bg-subtle); }
+.theme-text-primary { color: var(--text-primary); }
+.theme-text-secondary { color: var(--text-secondary); }
+.theme-text-muted { color: var(--text-muted); }
+.theme-border { border-color: var(--border-card); }
+.theme-accent { color: var(--accent); }
+.theme-accent-bg { background-color: var(--accent); }
+/* ==========================================================================
+   STOREFRONT THEME ANIMATIONS
+   ========================================================================== */
+@keyframes julex-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes julex-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes julex-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes julex-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(59, 130, 246, 0.15); }
+  50% { box-shadow: 0 0 35px rgba(168, 85, 247, 0.6), 0 0 60px rgba(59, 130, 246, 0.3); }
+}
+@keyframes julex-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes julex-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes julex-slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes julex-bounce-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.julex-animate-marquee { animation: julex-marquee 18s linear infinite; }
+.julex-animate-float { animation: julex-float 4s ease-in-out infinite; }
+.julex-animate-gradient { animation: julex-gradient-shift 6s ease infinite; background-size: 200% 200%; }
+.julex-animate-glow { animation: julex-pulse-glow 3s ease-in-out infinite; }
+.julex-animate-shimmer { animation: julex-shimmer 3s linear infinite; }
+.julex-animate-spin-slow { animation: julex-spin-slow 12s linear infinite; }
+.julex-animate-slide-up { animation: julex-slide-up 0.6s ease-out both; }
+.julex-animate-bounce-in { animation: julex-bounce-in 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .julex-animate-marquee,
+  .julex-animate-float,
+  .julex-animate-gradient,
+  .julex-animate-glow,
+  .julex-animate-shimmer,
+  .julex-animate-spin-slow { animation: none; }
+}
+
+/* Landing page: one solid, uniform background (immune to bg-[...] overrides) */
+.julex-landing-bg { background-color: #FFF9E8; }
+html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
+
+
+
+/* Canva-style inline editing (Visual Customizer) */
+.jx-edit-wrap { position: relative; }
+.jx-edit-wrap:hover { outline: 1.5px dashed rgba(168, 122, 0, 0.55); outline-offset: -1.5px; }
+.jx-editing { outline: 2px solid #A87A00 !important; outline-offset: 2px; cursor: text; box-shadow: 0 0 0 4px rgba(168,122,0,0.15) !important; }
+.jux-toolbar {
+  position: fixed; z-index: 10000; display: flex; align-items: center; gap: 4px;
+  background: #111; padding: 6px 8px; border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+}
+/* ONE COMMON TOP TOOLBAR — spans the top of the customizer preview */
+.jux-toolbar.jux-topbar {
+  top: 0; left: 0; right: 0; border-radius: 0;
+  flex-wrap: wrap; padding: 8px 12px; gap: 6px;
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+.jux-tool-btn:disabled, .jux-tool-select:disabled { opacity: 0.35; cursor: not-allowed; }
+.jux-tool-disabled { opacity: 0.45; }
+.jux-tool-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.25); margin: 0 4px; }
+.jux-tool-hint { color: rgba(255,255,255,0.75); font: 500 10.5px 'Work Sans', sans-serif; margin-left: auto; padding-right: 8px; max-width: 300px; }
+.jux-tool-swatches { display: inline-flex; gap: 3px; align-items: center; margin: 0 2px; }
+.jux-swatch { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); cursor: pointer; padding: 0; }
+.jux-swatch:hover { transform: scale(1.2); }
+.jux-swatch:disabled { opacity: 0.3; cursor: not-allowed; }
+.jux-swatch-active { border-color: #A87A00; box-shadow: 0 0 0 2px #A87A00; }
+.jx-selected { outline: 2px solid #A87A00 !important; outline-offset: 2px; border-radius: 2px; }
+.jux-toolbar .jx-selected { outline: none; }
+.jx-resize-handle {
+  position: fixed; width: 14px; height: 14px; background: #A87A00; border: 2px solid #fff;
+  border-radius: 50%; cursor: nwse-resize; z-index: 10001; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.jux-tool-select {
+  background: #111; color: #fff; border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px; font: 600 11px 'Work Sans', sans-serif; padding: 4px 6px; cursor: pointer; max-width: 130px;
+}
+.jux-tool-btn {
+  background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 8px;
+  font: 700 12px 'Work Sans', sans-serif; padding: 5px 9px; cursor: pointer;
+}
+.jux-tool-btn:hover { background: rgba(255,255,255,0.22); }
+.jux-tool-active { background: #A87A00; }
+.jux-tool-done {
+  background: linear-gradient(135deg, #A87A00, #D4A017); color: #fff; border: none;
+  border-radius: 8px; font: 700 11px 'Work Sans', sans-serif; padding: 6px 12px; cursor: pointer; margin-left: 4px;
+}
+.jux-imgpicker {
+  position: fixed; z-index: 10000; width: 220px;
+  background: #fff; border-radius: 14px; padding: 12px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.28); border: 1px solid #E5E7EB;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.jux-imgpicker-title { font: 800 12px 'Work Sans', sans-serif; color: #111; }
+.jux-imgpicker-btn {
+  display: block; text-align: center; padding: 9px; border-radius: 10px;
+  background: linear-gradient(135deg, #A87A00, #D4A017); color: #fff;
+  font: 700 12px 'Work Sans', sans-serif; cursor: pointer;
+}
+.jux-imgpicker-url {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #E5E7EB;
+  border-radius: 10px; font: 400 11px 'Work Sans', sans-serif; outline: none;
+}
+.jux-imgpicker-cancel {
+  background: none; border: none; color: #6B7280; font: 600 11px 'Work Sans', sans-serif; cursor: pointer;
+}
+
+/* Touch devices have no hover — always show the slide-up Add-to-Bag buttons */
+@media (hover: none) {
+  [class*="translate-y-14"][class*="group-hover:translate-y-0"] {
+    transform: translateX(-50%) !important;
+  }
+}
+
+/* Canva editor: colour input + floating boxes */
+.jux-toolbar .jux-tool-color { position: relative; display: inline-flex; align-items: center; }
+.jux-toolbar .jux-tool-color input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.jux-toolbar .jux-tool-color-icon { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #333; background: #fff; border: 1px solid #d4d4d4; border-radius: 8px; cursor: pointer; }
+[data-jx-float] { cursor: grab; }
+
+/* ============================================================================
+   STOREFRONT VISITOR DARK MODE — html[data-jx-mode="dark"]
+   Set only on store subdomains when the END CUSTOMER toggles dark mode
+   (StorefrontModeToggle). The storefront page itself re-derives its theme
+   colors via deriveDarkStyles(); these rules cover the shared customer
+   routes (cart / checkout / catalog / modals) that use fixed utility
+   classes, so text stays visible everywhere the visitor goes.
+   Scope is the data attribute — the merchant admin never sets it.
+   ============================================================================ */
+html[data-jx-mode="dark"] .bg-white { background-color: #221C20 !important; }
+html[data-jx-mode="dark"] .bg-stone-50 { background-color: #262024 !important; }
+html[data-jx-mode="dark"] .bg-stone-100 { background-color: #2C2529 !important; }
+html[data-jx-mode="dark"] .bg-\[\#FFFDF5\] { background-color: #171114 !important; }
+html[data-jx-mode="dark"] .bg-\[\#FFF9F6\] { background-color: #1A1518 !important; }
+html[data-jx-mode="dark"] .bg-\[\#FDFAEE\] { background-color: #221D1A !important; }
+html[data-jx-mode="dark"] .bg-\[\#FBF0D2\] { background-color: #26211A !important; }
+html[data-jx-mode="dark"] .bg-\[\#FFE4E6\] { background-color: #3A2229 !important; }
+html[data-jx-mode="dark"] .bg-rose-50 { background-color: #2C1B21 !important; }
+html[data-jx-mode="dark"] .bg-emerald-50 { background-color: #16261E !important; }
+html[data-jx-mode="dark"] .bg-amber-50 { background-color: #2A2318 !important; }
+html[data-jx-mode="dark"] .bg-blue-50 { background-color: #1B2230 !important; }
+
+html[data-jx-mode="dark"] .text-\[\#0F172A\] { color: #F2ECEA !important; }
+html[data-jx-mode="dark"] .text-stone-400 { color: #A79DA3 !important; }
+html[data-jx-mode="dark"] .text-stone-500 { color: #B3A9AE !important; }
+html[data-jx-mode="dark"] .text-stone-600 { color: #C4BABC !important; }
+html[data-jx-mode="dark"] .text-stone-700 { color: #D2CACC !important; }
+html[data-jx-mode="dark"] .text-stone-800 { color: #E0D8DA !important; }
+html[data-jx-mode="dark"] .text-\[\#475569\] { color: #C9C2C4 !important; }
+html[data-jx-mode="dark"] .text-\[\#94A3B8\] { color: #A79DA3 !important; }
+html[data-jx-mode="dark"] .text-\[\#6B4D00\] { color: #F3C8CE !important; }
+html[data-jx-mode="dark"] .text-rose-700 { color: #F0AEB8 !important; }
+html[data-jx-mode="dark"] .text-emerald-700 { color: #8FD8B4 !important; }
+html[data-jx-mode="dark"] .text-amber-800 { color: #EBCF9A !important; }
+
+html[data-jx-mode="dark"] .border-\[\#E7D9B5\],
+html[data-jx-mode="dark"] .border-\[\#EFE2BC\],
+html[data-jx-mode="dark"] .border-\[\#E7D49E\],
+html[data-jx-mode="dark"] .border-stone-200,
+html[data-jx-mode="dark"] .border-black\/5 { border-color: rgba(255,255,255,0.12) !important; }

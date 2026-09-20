@@ -1,0 +1,206 @@
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import React from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Navbar } from './components/common/Navbar';
+import { Footer } from './components/common/Footer';
+import { Toast } from './components/common/Toast';
+import { HomePage } from './pages/customer/HomePage';
+import { CatalogPage } from './pages/customer/CatalogPage';
+import { ProductDetailPage } from './pages/customer/ProductDetailPage';
+import { CartPage } from './pages/customer/CartPage';
+import { CheckoutPage } from './pages/customer/CheckoutPage';
+import { WishlistPage } from './pages/customer/WishlistPage';
+import { MerchantPlansPage } from './pages/customer/MerchantPlansPage';
+import { DynamicStorefrontPage } from './pages/customer/DynamicStorefrontPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { StoreOnboardingPage } from './pages/customer/StoreOnboardingPage';
+import { AdminBilling } from './pages/admin/AdminBilling';
+import { NotFoundPage } from './pages/NotFoundPage';
+
+// Merchant Admin Context & Pages
+import { MerchantAdminProvider } from './context/MerchantAdminContext';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminProducts } from './pages/admin/AdminProducts';
+import { AdminAddProduct } from './pages/admin/AdminAddProduct';
+import { AdminOrders } from './pages/admin/AdminOrders';
+import { AdminCustomers } from './pages/admin/AdminCustomers';
+import { AdminDiscounts } from './pages/admin/AdminDiscounts';
+import { AdminAnalytics } from './pages/admin/AdminAnalytics';
+import { AdminChannels } from './pages/admin/AdminChannels';
+import { AdminThemes } from './pages/admin/channels/AdminThemes';
+import { AdminThemeBuilder } from './pages/admin/channels/AdminThemeBuilder';
+import { AdminDomains } from './pages/admin/channels/AdminDomains';
+import { AdminSettings } from './pages/admin/AdminSettings';
+import { AdminInvoiceSettings } from './pages/admin/AdminInvoiceSettings';
+
+// Super Admin Master Portal
+import { SuperAdminProvider } from './context/SuperAdminContext';
+import { SuperAdminLayout } from './components/super-admin/SuperAdminLayout';
+import { OverviewPage } from './pages/super-admin/OverviewPage';
+import { TenantsPage } from './pages/super-admin/TenantsPage';
+import { PlansPage } from './pages/super-admin/PlansPage';
+import { RevenuePage } from './pages/super-admin/RevenuePage';
+import { ThemesPage } from './pages/super-admin/ThemesPage';
+import { InvoiceTemplatesPage } from './pages/super-admin/InvoiceTemplatesPage';
+import { AnalyticsPage } from './pages/super-admin/AnalyticsPage';
+import { GMVPage } from './pages/super-admin/GMVPage';
+import { AuditLogsPage } from './pages/super-admin/AuditLogsPage';
+import { MerchantsPage } from './pages/super-admin/MerchantsPage';
+import { NotificationsPage } from './pages/super-admin/NotificationsPage';
+import { SettingsPage } from './pages/super-admin/SettingsPage';
+import { useAuth } from './context/AuthContext';
+
+// Protected Admin Route (Merchant Console)
+const ProtectedAdminRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+  if (!currentUser) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return children;
+};
+
+// The product catalog exists ONLY inside a store (its subdomain or the
+// /store/:subdomain route). The merchants-only platform home has none.
+const CatalogRouteGate = () => {
+  try {
+    const host = window.location.hostname.toLowerCase();
+    const isStoreHost = host.endsWith('.go.julex.shop') && host !== 'go.julex.shop';
+    if (isStoreHost) return <CatalogPage />;
+  } catch (e) {}
+  return <Navigate to="/" replace />;
+};
+
+// Protected Super Admin Route (Restricted strictly to Master Super Admin)
+const ProtectedSuperAdminRoute = ({ children }) => {
+  const { currentUser, isSuperAdmin } = useAuth();
+  if (!currentUser || !isSuperAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return children;
+};
+
+export const App = () => {
+  const location = useLocation();
+  const isSuperAdminPath = location.pathname.startsWith('/super-admin');
+  const isAdminPath = location.pathname.startsWith('/admin') && !isSuperAdminPath;
+  const isStorefrontRoute = location.pathname.startsWith('/store');
+  const isCheckoutRoute = location.pathname.includes('/checkout');
+  const isDedicatedConsole = isSuperAdminPath || isAdminPath || isStorefrontRoute || isCheckoutRoute;
+  // The login/landing page (also at "/") renders its own header — hide the shared Navbar there
+  const isAdminLoginPage = location.pathname === '/' || location.pathname === '/admin/login';
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#FFFDF5] text-[#0F172A] font-sans selection:bg-[#A87A00]/20 selection:text-[#6B4D00]">
+      {/* Customer Storefront Navbar */}
+      {!isDedicatedConsole && !isAdminLoginPage && <Navbar />}
+      <Toast />
+
+      <main className="flex-1">
+        <Routes>
+          {/* Dynamic Merchant Storefront (Internal Dynamic Route) */}
+          <Route path="/store/:subdomain" element={<ErrorBoundary><DynamicStorefrontPage /></ErrorBoundary>} />
+          <Route path="/store/:subdomain/catalog" element={<CatalogPage />} />
+          <Route path="/store/:subdomain/product/:id" element={<ProductDetailPage />} />
+          <Route path="/store/:subdomain/cart" element={<ErrorBoundary><CartPage /></ErrorBoundary>} />
+          <Route path="/store/:subdomain/checkout" element={<ErrorBoundary><CheckoutPage /></ErrorBoundary>} />
+
+          {/* Customer / D2C Platform Routes */}
+          <Route path="/" element={<AdminLoginPage />} />
+          {/* go.julex.shop is a merchants-only platform — there is NO platform
+              product catalog. /catalog renders ONLY on a store subdomain
+              (that store's own catalog); anywhere else it goes home. */}
+          <Route path="/catalog" element={<CatalogRouteGate />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<ErrorBoundary><CheckoutPage /></ErrorBoundary>} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          {/* Platform users are merchants only — end-customers sign in on their own store subdomain */}
+          <Route path="/orders" element={<Navigate to="/" replace />} />
+          <Route path="/pricing" element={<MerchantPlansPage />} />
+          <Route path="/plans" element={<MerchantPlansPage />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/onboarding" element={<StoreOnboardingPage />} />
+
+          {/* Admin / Merchant Console Authentication (dedicated merchant login) */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+
+          {/* Protected Merchant Console Portal (All 8 Core Modules) */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedAdminRoute>
+                <ErrorBoundary>
+                  <MerchantAdminProvider>
+                    <AdminLayout />
+                  </MerchantAdminProvider>
+                </ErrorBoundary>
+              </ProtectedAdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="products/new" element={<AdminAddProduct />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="discounts" element={<AdminDiscounts />} />
+            <Route path="coupons" element={<AdminDiscounts />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="channels" element={<AdminChannels />} />
+            <Route path="themes" element={<AdminThemes />} />
+            <Route path="themes/builder" element={<AdminThemeBuilder />} />
+            <Route path="channels/online-store/themes" element={<AdminThemes />} />
+            <Route path="channels/themes" element={<AdminThemes />} />
+            <Route path="channels/online-store/themes/builder" element={<AdminThemeBuilder />} />
+            <Route path="channels/themes/builder" element={<AdminThemeBuilder />} />
+            <Route path="channels/online-store/domains" element={<AdminDomains />} />
+            <Route path="channels/domains" element={<AdminDomains />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="settings/invoices" element={<AdminInvoiceSettings />} />
+            <Route path="invoices" element={<AdminInvoiceSettings />} />
+            <Route path="billing" element={<AdminBilling />} />
+          </Route>
+
+          {/* Super Admin Master Portal (11 Modules) — STRICTLY RESTRICTED */}
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedSuperAdminRoute>
+                <ErrorBoundary>
+                  <SuperAdminProvider>
+                    <SuperAdminLayout />
+                  </SuperAdminProvider>
+                </ErrorBoundary>
+              </ProtectedSuperAdminRoute>
+            }
+          >
+            <Route index element={<OverviewPage />} />
+            <Route path="overview" element={<OverviewPage />} />
+            <Route path="tenants" element={<TenantsPage />} />
+            <Route path="plans" element={<PlansPage />} />
+            <Route path="revenue" element={<RevenuePage />} />
+            <Route path="themes" element={<ThemesPage />} />
+            <Route path="invoices" element={<InvoiceTemplatesPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="gmv" element={<GMVPage />} />
+            <Route path="audit-logs" element={<AuditLogsPage />} />
+            <Route path="merchants" element={<MerchantsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+
+          {/* 404 Fallback */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
+
+      {/* Customer Storefront Footer — the landing page ships its own footer,
+          so the shared one must not be appended below it (looked like extra
+          sections on mobile) */}
+      {!isDedicatedConsole && !isAdminLoginPage && <Footer />}
+    </div>
+  );
+};
+
+export default App;

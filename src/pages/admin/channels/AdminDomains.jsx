@@ -1,0 +1,436 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Globe,
+  CheckCircle2,
+  ShieldCheck,
+  ExternalLink,
+  Copy,
+  Check,
+  Plus,
+  Trash2,
+  RefreshCw,
+  AlertCircle,
+  X,
+  Server,
+  Lock,
+  Store,
+  Save,
+  Tag
+} from 'lucide-react';
+import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
+import { api } from '../../../services/api';
+
+// Store name -> URL-safe slug, SAME rules as the backend
+const makeSlug = (name) => String(name || '')
+  .toLowerCase()
+  .replace(/[\u2018\u2019']/g, '')
+  .replace(/&/g, 'and')
+  .replace(/[^a-z0-9]+/g, '')
+  .slice(0, 40);
+
+export const AdminDomains = () => {
+  const { currentStore, updateStoreProfile, showToast } = useMerchantAdmin();
+
+  // Store profile fields
+  // Load real store data from the database (same source as Dashboard/Settings)
+  const [dbStore, setDbStore] = useState(null);
+  useEffect(() => {
+    api.storeStatus.get()
+      .then((res) => { if (res?.success) setDbStore(res.data); })
+      .catch(() => {});
+  }, []);
+
+  const [storeName, setStoreName] = useState('');
+  const [categoryLabel, setCategoryLabel] = useState('');
+  useEffect(() => {
+    if (dbStore) {
+      setStoreName(dbStore.name || 'My Store');
+      setCategoryLabel(dbStore.category || 'Fine Jewelry & Luxury');
+    }
+  }, [dbStore]);
+  // Active slug on the store (saved). Draft slug derives from the store name.
+  const [activeSlug, setActiveSlug] = useState(
+    (currentStore.subdomain || 'mystore').toLowerCase().replace(/\.go\.julex\.shop$/, '').replace(/\.gojulex\.com$/, '').replace(/[^a-z0-9]/g, '')
+  );
+  const [slugInfo, setSlugInfo] = useState(null); // { available, slug, message }
+  const [slugChecking, setSlugChecking] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const draftSlug = makeSlug(storeName);
+
+  const [copiedSubdomain, setCopiedSubdomain] = useState(false);
+  const [copiedCustomDomain, setCopiedCustomDomain] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [customDomainInput, setCustomDomainInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const [customDomain, setCustomDomain] = useState(currentStore.customDomain || '');
+
+  const handleCopy = (text, type) => {
+    navigator.clipboard.writeText(text);
+    if (type === 'sub') {
+      setCopiedSubdomain(true);
+      setTimeout(() => setCopiedSubdomain(false), 2000);
+    } else {
+      setCopiedCustomDomain(true);
+      setTimeout(() => setCopiedCustomDomain(false), 2000);
+    }
+    showToast('Domain URL copied to clipboard!', 'info');
+  };
+
+  // Live availability preview while the merchant types the store name
+  useEffect(() => {
+    if (!draftSlug) { setSlugInfo(null); return; }
+    let cancelled = false;
+    setSlugChecking(true);
+    const t = setTimeout(() => {
+      api.domains.checkSlug(draftSlug)
+        .then((res) => { if (!cancelled) setSlugInfo(res); })
+        .catch(() => { if (!cancelled) setSlugInfo(null); })
+        .finally(() => { if (!cancelled) setSlugChecking(false); });
+    }, 450);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [draftSlug]);
+
+  // SAVE: store name -> backend generates unique slug -> {slug}.go.julex.shop
+  const handleSaveBrandProfile = async (e) => {
+    e.preventDefault();
+    if (!draftSlug) { showToast('Please enter a valid store name.', 'error'); return; }
+    setSaving(true);
+    try {
+      const res = await api.domains.setSubdomain({ name: storeName.trim() });
+      if (res?.success && res.data?.slug) {
+        setActiveSlug(res.data.slug);
+        await updateStoreProfile({
+          name: storeName.trim(),
+          subdomain: res.data.subdomain,
+          categoryLabel: categoryLabel.trim()
+        });
+        showToast(res.message || `Saved — ${res.data.subdomain}`, 'success');
+      } else {
+        showToast(res?.message || 'Could not save store identity.', 'error');
+      }
+    } catch (err) {
+      showToast('Could not reach the server. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleVerifyDns = () => {
+    showToast('Custom domain connection is not available yet. Your Go Julex subdomain remains active.', 'info');
+  };
+
+  const handleRemoveCustomDomain = () => {
+    showToast('Custom domain management is not available yet.', 'info');
+  };
+
+  const cleanSubdomainUrl = activeSlug || 'mystore';
+  const liveSubdomainUrl = `https://${cleanSubdomainUrl}.go.julex.shop`;
+
+  return (
+    <div className="space-y-8 text-[#0F172A] pb-16">
+      {/* 1. Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#E7D9B5] pb-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] font-serif tracking-tight flex items-center gap-2.5">
+              <Globe className="w-6 h-6 text-[#8A6200]" /> Store Identity & Domain Engine
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FFFDF5] text-[#6B4D00] border border-[#DCC78B]">
+              🟢 Edge CDN Active
+            </span>
+          </div>
+          <p className="text-xs text-[#374151] mt-1">
+            Customize your unique store brand name, personalize your Go Julex subdomain, and connect custom apex domains with free Cloudflare SSL.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/store/${cleanSubdomainUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-[#FFFDF5] hover:bg-[#F8E8BD] text-[#6B4D00] border border-[#DCC78B] text-xs font-bold transition shadow-xs"
+          >
+            <ExternalLink className="w-3.5 h-3.5" /> View Live Storefront
+          </Link>
+          <button
+            onClick={() => setIsConnectModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-xs shadow-xs transition transform active:scale-95 whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" /> Connect Custom Domain
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Brand Identity & Subdomain Customizer */}
+      <form onSubmit={handleSaveBrandProfile} className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E7D9B5] pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFFDF5] border border-[#DCC78B] flex items-center justify-center text-[#8A6200]">
+              <Store className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-[#0F172A] font-serif">Store Identity & Slug Settings</h3>
+              <p className="text-xs text-[#374151]">Update your brand name and custom Go Julex subdomain slug</p>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-xs transition shadow-xs"
+          >
+            <Save className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label className="font-semibold text-[#0F172A] block mb-1.5">
+              E-Commerce Store Name
+            </label>
+            <input
+              type="text"
+              required
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              placeholder="Enter your brand name"
+              className="w-full px-3.5 py-2.5 bg-white border border-[#E7D9B5] rounded-2xl text-[#0F172A] font-bold focus:outline-none focus:border-[#A87A00]"
+            />
+          </div>
+
+          <div>
+            <label className="font-semibold text-[#0F172A] block mb-1.5">
+              Go Julex Subdomain <span className="text-[#8A6200]">(auto-generated from your store name)</span>
+            </label>
+            <div className="flex items-center bg-white border border-[#E7D9B5] rounded-2xl overflow-hidden px-3 py-2">
+              <span className="text-slate-400 font-mono text-[11px]">https://</span>
+              <span className="px-1 text-[#8A6200] font-mono font-bold truncate">{draftSlug || 'yourstore'}</span>
+              <span className="text-slate-400 font-mono text-[11px]">.go.julex.shop</span>
+            </div>
+            {slugChecking && <p className="text-[10px] text-slate-400 mt-1">Checking availability…</p>}
+            {!slugChecking && slugInfo && (
+              <p className={'text-[10px] mt-1 font-semibold ' + (slugInfo.available ? 'text-emerald-600' : 'text-[#8A6200]')}>
+                {slugInfo.message || (slugInfo.slug ? `${slugInfo.slug}.go.julex.shop` : '')}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="font-semibold text-[#0F172A] block mb-1.5">
+              Store Category / Niche
+            </label>
+            <input
+              type="text"
+              value={categoryLabel}
+              onChange={(e) => setCategoryLabel(e.target.value)}
+              placeholder="e.g. Fine Jewelry & Luxury"
+              className="w-full px-3.5 py-2.5 bg-white border border-[#E7D9B5] rounded-2xl text-[#0F172A] focus:outline-none focus:border-[#A87A00]"
+            />
+          </div>
+        </div>
+      </form>
+
+      {/* 3. Default Go Julex Subdomain Card */}
+      <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFFDF5] border border-[#DCC78B] flex items-center justify-center text-[#8A6200]">
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-[#0F172A] font-serif">Active Store Subdomain</h3>
+              <p className="text-xs text-[#374151]">Fast, high-availability hostname managed by Go Julex</p>
+            </div>
+          </div>
+
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF5EC] text-[#2D6A4F] border border-emerald-200">
+            🟢 Active & SSL Secured
+          </span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-[#E7D9B5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs">
+            <Lock className="w-4 h-4 text-emerald-600" />
+            <span className="font-mono text-[#8A6200] font-bold text-sm">
+              https://<span className="text-[#0F172A]">{cleanSubdomainUrl}</span><span className="text-slate-500">.go.julex.shop</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => handleCopy(liveSubdomainUrl, 'sub')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FFF3CE] border border-[#E7D9B5] text-xs font-semibold text-[#6B4D00] transition"
+            >
+              {copiedSubdomain ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Copy URL</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={liveSubdomainUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFFDF5] hover:bg-[#F8E8BD] text-[#6B4D00] border border-[#DCC78B] text-xs font-bold transition"
+            >
+              <ExternalLink className="w-3.5 h-3.5" /> Visit Store
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Branded Custom Domain Card */}
+      <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFFDF5] border border-[#DCC78B] flex items-center justify-center text-[#8A6200]">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-[#0F172A] font-serif">Primary Custom Domain</h3>
+              <p className="text-xs text-[#374151]">Custom domain setup is awaiting DNS and certificate integration.</p>
+            </div>
+          </div>
+
+          {customDomain ? (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF5EC] text-[#2D6A4F] border border-emerald-200">
+              Saved · verification pending
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-[#374151]">
+              Not Connected
+            </span>
+          )}
+        </div>
+
+        {customDomain ? (
+          <div className="p-4 rounded-2xl bg-white border border-[#E7D9B5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-emerald-600" />
+                <span className="font-mono text-[#0F172A] font-bold text-sm">
+                  https://{customDomain}
+                </span>
+              </div>
+              <p className="text-[10px] text-[#374151]">
+                DNS: <code className="text-[#8A6200] font-semibold">CNAME → domains.gojulex.com</code> • SSL: Cloudflare Universal
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button
+                onClick={() => handleCopy(`https://${customDomain}`, 'custom')}
+                className="p-2 rounded-xl bg-white hover:bg-[#FFF3CE] border border-[#E7D9B5] text-[#6B4D00] transition"
+                title="Copy Domain"
+              >
+                {copiedCustomDomain ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-slate-400" />
+                )}
+              </button>
+
+              <button
+                onClick={handleRemoveCustomDomain}
+                className="p-2 rounded-xl bg-red-50 hover:bg-rose-100 text-[#9B1C1C] border border-rose-200 transition"
+                title="Disconnect Domain"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 text-center rounded-3xl bg-white border border-dashed border-[#E7D9B5] space-y-3">
+            <Globe className="w-8 h-8 text-[#8A6200] mx-auto opacity-70" />
+            <div className="space-y-1">
+              <p className="font-bold text-[#0F172A] text-xs">No Custom Domain Connected Yet</p>
+              <p className="text-[11px] text-[#374151] max-w-sm mx-auto">
+                Connect your existing GoDaddy, Namecheap, or Google Domains domain to build trust and brand identity.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsConnectModalOpen(true)}
+              className="px-4 py-2 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-xs shadow-xs transition"
+            >
+              + Connect Existing Domain
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 5. Connect Existing Domain Modal */}
+      {isConnectModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-white border border-[#E7D9B5] rounded-3xl p-6 space-y-5 shadow-2xl text-xs text-[#0F172A] animate-fade-in">
+            <div className="flex items-center justify-between border-b border-[#E7D9B5] pb-3">
+              <div>
+                <h3 className="font-bold text-sm text-[#0F172A] font-serif">Connect Custom Domain</h3>
+                <p className="text-[11px] text-[#374151]">Point your DNS records to Go Julex CDN</p>
+              </div>
+              <button onClick={() => setIsConnectModalOpen(false)}>
+                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
+              </button>
+            </div>
+
+            {/* Step 1: Input Domain */}
+            <div className="space-y-1.5">
+              <label className="font-semibold text-[#0F172A]">
+                Step 1: Enter your domain or subdomain name
+              </label>
+              <input
+                type="text"
+                value={customDomainInput}
+                onChange={(e) => setCustomDomainInput(e.target.value)}
+                placeholder="e.g. mystudio.in or shop.mybrand.com"
+                className="w-full px-3.5 py-2.5 bg-white border border-[#E7D9B5] rounded-2xl text-[#0F172A] font-mono text-xs focus:outline-none focus:border-[#A87A00]"
+              />
+            </div>
+
+            {/* Domain activation requires real DNS and certificate provisioning. */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF5] border border-[#DCC78B] space-y-2.5">
+              <span className="font-bold text-[#6B4D00] block">Custom domains are coming soon</span>
+              <p className="text-xs text-[#475569]">DNS verification and SSL provisioning are not connected yet. Do not change your registrar records. Continue using your Go Julex subdomain.</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsConnectModalOpen(false)}
+                className="px-4 py-2 rounded-2xl bg-white border border-[#E7D9B5] text-[#6B4D00] hover:bg-[#FFF3CE] transition font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled
+                onClick={handleVerifyDns}
+                className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold transition shadow-xs disabled:opacity-40"
+              >
+                {isVerifying ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Verifying DNS...
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" /> Connection unavailable
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminDomains;
