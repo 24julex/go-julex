@@ -137,10 +137,12 @@ export const FilterSidebar = ({
         </div>
       </div>
 
-      {/* Brands Filter */}
+      {/* Brands Filter — hidden when the store has no real brand variety
+          (a single "brand" is just the store itself, which every product shares) */}
+      {brands.length > 1 && (
       <div className="space-y-2">
         <label className="text-xs font-semibold uppercase tracking-wider block" style={{ color: 'var(--text-secondary)' }}>
-          Artisan Studio & Brand
+          Brands
         </label>
         <div className="space-y-1 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
           <button
@@ -153,7 +155,7 @@ export const FilterSidebar = ({
                 : { color: 'var(--text-secondary)' }
             }
           >
-            <span>All Studios</span>
+            <span>All Brands</span>
             {selectedBrand === '' && <Check className="w-3.5 h-3.5 text-amber-500" />}
           </button>
           {brands.map((b) => {
@@ -177,6 +179,7 @@ export const FilterSidebar = ({
           })}
         </div>
       </div>
+      )}
 
       {/* Price Range Filter */}
       <div className="space-y-3 pt-2 border-t" style={{ borderColor: 'var(--border-subtle)' }}>

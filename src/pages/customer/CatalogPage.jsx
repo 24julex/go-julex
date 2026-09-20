@@ -32,6 +32,15 @@ export const CatalogPage = () => {
   const cleanSubdomain = (subdomain || hostSubdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '');
   const matchedStore = cleanSubdomain ? DEMO_STORES.find(s => s.subdomain?.includes(cleanSubdomain) || s.id?.includes(cleanSubdomain)) || { name: cleanSubdomain.toUpperCase() + ' STORE' } : null;
 
+  // A merchant's catalog is the merchant's page — the browser tab must carry
+  // the store's name, never the platform's.
+  useEffect(() => {
+    if (!matchedStore?.name) return undefined;
+    const previousTitle = document.title;
+    document.title = `${matchedStore.name} — Shop All`;
+    return () => { document.title = previousTitle; };
+  }, [matchedStore?.name]);
+
   // Resolve the store's saved theme (same keys as DynamicStorefrontPage) so the
   // catalog inherits the storefront's activated theme instead of the global default
   const themeStyles = (() => {
@@ -220,11 +229,14 @@ export const CatalogPage = () => {
 
   const storeBrands = useMemo(() => {
     if (cleanSubdomain) {
+      // Single-brand stores (most merchants) have nothing to filter by brand —
+      // return [] and FilterSidebar hides the section instead of showing the
+      // store itself as its own only "brand".
       const brs = Array.from(new Set(products.map(p => p.brand).filter(Boolean)));
-      return brs.length > 0 ? brs : [matchedStore?.name || 'Store Brand'];
+      return brs.length > 1 ? brs : [];
     }
     return brands;
-  }, [cleanSubdomain, products, brands, matchedStore]);
+  }, [cleanSubdomain, products, brands]);
 
   return (
     <div
@@ -464,7 +476,7 @@ export const CatalogPage = () => {
                     ? { borderColor: themeStyles?.cardBorder?.match(/#[0-9a-f]{3,8}/i)?.[0] || '#E3D9CA' }
                     : {}}
                 >
-                  <WatchCard product={product} />
+                  <WatchCard product={product} storeSubdomain={cleanSubdomain || undefined} />
                 </div>
               ))}
             </div>

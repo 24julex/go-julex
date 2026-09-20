@@ -4,14 +4,20 @@ import { useCart } from '../../context/CartContext';
 import { formatCurrency, calculateDiscount } from '../../utils/formatters';
 import { Heart, ShoppingBag } from 'lucide-react';
 
-export const WatchCard = ({ product }) => {
+export const WatchCard = ({ product, storeSubdomain }) => {
   const { addToCart, toggleWishlist, isInWishlist, showToast } = useCart();
   const { finalPrice } = calculateDiscount(product.price, product.discountPercent);
   const isFavorited = isInWishlist(product.id);
   const isOutOfStock = (Number(product.stockQuantity ?? product.stock ?? 0) <= 0) || product.status === 'No' || product.status === false || product.available === false;
 
+  // Live-database products don't carry a subdomain, so the catalog page passes
+  // one explicitly — the detail view must stay inside the merchant's store.
+  const storeSlug = String(storeSubdomain || product.storeSubdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '');
+  const detailUrl = storeSlug ? `/store/${storeSlug}/product/${product.id}` : `/product/${product.id}`;
+
   const handleAddToCart = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     if (isOutOfStock) return;
     addToCart(product, 1);
     showToast(`Added "${product.name}" to cart!`);
@@ -19,13 +25,15 @@ export const WatchCard = ({ product }) => {
 
   const handleWishlistToggle = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     toggleWishlist(product);
     showToast(isFavorited ? `Removed from wishlist.` : `Saved to wishlist!`);
   };
 
   return (
-    <div
-      className="group rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between hover:shadow-xl relative"
+    <Link
+      to={detailUrl}
+      className="group rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between hover:shadow-xl relative cursor-pointer"
       style={{
         backgroundColor: 'var(--bg-surface)',
         borderColor: 'var(--border-card)',
@@ -82,14 +90,13 @@ export const WatchCard = ({ product }) => {
           </div>
 
           {/* Product Title */}
-          <Link
-            to={product.storeSubdomain ? `/store/${product.storeSubdomain}/product/${product.id}` : `/product/${product.id}`}
+          <span
             className="font-sans font-semibold text-xs transition-colors line-clamp-2 block"
             style={{ color: 'var(--text-primary)' }}
             title={product.name}
           >
             {product.name}
-          </Link>
+          </span>
         </div>
       </div>
 
@@ -124,6 +131,6 @@ export const WatchCard = ({ product }) => {
           <ShoppingBag className="w-4 h-4" />
         </button>
       </div>
-    </div>
+    </Link>
   );
 };

@@ -113,6 +113,15 @@ export const DynamicStorefrontPage = () => {
     }
   });
 
+  // The storefront is the merchant's own site — the browser tab must carry the
+  // store's name, never the platform's.
+  useEffect(() => {
+    if (!matchedStore?.name) return undefined;
+    const previousTitle = document.title;
+    document.title = matchedStore.name;
+    return () => { document.title = previousTitle; };
+  }, [matchedStore?.name]);
+
   // Strict Multi-Tenant Cart Isolation: Only items belonging to THIS store
   const storeCartItems = cartItems.filter((item) => {
     if (!item) return false;
@@ -348,7 +357,7 @@ export const DynamicStorefrontPage = () => {
           name: 'Footer',
           enabled: true,
           data: {
-            tagline: `Official storefront for ${matchedStore.name}. Powered by Go Julex 0% platform fee commerce cloud.`,
+            tagline: `Official storefront for ${matchedStore.name}. Every product ships direct from the maker.`,
             copyrightText: `© ${new Date().getFullYear()} ${matchedStore.name}. All rights reserved.`
           }
         }
@@ -2685,7 +2694,7 @@ export const DynamicStorefrontPage = () => {
                   {storeProducts.slice(0, 3).map((product) => {
                     const img = (product.images && product.images[0]) || product.imageUrl || product.image || activeThemeMeta?.heroImage || '/theme-images/fashion-2.jpg';
                     return (
-                      <Link key={product.id} to={`/product/${product.id}`} className="group block">
+                      <Link key={product.id} to={`/store/${cleanSubdomain}/product/${product.id}`} className="group block">
                         <div className="overflow-hidden aspect-[4/3] bg-[#F6F6F6]">
                           <img src={img} alt={product.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-[1.04] transition duration-700" />
                         </div>
@@ -3231,7 +3240,7 @@ export const DynamicStorefrontPage = () => {
                                   </span>
                                 )}
                               </div>
-                              <Link to={`/product/${product.id}`}>
+                              <Link to={`/store/${cleanSubdomain}/product/${product.id}`}>
                                 <h4
                                   className="font-bold text-sm sm:text-base leading-snug line-clamp-1 hover:opacity-80 transition"
                                   style={{

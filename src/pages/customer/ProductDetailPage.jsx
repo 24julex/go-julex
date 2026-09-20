@@ -101,6 +101,17 @@ export const ProductDetailPage = () => {
 
   const product = liveProduct || localProduct;
 
+  // Inside a store the tab belongs to the merchant: "Product — Store Name".
+  // Outside one, keep the platform default untouched.
+  useEffect(() => {
+    if (!product?.name) return undefined;
+    const previousTitle = document.title;
+    document.title = matchedStore?.name
+      ? `${product.name} — ${matchedStore.name}`
+      : `${product.name} — Go Julex`;
+    return () => { document.title = previousTitle; };
+  }, [product?.name, matchedStore?.name]);
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedDetailOptions, setSelectedDetailOptions] = useState({});
