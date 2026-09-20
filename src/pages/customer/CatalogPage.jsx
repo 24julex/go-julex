@@ -41,9 +41,22 @@ export const CatalogPage = () => {
     return () => { document.title = previousTitle; };
   }, [matchedStore?.name]);
 
-  // Resolve the store's saved theme (same keys as DynamicStorefrontPage) so the
-  // catalog inherits the storefront's activated theme instead of the global default
-  const themeStyles = (() => {
+  // Mark <html> as a merchant storefront while mounted: the global light/dark
+  // overrides are scoped away from .jx-storefront so the store's published
+  // theme colors/fonts render exactly as designed (same as the storefront home).
+  useEffect(() => {
+    if (!cleanSubdomain) return undefined;
+    const rootEl = document.documentElement;
+    rootEl.classList.add('jx-storefront');
+    return () => rootEl.classList.remove('jx-storefront');
+  }, [cleanSubdomain]);
+
+  // Resolve the store's saved theme. The PUBLISHED backend config is the
+  // source of truth (same as the storefront home) so every visitor sees the
+  // catalog in the template the merchant actually chose; the localStorage
+  // draft only pre-paints instantly in the merchant's own browser and is
+  // replaced as soon as the published config arrives.
+  const [themeStyles, setThemeStyles] = useState(() => {
     if (!cleanSubdomain) return null;
     try {
       const storeId = matchedStore?.id || `store_${cleanSubdomain}`;
@@ -56,7 +69,20 @@ export const CatalogPage = () => {
       }
     } catch (e) {}
     return { ...HARMONIOUS_THEME_PRESETS[0] };
-  })();
+  });
+
+  useEffect(() => {
+    if (!cleanSubdomain) return undefined;
+    let cancelled = false;
+    api.themes.getPublicConfig(cleanSubdomain)
+      .then((res) => {
+        if (cancelled) return;
+        if (!res?.success || !res?.data?.styles) return;
+        setThemeStyles({ ...HARMONIOUS_THEME_PRESETS[0], ...res.data.styles });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [cleanSubdomain]);
 
   // Map theme styles onto the CSS variables consumed by this page,
   // FilterSidebar and WatchCard. Unset values fall back to the global theme.
@@ -241,7 +267,7 @@ export const CatalogPage = () => {
   return (
     <div
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 min-h-screen"
-      style={{ ...themeVars, backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}
+      style={{ ...themeVars, backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)', fontFamily: themeStyles?.bodyFont || undefined }}
     >
       <StorefrontModeToggle accent="#D4A017" />
       {/* Header Banner */}

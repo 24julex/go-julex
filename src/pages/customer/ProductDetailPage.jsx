@@ -101,6 +101,39 @@ export const ProductDetailPage = () => {
 
   const product = liveProduct || localProduct;
 
+  // The store's PUBLISHED template owns this page for every visitor, exactly
+  // like the storefront home and catalog — never a platform-default palette.
+  const [storeTheme, setStoreTheme] = useState(null);
+  useEffect(() => {
+    if (!cleanSubdomain) return undefined;
+    let cancelled = false;
+    api.themes.getPublicConfig(cleanSubdomain)
+      .then((res) => {
+        if (!cancelled && res?.success && res?.data?.styles) setStoreTheme(res.data.styles);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [cleanSubdomain]);
+
+  // Storefront marker: keeps the global light/dark overrides from fighting the
+  // store's published theme on this page (same as the storefront home).
+  useEffect(() => {
+    if (!cleanSubdomain) return undefined;
+    const rootEl = document.documentElement;
+    rootEl.classList.add('jx-storefront');
+    return () => rootEl.classList.remove('jx-storefront');
+  }, [cleanSubdomain]);
+
+  const themeStyleVars = storeTheme
+    ? {
+        '--store-accent': storeTheme.accentColor || '#8A6200',
+        '--store-ink': storeTheme.headingColor || '#0F172A',
+        '--store-muted': storeTheme.textColor || '#475569',
+        '--store-bg': storeTheme.backgroundColor || '#FFFDF5',
+        '--store-border': (storeTheme.cardBorder || '').match(/#([0-9a-f]{3,8})/i)?.[0] || '#E7D9B5'
+      }
+    : {};
+
   // Inside a store the tab belongs to the merchant: "Product — Store Name".
   // Outside one, keep the platform default untouched.
   useEffect(() => {
@@ -162,8 +195,8 @@ export const ProductDetailPage = () => {
   if (!product) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="font-serif text-2xl font-bold text-[#0F172A]">Product Not Found</h2>
-        <Link to={cleanSubdomain ? `/store/${cleanSubdomain}` : '/catalog'} className="text-[#8A6200] hover:underline text-sm font-semibold">
+        <h2 className="font-serif text-2xl font-bold text-[color:var(--store-ink,#0F172A)]">Product Not Found</h2>
+        <Link to={cleanSubdomain ? `/store/${cleanSubdomain}` : '/catalog'} className="text-[color:var(--store-accent,#8A6200)] hover:underline text-sm font-semibold">
           Return to Storefront
         </Link>
       </div>
@@ -205,32 +238,35 @@ export const ProductDetailPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 animate-fade-in text-[#0F172A]">
+    <div
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 animate-fade-in min-h-screen text-[color:var(--store-ink,#0F172A)]"
+      style={{ ...themeStyleVars, backgroundColor: storeTheme ? 'var(--store-bg)' : undefined, fontFamily: storeTheme?.bodyFont || undefined }}
+    >
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-[#475569]">
-        <Link to={cleanSubdomain ? `/store/${cleanSubdomain}` : '/'} className="hover:text-[#8A6200] transition">
+      <div className="flex items-center gap-2 text-xs text-[color:var(--store-muted,#475569)]">
+        <Link to={cleanSubdomain ? `/store/${cleanSubdomain}` : '/'} className="hover:text-[color:var(--store-accent,#8A6200)] transition">
           {matchedStore ? matchedStore.name : 'Home'}
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <Link to={cleanSubdomain ? `/store/${cleanSubdomain}/catalog` : '/catalog'} className="hover:text-[#8A6200] transition">
+        <Link to={cleanSubdomain ? `/store/${cleanSubdomain}/catalog` : '/catalog'} className="hover:text-[color:var(--store-accent,#8A6200)] transition">
           Catalog
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-[#0F172A] font-bold truncate max-w-xs">{product.name}</span>
+        <span className="text-[color:var(--store-ink,#0F172A)] font-bold truncate max-w-xs">{product.name}</span>
       </div>
 
       {/* Main Product Display (Gallery + Info) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         {/* Left: Image Gallery */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="aspect-square rounded-3xl overflow-hidden bg-white border border-[#E7D9B5] shadow-lg relative">
+          <div className="aspect-square rounded-3xl overflow-hidden bg-white border border-[color:var(--store-border,#E7D9B5)] shadow-lg relative">
             <img
               src={product.images?.[selectedImage] || product.images?.[0] || product.imageUrl || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80'}
               alt={product.name}
               className="w-full h-full object-cover"
             />
             {product.discountPercent > 0 && (
-              <span className="absolute top-4 left-4 px-3 py-1 rounded-xl text-xs font-bold bg-[#8A6200] text-white shadow-md">
+              <span className="absolute top-4 left-4 px-3 py-1 rounded-xl text-xs font-bold bg-[var(--store-accent,#8A6200)] text-white shadow-md">
                 {product.discountPercent}% OFF
               </span>
             )}
@@ -244,7 +280,7 @@ export const ProductDetailPage = () => {
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
                   className={`w-20 h-20 rounded-2xl overflow-hidden border-2 transition shrink-0 bg-white cursor-pointer ${
-                    selectedImage === idx ? 'border-[#8A6200] scale-105 shadow-md' : 'border-[#E7D9B5] opacity-70 hover:opacity-100'
+                    selectedImage === idx ? 'border-[color:var(--store-accent,#8A6200)] scale-105 shadow-md' : 'border-[color:var(--store-border,#E7D9B5)] opacity-70 hover:opacity-100'
                   }`}
                 >
                   <img src={img} alt="thumb" className="w-full h-full object-cover" />
@@ -259,25 +295,25 @@ export const ProductDetailPage = () => {
           {/* Brand & Title */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-[#8A6200] uppercase tracking-widest text-xs">
+              <span className="font-bold text-[color:var(--store-accent,#8A6200)] uppercase tracking-widest text-xs">
                 {product.brand || matchedStore?.name}
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 0% Platform Markup
               </span>
             </div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A] leading-tight">
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[color:var(--store-ink,#0F172A)] leading-tight">
               {product.name}
             </h1>
-            <p className="text-xs text-[#475569] font-mono">
+            <p className="text-xs text-[color:var(--store-muted,#475569)] font-mono">
               SKU: {product.sku || product.id} • Category: {product.category || 'Direct Collection'}
             </p>
           </div>
 
           {/* Pricing Box */}
-          <div className="p-5 rounded-3xl bg-white border border-[#E7D9B5] space-y-2 shadow-xs">
+          <div className="p-5 rounded-3xl bg-white border border-[color:var(--store-border,#E7D9B5)] space-y-2 shadow-xs">
             <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-black text-[#8A6200]">
+              <span className="font-mono text-3xl font-black text-[color:var(--store-accent,#8A6200)]">
                 {formatCurrency(finalPrice)}
               </span>
               {product.discountPercent > 0 && (
@@ -291,7 +327,7 @@ export const ProductDetailPage = () => {
                 You save {formatCurrency(discountAmount)} ({product.discountPercent}% direct maker discount)
               </p>
             )}
-            <p className="text-[11px] text-[#475569]">
+            <p className="text-[11px] text-[color:var(--store-muted,#475569)]">
               Inclusive of all taxes & direct-from-maker insured transit.
             </p>
           </div>
@@ -300,12 +336,12 @@ export const ProductDetailPage = () => {
           {productOptionSets.map((optionSet) => {
             const currentVal = selectedDetailOptions[optionSet.name] || optionSet.values[0];
             return (
-              <div key={optionSet.id || optionSet.name} className="p-5 rounded-3xl bg-white border border-[#E7D9B5] space-y-3 shadow-xs">
+              <div key={optionSet.id || optionSet.name} className="p-5 rounded-3xl bg-white border border-[color:var(--store-border,#E7D9B5)] space-y-3 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-[#8A6200]" /> Select {optionSet.name}
+                  <label className="text-xs font-bold uppercase tracking-wider text-[color:var(--store-ink,#0F172A)] flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-[color:var(--store-accent,#8A6200)]" /> Select {optionSet.name}
                   </label>
-                  <span className="text-xs text-[#8A6200] font-bold">Selected: {currentVal}</span>
+                  <span className="text-xs text-[color:var(--store-accent,#8A6200)] font-bold">Selected: {currentVal}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {optionSet.values.map((val) => (
@@ -315,8 +351,8 @@ export const ProductDetailPage = () => {
                       onClick={() => setSelectedDetailOptions(prev => ({ ...prev, [optionSet.name]: val }))}
                       className={`px-4 py-2 rounded-2xl text-xs font-bold transition border cursor-pointer ${
                         currentVal === val
-                          ? 'bg-[#8A6200] text-white border-[#8A6200] shadow-sm transform scale-105'
-                          : 'bg-white text-stone-800 border-stone-200 hover:border-[#8A6200] hover:bg-rose-50'
+                          ? 'bg-[var(--store-accent,#8A6200)] text-white border-[color:var(--store-accent,#8A6200)] shadow-sm transform scale-105'
+                          : 'bg-white text-stone-800 border-stone-200 hover:border-[color:var(--store-accent,#8A6200)] hover:bg-rose-50'
                       }`}
                     >
                       {val}
@@ -330,7 +366,7 @@ export const ProductDetailPage = () => {
           {/* Quantity & Add to Cart */}
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex items-center border border-[#E7D9B5] rounded-2xl bg-white p-1 shadow-xs">
+              <div className="flex items-center border border-[color:var(--store-border,#E7D9B5)] rounded-2xl bg-white p-1 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -338,7 +374,7 @@ export const ProductDetailPage = () => {
                 >
                   -
                 </button>
-                <span className="w-10 text-center font-mono font-bold text-sm text-[#0F172A]">
+                <span className="w-10 text-center font-mono font-bold text-sm text-[color:var(--store-ink,#0F172A)]">
                   {quantity}
                 </span>
                 <button
@@ -357,7 +393,7 @@ export const ProductDetailPage = () => {
                 className={`flex-1 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
                   isOutOfStock
                     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                    : 'bg-[#8A6200] hover:bg-[#6B4D00] text-white shadow-md shadow-rose-900/20 transform hover:-translate-y-0.5 active:scale-98'
+                    : 'bg-[var(--store-accent,#8A6200)] hover:bg-[#6B4D00] text-white shadow-md shadow-rose-900/20 transform hover:-translate-y-0.5 active:scale-98'
                 }`}
               >
                 <ShoppingBag className="w-4 h-4" /> {isOutOfStock ? 'Sold Out' : `Add to Shopping Bag${Object.values(selectedDetailOptions).length > 0 ? ` (${Object.values(selectedDetailOptions).join(' • ')})` : ''}`}
@@ -371,8 +407,8 @@ export const ProductDetailPage = () => {
                 }}
                 className={`p-3.5 rounded-2xl border transition cursor-pointer shadow-xs ${
                   isFavorited
-                    ? 'bg-[#8A6200] text-white border-[#8A6200]'
-                    : 'bg-white border-[#E7D9B5] text-[#8A6200] hover:bg-[#FFFDF5]'
+                    ? 'bg-[var(--store-accent,#8A6200)] text-white border-[color:var(--store-accent,#8A6200)]'
+                    : 'bg-white border-[color:var(--store-border,#E7D9B5)] text-[color:var(--store-accent,#8A6200)] hover:bg-[#FFFDF5]'
                 }`}
                 title="Save to Wishlist"
               >
@@ -382,30 +418,30 @@ export const ProductDetailPage = () => {
           </div>
 
           {/* 3 Value Guarantees */}
-          <div className="grid grid-cols-3 gap-3 p-4 rounded-3xl bg-white border border-[#E7D9B5] text-center text-[11px] shadow-xs">
+          <div className="grid grid-cols-3 gap-3 p-4 rounded-3xl bg-white border border-[color:var(--store-border,#E7D9B5)] text-center text-[11px] shadow-xs">
             <div className="space-y-1">
-              <ShieldCheck className="w-4 h-4 text-[#8A6200] mx-auto" />
-              <span className="font-bold text-[#0F172A] block">100% Authentic</span>
-              <p className="text-[#475569] text-[10px]">Direct Studio Origin</p>
+              <ShieldCheck className="w-4 h-4 text-[color:var(--store-accent,#8A6200)] mx-auto" />
+              <span className="font-bold text-[color:var(--store-ink,#0F172A)] block">100% Authentic</span>
+              <p className="text-[color:var(--store-muted,#475569)] text-[10px]">Direct Studio Origin</p>
             </div>
             <div className="space-y-1">
-              <Truck className="w-4 h-4 text-[#8A6200] mx-auto" />
-              <span className="font-bold text-[#0F172A] block">Express Delivery</span>
-              <p className="text-[#475569] text-[10px]">Insured Pan-India</p>
+              <Truck className="w-4 h-4 text-[color:var(--store-accent,#8A6200)] mx-auto" />
+              <span className="font-bold text-[color:var(--store-ink,#0F172A)] block">Express Delivery</span>
+              <p className="text-[color:var(--store-muted,#475569)] text-[10px]">Insured Pan-India</p>
             </div>
             <div className="space-y-1">
-              <Percent className="w-4 h-4 text-[#8A6200] mx-auto" />
-              <span className="font-bold text-[#0F172A] block">0% Platform Cut</span>
-              <p className="text-[#475569] text-[10px]">Maker Retains 100%</p>
+              <Percent className="w-4 h-4 text-[color:var(--store-accent,#8A6200)] mx-auto" />
+              <span className="font-bold text-[color:var(--store-ink,#0F172A)] block">0% Platform Cut</span>
+              <p className="text-[color:var(--store-muted,#475569)] text-[10px]">Maker Retains 100%</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Description & Specifications Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-[#E7D9B5] pt-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-[color:var(--store-border,#E7D9B5)] pt-10">
         <div className="lg:col-span-7 space-y-4">
-          <h3 className="font-serif text-xl font-bold text-[#0F172A]">
+          <h3 className="font-serif text-xl font-bold text-[color:var(--store-ink,#0F172A)]">
             Craftsmanship & Backstory
           </h3>
           <p className="text-sm text-[#374151] leading-relaxed">
@@ -415,10 +451,10 @@ export const ProductDetailPage = () => {
 
         {/* Specifications */}
         <div className="lg:col-span-5 space-y-4">
-          <h3 className="font-serif text-xl font-bold text-[#0F172A]">
+          <h3 className="font-serif text-xl font-bold text-[color:var(--store-ink,#0F172A)]">
             Artisan Specifications
           </h3>
-          <div className="rounded-3xl bg-white border border-[#E7D9B5] divide-y divide-[#E7D9B5] text-xs shadow-xs overflow-hidden">
+          <div className="rounded-3xl bg-white border border-[color:var(--store-border,#E7D9B5)] divide-y divide-[#E7D9B5] text-xs shadow-xs overflow-hidden">
             {product.specs && (() => {
               // Render plain spec values only — structured data like optionSets
               // (variant definitions) is not displayable text
@@ -430,13 +466,13 @@ export const ProductDetailPage = () => {
               );
               if (rows.length === 0) {
                 return (
-                  <div className="p-3.5 text-[#475569]">No additional specifications listed for this piece.</div>
+                  <div className="p-3.5 text-[color:var(--store-muted,#475569)]">No additional specifications listed for this piece.</div>
                 );
               }
               return rows.map(([key, val]) => (
                 <div key={key} className="p-3.5 flex justify-between gap-4">
-                  <span className="text-[#475569] font-medium">{key}</span>
-                  <span className="text-[#0F172A] font-bold text-right">{val}</span>
+                  <span className="text-[color:var(--store-muted,#475569)] font-medium">{key}</span>
+                  <span className="text-[color:var(--store-ink,#0F172A)] font-bold text-right">{val}</span>
                 </div>
               ));
             })()}
