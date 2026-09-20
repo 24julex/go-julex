@@ -17,11 +17,13 @@ async function bootstrap() {
   });
   await prisma.masterInvoiceTemplate.upsert({
     where: { id: 'tpl_classic_tax_a4' },
-    update: {},
+    // Align the slug with seed.js / the frontend catalog on volumes created
+    // before they agreed, so the demo seed's slug-keyed upserts find this row.
+    update: { slug: 'classic-tax-a4' },
     create: {
       id: 'tpl_classic_tax_a4',
       name: 'Classic A4',
-      slug: 'classic-a4',
+      slug: 'classic-tax-a4',
       description: 'Basic print layout. Merchant legal and tax details must be configured.',
       isPublished: true,
       tierAccess: 'FREE',
