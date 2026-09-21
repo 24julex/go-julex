@@ -2,7 +2,8 @@ import express from 'express';
 import { prisma } from '../db.js';
 import { randomBytes } from 'node:crypto';
 import { requireAdmin, requireAuth, optionalAuth, tenantScope } from '../middleware/auth.js';
-import { sendMail } from '../utils/mailer.js';
+import { sendMail, invoiceEmailHtml } from '../utils/mailer.js';
+import { generateInvoicePdf } from '../utils/invoicePdf.js';
 
 const router = express.Router();
 
@@ -159,130 +160,52 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/orders (Customer Checkout: Create Order & Deduct Inventory Stock)
 // ----------------------------------------------------
 // GST tax invoice email — sent automatically to the customer
-// right after their order is placed.
+// right after their order is placed: a branded order-summary
+// body plus the tax invoice as a PDF attachment (built from
+// the store's invoice config). Fire-and-forget: a mail/PDF
+// failure NEVER fails the order itself, and the idempotent
+// checkoutKey replay path does not re-send.
 // ----------------------------------------------------
-const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
-
 const sendOrderInvoiceEmail = async (order) => {
   try {
     const config = order.tenantId
       ? await prisma.tenantInvoiceConfig.findUnique({ where: { tenantId: order.tenantId } })
       : null;
-
-    const subtotal = order.subtotalAmount || order.items.reduce((s2, i) => s2 + (i.priceAtPurchase * i.quantity), 0);
-    const discount = order.discountAmount || 0;
-    const shipping = order.shippingFee || 0;
-    const tax = order.taxAmount || 0;
-    // What the customer ACTUALLY paid — identical to the merchant dashboard
-    const total = subtotal - discount + shipping + tax;
-    // Prices are tax-inclusive: show the GST content extracted from the
-    // total (platform 3% convention), never added on top of it
-    const gstIncluded = Math.round(total * 3 / 103);
-    const cgst = Math.round(gstIncluded / 2);
-    const sgst = gstIncluded - cgst;
-
-    const storeName = config?.storeTradeName || config?.storeLegalName || order.tenant?.name || 'The Store';
-    const storeGstin = config?.storeGstin || null;
-    const storeAddress = config?.storeAddress || [order.tenant?.city, order.tenant?.state].filter(Boolean).join(', ') || '';
-    const storeContact = [config?.storePhone, config?.storeEmail].filter(Boolean).join(' \u00B7 ');
-
-    let shipAddr = {};
-    try { shipAddr = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : (order.shippingAddress || {}); } catch (e) {}
-
+    const pdfBuffer = await generateInvoicePdf(order, config);
     const invoiceNo = `INV-${String(order.orderNumber || '').replace(/[^0-9]/g, '') || Date.now().toString().slice(-6)}`;
-    const invoiceDate = new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const storeName = config?.storeTradeName || config?.storeLegalName || order.tenant?.name || 'The Store';
 
-    const rows = order.items.map((i, idx) => `
-      <tr style="border-bottom:1px solid #eee">
-        <td style="padding:8px;font-size:12px;color:#334155">${idx + 1}</td>
-        <td style="padding:8px;font-size:12px;color:#334155">
-          <strong>${i.productName}</strong>${i.variantLabel ? `<div style="color:#94a3b8;font-size:11px">${i.variantLabel}</div>` : ''}
-        </td>
-        <td style="padding:8px;font-size:12px;color:#334155;text-align:center">${i.quantity}</td>
-        <td style="padding:8px;font-size:12px;color:#334155;text-align:right">${inr(i.priceAtPurchase)}</td>
-        <td style="padding:8px;font-size:12px;color:#334155;text-align:right">${inr(i.priceAtPurchase * i.quantity)}</td>
-      </tr>`).join('');
-
-    const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:auto;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
-      <div style="background:#0F172A;padding:18px 24px">
-        <div style="color:#D4A017;font-weight:800;font-size:16px">${storeName}</div>
-        <div style="color:#94a3b8;font-size:11px">GST TAX INVOICE</div>
-        <div style="color:#e2e8f0;font-size:11px;margin-top:6px">
-          No: <strong>${invoiceNo}</strong> &nbsp;|&nbsp; Date: <strong>${invoiceDate}</strong> &nbsp;|&nbsp; Order: <strong>${order.orderNumber}</strong>
-        </div>
-      </div>
-
-      <div style="padding:16px 24px;border-bottom:1px solid #e2e8f0;background:#f8fafc">
-        <table style="width:100%;border-collapse:collapse"><tr>
-          <td style="width:50%;vertical-align:top">
-            <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:1px;margin-bottom:4px">SELLER</div>
-            <div style="font-size:12px;color:#0f172a"><strong>${storeName}</strong></div>
-            ${storeAddress ? `<div style="font-size:11px;color:#475569">${storeAddress}</div>` : ''}
-            ${storeGstin ? `<div style="font-size:11px;color:#475569"><strong>GSTIN:</strong> ${storeGstin}</div>` : ''}
-            ${storeContact ? `<div style="font-size:11px;color:#475569">${storeContact}</div>` : ''}
-          </td>
-          <td style="width:50%;vertical-align:top">
-            <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:1px;margin-bottom:4px">BILLED TO</div>
-            <div style="font-size:12px;color:#0f172a"><strong>${order.customerName}</strong></div>
-            ${order.customerPhone ? `<div style="font-size:11px;color:#475569">${order.customerPhone}</div>` : ''}
-            ${order.customerEmail ? `<div style="font-size:11px;color:#475569">${order.customerEmail}</div>` : ''}
-            ${(shipAddr.street || shipAddr.city) ? `<div style="font-size:11px;color:#475569">${[shipAddr.street, shipAddr.city, shipAddr.state, shipAddr.postalCode || shipAddr.zipCode].filter(Boolean).join(', ')}</div>` : ''}
-          </td>
-        </tr></table>
-      </div>
-
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr style="background:#f1f5f9">
-            <th style="padding:8px;font-size:10px;color:#64748b;text-align:left">#</th>
-            <th style="padding:8px;font-size:10px;color:#64748b;text-align:left">ITEM</th>
-            <th style="padding:8px;font-size:10px;color:#64748b;text-align:center">QTY</th>
-            <th style="padding:8px;font-size:10px;color:#64748b;text-align:right">RATE</th>
-            <th style="padding:8px;font-size:10px;color:#64748b;text-align:right">AMOUNT</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-
-      <div style="padding:12px 24px 4px">
-        <table style="width:260px;margin-left:auto;border-collapse:collapse">
-          <tr><td style="padding:4px 0;font-size:12px;color:#475569">Subtotal</td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(subtotal)}</td></tr>
-          ${discount > 0 ? `<tr><td style="padding:4px 0;font-size:12px;color:#475569">Discount${order.couponCodeApplied ? ` (${order.couponCodeApplied})` : ''}</td><td style="padding:4px 0;font-size:12px;color:#059669;text-align:right">&minus; ${inr(discount)}</td></tr>` : ''}
-          <tr><td style="padding:4px 0;font-size:12px;color:#475569">Shipping</td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${shipping > 0 ? inr(shipping) : 'FREE'}</td></tr>
-          <tr><td style="padding:4px 0;font-size:12px;color:#475569">CGST <span style="color:#94a3b8">(included)</span></td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(cgst)}</td></tr>
-          <tr><td style="padding:4px 0;font-size:12px;color:#475569">SGST <span style="color:#94a3b8">(included)</span></td><td style="padding:4px 0;font-size:12px;color:#0f172a;text-align:right">${inr(sgst)}</td></tr>
-          <tr style="border-top:2px solid #0f172a"><td style="padding:8px 0;font-size:13px;font-weight:800;color:#0f172a">TOTAL PAID</td><td style="padding:8px 0;font-size:13px;font-weight:800;color:#0f172a;text-align:right">${inr(total)}</td></tr>
-        </table>
-      </div>
-
-      <div style="padding:12px 24px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0">
-        <div><strong>Payment:</strong> ${order.paymentMethod || '&mdash;'} &nbsp;&middot;&nbsp; <strong>Status:</strong> ${order.paymentStatus || '&mdash;'}</div>
-        <div style="margin-top:4px"><strong>Tracking:</strong> ${order.trackingNumber || '&mdash;'}</div>
-        <div style="margin-top:8px;color:#94a3b8">Prices are inclusive of applicable taxes. Thank you for shopping directly with ${storeName} &mdash; 0% platform fee, powered by Go Julex.</div>
-      </div>
-    </div>`;
-
-    // Send AS the store: invoice-config store email, else the store owner's
-    // account, else the platform address — with a Reply-To back to the store
-    const storeFromEmail = config?.storeEmail || order.tenant?.users?.[0]?.email || null;
+    // Send AS the store when its invoice config carries an email — with a
+    // Reply-To back to the store — else from the platform address.
+    const storeFromEmail = config?.storeEmail || null;
     const fromHeader = storeFromEmail
       ? `${storeName.replace(/["<>]/g, '')} <${storeFromEmail}>`
       : undefined;
 
-    return sendMail({
+    const total = Number(order.totalAmount || 0);
+    const mail = await sendMail({
       to: order.customerEmail,
       ...(fromHeader ? { from: fromHeader, replyTo: storeFromEmail } : {}),
       subject: `${storeName} - GST Invoice ${invoiceNo} (Order ${order.orderNumber})`,
-      html,
-      text: `${storeName} GST Invoice ${invoiceNo} for order ${order.orderNumber}. Total ${inr(total)}. Thank you for your purchase.`
+      text: `Hi ${order.customerName},
+
+Thank you for your order ${order.orderNumber} from ${storeName}! Your GST tax invoice ${invoiceNo} is attached to this email as a PDF.
+
+Total payable (${order.paymentMethod || 'Cash on Delivery'}): Rs. ${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+
+We will contact you shortly about delivery.
+
+- ${storeName}`,
+      html: invoiceEmailHtml(order, storeName, invoiceNo),
+      attachments: [{ filename: `${invoiceNo}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
     });
+    console.log(`[invoice] ${mail.sent ? 'EMAILED' : 'MAIL-FAILED'} ${invoiceNo} for ${order.orderNumber} to ${order.customerEmail}`);
+    return mail;
   } catch (e) {
-    console.error('Invoice email build failed:', e.message);
-    return { sent: false, error: e.message };
+    console.error(`[invoice] could not email invoice for ${order?.orderNumber}:`, e.message);
+    return { sent: false };
   }
 };
 
@@ -377,6 +300,9 @@ router.post('/', optionalAuth, async (req, res) => {
         include: { items: true, tenant: true }
       });
     });
+    // Invoice PDF email goes out asynchronously — the customer's order
+    // response is never delayed or failed by mail problems.
+    sendOrderInvoiceEmail(createdOrder).catch(() => {});
     return res.status(201).json({ success: true, message: 'Order placed. Payment is due on delivery.', data: formatOrder(createdOrder) });
   } catch (error) {
     console.error('Create order error:', error);
