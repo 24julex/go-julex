@@ -585,6 +585,96 @@ router.post('/otp/status', async (req, res) => {
   }
 });
 
+// ----------------------------------------------------
+// 6b. Forgot / Reset Password (6-digit email code)
+// Mirrors the email-verification OTP flow but on dedicated
+// fields, so a reset code can never verify an email (or
+// vice versa). Unknown emails get the SAME success answer
+// so outsiders can't probe which addresses have accounts.
+// ----------------------------------------------------
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+    const user = await prisma.user.findUnique({ where: { email } });
+    const genericOk = { success: true, message: `If an account exists for ${email}, a 6-digit reset code is on its way. It expires in ${OTP_TTL_MIN} minutes.` };
+    if (!user) return res.json(genericOk);
+
+    if (user.resetOtpLastSentAt && (Date.now() - new Date(user.resetOtpLastSentAt).getTime()) < OTP_RESEND_COOLDOWN_SEC * 1000) {
+      return res.status(429).json({ success: false, message: 'Please wait a minute before requesting another code.' });
+    }
+
+    const code = genOtp();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetOtpHash: await bcrypt.hash(code, 10),
+        resetOtpExpiresAt: new Date(Date.now() + OTP_TTL_MIN * 60000),
+        resetOtpAttempts: 0,
+        resetOtpLastSentAt: new Date()
+      }
+    });
+    const mail = await sendMail({
+      to: email,
+      subject: `Your Go Julex password reset code: ${code}`,
+      text: `Your Go Julex password reset code is ${code}. It expires in ${OTP_TTL_MIN} minutes. If you didn't request it, ignore this email.`,
+      html: otpEmailHtml(code, 'Use this code to set a new password for your Go Julex account.')
+    });
+    // Dev-only convenience when SMTP is down (same gate as the verify flow).
+    const devCode = (!mail.sent && process.env.ALLOW_DEV_OTP === '1') ? code : undefined;
+    return res.json({ ...genericOk, emailSent: mail.sent, ...(devCode ? { devCode } : {}) });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ success: false, message: 'Could not send the reset code. Please try again.' });
+  }
+});
+
+// POST /auth/reset-password  { email, code, newPassword }
+router.post('/reset-password', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').toLowerCase().trim();
+    const code = String(req.body?.code || '').trim();
+    const newPassword = String(req.body?.newPassword || '');
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({ success: false, message: 'Enter the 6-digit code from your email.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters.' });
+    }
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.resetOtpHash || !user.resetOtpExpiresAt) {
+      return res.status(400).json({ success: false, message: 'Request a reset code first.' });
+    }
+    if (user.resetOtpAttempts >= OTP_MAX_ATTEMPTS) {
+      return res.status(429).json({ success: false, message: 'Too many incorrect attempts. Request a new code.' });
+    }
+    if (new Date(user.resetOtpExpiresAt) < new Date()) {
+      return res.status(400).json({ success: false, message: 'This code has expired. Request a new one.' });
+    }
+    const ok = await bcrypt.compare(code, user.resetOtpHash);
+    if (!ok) {
+      await prisma.user.update({ where: { id: user.id }, data: { resetOtpAttempts: { increment: 1 } } });
+      const left = OTP_MAX_ATTEMPTS - (user.resetOtpAttempts + 1);
+      return res.status(401).json({ success: false, message: `Incorrect code. ${left > 0 ? left + ' attempt(s) left.' : 'Request a new code.'}` });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: await bcrypt.hash(newPassword, 10),
+        resetOtpHash: null,
+        resetOtpExpiresAt: null,
+        resetOtpAttempts: 0
+      }
+    });
+    return res.json({ success: true, message: 'Password updated! Sign in with your new password.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return res.status(500).json({ success: false, message: 'Could not reset the password. Please try again.' });
+  }
+});
+
 router.post('/signup-store', async (req, res) => {
   try {
     const { name, email, password, storeName, category } = req.body || {};

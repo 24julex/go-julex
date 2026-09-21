@@ -1,4 +1,5 @@
 import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
+import { ForgotPasswordModal } from '../components/common/ForgotPasswordModal';
 
 import { useTheme } from '../context/ThemeContext';
 import React, { useState, useEffect, useRef } from 'react';
@@ -102,6 +103,8 @@ export const AdminLoginPage = () => {
   // 2FA-protected account; the real session arrives after a valid code.
   const [twoFactorToken, setTwoFactorToken] = useState(null);
   const [twoFaCode, setTwoFaCode] = useState('');
+  // Forgot-password flow (email → 6-digit email code → new password)
+  const [showForgot, setShowForgot] = useState(false);
 
   // Sign Up Form State
   const [regName, setRegName] = useState('');
@@ -1033,6 +1036,13 @@ export const AdminLoginPage = () => {
                       className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-obsidian-850 border border-[#EFE2BC] rounded-xl text-[#0F172A] dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-none focus:border-[#8A6200] focus:ring-2 focus:ring-rose-100 transition"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgot(true)}
+                    className="mt-1.5 text-[11px] font-bold text-[#8A6200] dark:text-amber-400 hover:underline transition cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
 
                 <button
@@ -1229,6 +1239,17 @@ export const AdminLoginPage = () => {
           </div>
         </div>
       )}
+
+      <ForgotPasswordModal
+        open={showForgot}
+        onClose={() => setShowForgot(false)}
+        initialEmail={email}
+        onResetSuccess={(resetEmail) => {
+          setEmail(resetEmail);
+          setPassword('');
+          setAuthMode('signin');
+        }}
+      />
     </div>
   );
 };

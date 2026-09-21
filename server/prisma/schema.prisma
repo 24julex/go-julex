@@ -26,6 +26,10 @@ model User {
   otpExpiresAt      DateTime?
   otpAttempts       Int         @default(0)
   otpLastSentAt     DateTime?
+  resetOtpHash       String?     // bcrypt hash of the current password-reset OTP
+  resetOtpExpiresAt  DateTime?
+  resetOtpAttempts   Int         @default(0)
+  resetOtpLastSentAt DateTime?
   avatarUrl         String?
   phone             String?
   address           String?

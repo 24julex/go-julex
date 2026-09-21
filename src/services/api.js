@@ -42,6 +42,9 @@ export const api = {
       }),
     sendOtp: (email) => request('/auth/otp/send', { method: 'POST', body: JSON.stringify({ email }) }),
     verifyOtp: (email, code) => request('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ email, code }) }),
+    forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+    resetPassword: (email, code, newPassword) =>
+      request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) }),
     setup2fa: () => request('/auth/2fa/setup', { method: 'POST', body: JSON.stringify({}) }),
     enable2fa: (code) => request('/auth/2fa/enable', { method: 'POST', body: JSON.stringify({ code }) }),
     disable2fa: (code) => request('/auth/2fa/disable', { method: 'POST', body: JSON.stringify({ code }) }),
