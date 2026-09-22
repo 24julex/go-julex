@@ -173,7 +173,12 @@ const sendOrderInvoiceEmail = async (order) => {
     const config = order.tenantId
       ? await prisma.tenantInvoiceConfig.findUnique({ where: { tenantId: order.tenantId } })
       : null;
-    const pdfBuffer = await generateInvoicePdf(order, config);
+    // The MASTER template the merchant selected drives the PDF's layout
+    // (header variant, accent color, fonts, terms) — same as the preview.
+    const template = config?.templateId
+      ? await prisma.masterInvoiceTemplate.findUnique({ where: { id: config.templateId } })
+      : null;
+    const pdfBuffer = await generateInvoicePdf(order, config, template);
     const invoiceNo = `INV-${String(order.orderNumber || '').replace(/[^0-9]/g, '') || Date.now().toString().slice(-6)}`;
     const storeName = config?.storeTradeName || config?.storeLegalName || order.tenant?.name || 'The Store';
 
