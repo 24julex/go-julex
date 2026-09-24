@@ -103,7 +103,7 @@ export const DeleteAccountModal = ({ open, onClose, onDeleted }) => {
           <>
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-bold uppercase tracking-wider text-rose-700">
-                <AlertTriangle className="w-3.5 h-3.5" /> Danger Zone
+                <AlertTriangle className="w-3.5 h-3.5" /> Account Closure
               </div>
               <h3 className="font-serif text-xl font-bold text-[#0F172A] dark:text-slate-100">Delete your account</h3>
               {step === 1 ? (

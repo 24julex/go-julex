@@ -131,7 +131,7 @@ export const AdminSettings = () => {
           { id: 'general', label: 'Store Profile', icon: Store },
           { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
           { id: 'security', label: 'Security', icon: Lock },
-          { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
+          { id: 'danger', label: 'Close Account', icon: AlertTriangle },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -290,7 +290,7 @@ export const AdminSettings = () => {
       {activeTab === 'danger' && (
         <div className="p-6 rounded-3xl bg-white border border-rose-200 space-y-4 shadow-sm">
           <h3 className="font-bold text-sm flex items-center gap-2 text-rose-700">
-            <AlertTriangle className="w-4 h-4" /> Danger Zone
+            <AlertTriangle className="w-4 h-4" /> Close Account
           </h3>
           <div className="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3">
             <div className="flex items-start gap-3">
