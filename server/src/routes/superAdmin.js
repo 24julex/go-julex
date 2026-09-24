@@ -488,4 +488,47 @@ router.post('/broadcast', requireSuperAdmin, async (req, res) => {
   }
 });
 
+// ----------------------------------------------------
+// Account Activity Notifications (merchant signups &
+// deletions) — the super admin portal's activity feed.
+// ----------------------------------------------------
+router.get('/admin-notifications', requireSuperAdmin, async (req, res) => {
+  try {
+    const [items, unreadCount] = await Promise.all([
+      prisma.adminNotification.findMany({ orderBy: { createdAt: 'desc' }, take: 60 }),
+      prisma.adminNotification.count({ where: { isRead: false } })
+    ]);
+    return res.json({
+      success: true,
+      data: items.map((n) => {
+        let meta = {};
+        try { meta = n.metaJson ? JSON.parse(n.metaJson) : {}; } catch (e) {}
+        return { ...n, meta };
+      }),
+      unreadCount
+    });
+  } catch (error) {
+    console.error('Admin notifications error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load notifications.' });
+  }
+});
+
+router.post('/admin-notifications/:id/read', requireSuperAdmin, async (req, res) => {
+  try {
+    await prisma.adminNotification.updateMany({ where: { id: req.params.id }, data: { isRead: true } });
+    return res.json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to mark as read.' });
+  }
+});
+
+router.post('/admin-notifications/read-all', requireSuperAdmin, async (req, res) => {
+  try {
+    await prisma.adminNotification.updateMany({ where: { isRead: false }, data: { isRead: true } });
+    return res.json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to mark all as read.' });
+  }
+});
+
 export default router;

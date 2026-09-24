@@ -675,6 +675,124 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// ----------------------------------------------------
+// 6c. Account Deletion (merchant self-service, verified
+// by a 6-digit email code). Deleting a store owner's
+// account removes their ENTIRE store — products, orders,
+// coupons, invoice config and staff logins cascade with
+// the tenant — so the code proves control of the mailbox.
+// Every deletion raises an AdminNotification for the
+// super admin portal.
+// ----------------------------------------------------
+export const notifySuperAdmins = async (type, title, message, meta = null) => {
+  try {
+    await prisma.adminNotification.create({
+      data: { type, title, message, metaJson: meta ? JSON.stringify(meta) : null }
+    });
+  } catch (e) {
+    console.error('[notifySuperAdmins] failed:', e.message);
+  }
+};
+
+router.post('/delete-account/request', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role === 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, message: 'Super admin accounts cannot be self-deleted.' });
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { tenant: true } });
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found.' });
+    if (user.deleteOtpLastSentAt && (Date.now() - new Date(user.deleteOtpLastSentAt).getTime()) < OTP_RESEND_COOLDOWN_SEC * 1000) {
+      return res.status(429).json({ success: false, message: 'Please wait a minute before requesting another code.' });
+    }
+    const code = genOtp();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        deleteOtpHash: await bcrypt.hash(code, 10),
+        deleteOtpExpiresAt: new Date(Date.now() + OTP_TTL_MIN * 60000),
+        deleteOtpAttempts: 0,
+        deleteOtpLastSentAt: new Date()
+      }
+    });
+    const storeLabel = user.tenant?.name || 'their store';
+    const mail = await sendMail({
+      to: user.email,
+      subject: `Go Julex account deletion code: ${code}`,
+      text: `Your Go Julex account deletion code is ${code}. It expires in ${OTP_TTL_MIN} minutes. Entering it on the settings page PERMANENTLY deletes your account${user.tenantId ? ` and your entire store "${storeLabel}"` : ''}. If you didn't request this, ignore this email.`,
+      html: otpEmailHtml(code, `Use this code to PERMANENTLY delete your Go Julex account${user.tenantId ? ` and your store "${storeLabel}" with all products and orders` : ''}.`)
+    });
+    const devCode = (!mail.sent && process.env.ALLOW_DEV_OTP === '1') ? code : undefined;
+    return res.json({
+      success: true,
+      message: mail.sent
+        ? `Deletion code sent to ${user.email}. It expires in ${OTP_TTL_MIN} minutes.`
+        : 'Could not send the email right now — please try again shortly.',
+      emailSent: mail.sent,
+      storeName: user.tenant?.name || null,
+      ...(devCode ? { devCode } : {})
+    });
+  } catch (error) {
+    console.error('Delete account request error:', error);
+    return res.status(500).json({ success: false, message: 'Could not send the deletion code.' });
+  }
+});
+
+router.post('/delete-account/confirm', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role === 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, message: 'Super admin accounts cannot be self-deleted.' });
+    }
+    const code = String(req.body?.code || '').trim();
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({ success: false, message: 'Enter the 6-digit code from your email.' });
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { tenant: true } });
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found.' });
+    if (!user.deleteOtpHash || !user.deleteOtpExpiresAt) {
+      return res.status(400).json({ success: false, message: 'Request a deletion code first.' });
+    }
+    if (user.deleteOtpAttempts >= OTP_MAX_ATTEMPTS) {
+      return res.status(429).json({ success: false, message: 'Too many incorrect attempts. Request a new code.' });
+    }
+    if (new Date(user.deleteOtpExpiresAt) < new Date()) {
+      return res.status(400).json({ success: false, message: 'This code has expired. Request a new one.' });
+    }
+    const ok = await bcrypt.compare(code, user.deleteOtpHash);
+    if (!ok) {
+      await prisma.user.update({ where: { id: user.id }, data: { deleteOtpAttempts: { increment: 1 } } });
+      const left = OTP_MAX_ATTEMPTS - (user.deleteOtpAttempts + 1);
+      return res.status(401).json({ success: false, message: `Incorrect code. ${left > 0 ? left + ' attempt(s) left.' : 'Request a new code.'}` });
+    }
+
+    // Deleting the store owner's tenant cascades products, orders, coupons,
+    // invoice config, subscriptions and the store's other user accounts.
+    const storeName = user.tenant?.name || null;
+    const storeSubdomain = user.tenant?.subdomain || null;
+    const deletedEmail = user.email;
+    const deletedName = user.name;
+
+    if (user.tenantId && user.tenant) {
+      await prisma.tenant.delete({ where: { id: user.tenantId } });
+    } else {
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+
+    await notifySuperAdmins(
+      'ACCOUNT_DELETED',
+      'Merchant account deleted',
+      storeName
+        ? `The account of ${deletedName} (${deletedEmail}) was deleted by the owner — store "${storeName}"${storeSubdomain ? ` (${storeSubdomain})` : ''} and all its data were removed.`
+        : `The account of ${deletedName} (${deletedEmail}) was deleted by the owner.`,
+      { email: deletedEmail, name: deletedName, storeName, storeSubdomain }
+    );
+
+    return res.json({ success: true, message: 'Your account has been permanently deleted. Goodbye!' });
+  } catch (error) {
+    console.error('Delete account confirm error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete the account. Please try again.' });
+  }
+});
+
 router.post('/signup-store', async (req, res) => {
   try {
     const { name, email, password, storeName, category } = req.body || {};
@@ -747,6 +865,15 @@ router.post('/signup-store', async (req, res) => {
           },
           include: { tenant: true }
         });
+
+    // Super admin visibility: every new merchant signup raises a portal
+    // notification. Fire-and-forget — never blocks the signup response.
+    notifySuperAdmins(
+      'MERCHANT_SIGNUP',
+      'New merchant account created',
+      `${user.name} (${user.email}) just created the store "${tenant.name}" (${tenant.subdomain}).`,
+      { email: user.email, name: user.name, storeName: tenant.name, storeSubdomain: tenant.subdomain, tenantId: tenant.id }
+    ).catch(() => {});
 
     return res.status(201).json({
       success: true,

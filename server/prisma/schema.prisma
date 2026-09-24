@@ -30,6 +30,10 @@ model User {
   resetOtpExpiresAt  DateTime?
   resetOtpAttempts   Int         @default(0)
   resetOtpLastSentAt DateTime?
+  deleteOtpHash       String?     // bcrypt hash of the current account-deletion OTP
+  deleteOtpExpiresAt  DateTime?
+  deleteOtpAttempts   Int         @default(0)
+  deleteOtpLastSentAt DateTime?
   avatarUrl         String?
   phone             String?
   address           String?
@@ -321,3 +325,16 @@ model Subscription {
 // ----------------------------------------------------
 // Go Julex SaaS Plans & Subscriptions
 // ----------------------------------------------------
+
+// ----------------------------------------------------
+// 12. Super Admin Notifications (account activity feed)
+// ----------------------------------------------------
+model AdminNotification {
+  id        String   @id @default(uuid())
+  type      String   // "MERCHANT_SIGNUP" | "ACCOUNT_DELETED" | "SYSTEM"
+  title     String
+  message   String
+  metaJson  String?  // stringified JSON: { email, storeName, tenantId, ... }
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

@@ -65,6 +65,8 @@ export const api = {
         body: JSON.stringify({})
       }),
     me: () => request('/auth/me'),
+    requestDeleteCode: () => request('/auth/delete-account/request', { method: 'POST', body: JSON.stringify({}) }),
+    confirmDeleteAccount: (code) => request('/auth/delete-account/confirm', { method: 'POST', body: JSON.stringify({ code }) }),
     impersonate: (tenantId) =>
       request('/auth/impersonate', {
         method: 'POST',
@@ -356,6 +358,10 @@ export const api = {
 
   // Extended Super Admin endpoints
   superAdmin: {
+    // Account activity notifications (merchant signups & deletions)
+    getAdminNotifications: () => request('/super-admin/admin-notifications'),
+    markAdminNotificationRead: (id) => request(`/super-admin/admin-notifications/${id}/read`, { method: 'POST', body: JSON.stringify({}) }),
+    markAllAdminNotificationsRead: () => request('/super-admin/admin-notifications/read-all', { method: 'POST', body: JSON.stringify({}) }),
     // Invoice Templates
     getInvoices: () => request('/super-admin/invoices'),
     createInvoiceTemplate: (templateData) =>

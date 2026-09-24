@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import {
   Settings, Store, Users, ShieldCheck, CreditCard, KeyRound,
-  CheckCircle2, AlertCircle, Lock, Save,
+  CheckCircle2, AlertCircle, Lock, Save, AlertTriangle, Trash2,
   Building, Mail, Phone, MapPin, Upload, RefreshCw
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useMerchantAdmin } from '../../context/MerchantAdminContext';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { TwoFactorSetupModal } from '../../components/common/TwoFactorSetupModal';
+import { DeleteAccountModal } from '../../components/common/DeleteAccountModal';
 
 export const AdminSettings = () => {
   const { currentStore, showToast } = useMerchantAdmin();
   const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [twoFactorOpen, setTwoFactorOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
   // Store profile — populated from the DATABASE
   const [storeProfile, setStoreProfile] = useState({
@@ -127,6 +131,7 @@ export const AdminSettings = () => {
           { id: 'general', label: 'Store Profile', icon: Store },
           { id: 'plan', label: 'Plan & Billing', icon: CreditCard },
           { id: 'security', label: 'Security', icon: Lock },
+          { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -282,7 +287,47 @@ export const AdminSettings = () => {
         </div>
       )}
 
+      {activeTab === 'danger' && (
+        <div className="p-6 rounded-3xl bg-white border border-rose-200 space-y-4 shadow-sm">
+          <h3 className="font-bold text-sm flex items-center gap-2 text-rose-700">
+            <AlertTriangle className="w-4 h-4" /> Danger Zone
+          </h3>
+          <div className="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+                <Trash2 className="w-4 h-4 text-rose-600" />
+              </div>
+              <div className="min-w-0 space-y-1">
+                <p className="text-xs font-bold text-rose-900">Delete this account entirely</p>
+                <p className="text-[11px] text-rose-800/80 leading-relaxed">
+                  Permanently deletes your account and your entire store — {currentStore?.name ? `"${currentStore.name}"` : 'all products'}, orders,
+                  coupons and invoice settings. A 6-digit verification code is emailed to you first; nothing is removed
+                  until you enter it. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDeleteAccountOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition transform active:scale-98 flex items-center gap-2 cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Delete My Account
+            </button>
+          </div>
+        </div>
+      )}
+
       <TwoFactorSetupModal open={twoFactorOpen} onClose={() => setTwoFactorOpen(false)} />
+      <DeleteAccountModal
+        open={deleteAccountOpen}
+        onClose={() => setDeleteAccountOpen(false)}
+        onDeleted={() => {
+          setDeleteAccountOpen(false);
+          showToast('Your account has been deleted.', 'success');
+          logout();
+          navigate('/');
+        }}
+      />
     </div>
   );
 };
