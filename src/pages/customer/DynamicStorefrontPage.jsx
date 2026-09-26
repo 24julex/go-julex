@@ -29,6 +29,7 @@ import {
   Heart,
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   Tag,
   Gift,
   Mail,
@@ -419,6 +420,8 @@ export const DynamicStorefrontPage = () => {
   const [selectedProductForVariant, setSelectedProductForVariant] = useState(null);
   const [selectedOptionValues, setSelectedOptionValues] = useState({});
   const [selectedQuantity, setSelectedQuantity] = useState(1);
+  // Quick View gallery — index of the product image currently shown
+  const [quickViewImage, setQuickViewImage] = useState(0);
 
   // Helper to extract exact option sets for a product
   const getProductOptionSets = (prod) => {
@@ -559,23 +562,10 @@ export const DynamicStorefrontPage = () => {
       return;
     }
 
+    // EVERY product interaction opens the Quick View first — customers see
+    // all images, the description and the specs before adding. Adding stays
+    // one tap inside the modal (with or without variant options).
     const optionSets = getProductOptionSets(product);
-    if (optionSets.length === 0) {
-      // 1-Click Instant Add if no variant options
-      const storeScopedItem = {
-        ...product,
-        storeSubdomain: cleanSubdomain,
-        tenantId: matchedStore.id,
-        storeName: matchedStore.name
-      };
-      addToCart(storeScopedItem, 1);
-      setAddedItemNotice(product.name);
-      setIsBagDrawerOpen(true);
-      setTimeout(() => setAddedItemNotice(null), 3500);
-      return;
-    }
-
-    // Open Dynamic Option Sets Modal
     const initialChoices = {};
     optionSets.forEach(os => {
       initialChoices[os.name] = os.values[0];
@@ -583,6 +573,7 @@ export const DynamicStorefrontPage = () => {
     setSelectedOptionValues(initialChoices);
     setSelectedProductForVariant(product);
     setSelectedQuantity(1);
+    setQuickViewImage(0);
   };
 
   const handleConfirmAddToCart = () => {
@@ -676,22 +667,13 @@ export const DynamicStorefrontPage = () => {
         </div>
       )}
 
-      {/* Interactive Dynamic Option Sets & Specification Modal */}
+      {/* Product Quick View — full gallery, description, specs & options */}
       {selectedProductForVariant && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#FBCBCB] overflow-hidden text-[#0F172A] space-y-5 p-6 sm:p-8">
+          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#FBCBCB] text-[#0F172A] space-y-5 p-6 sm:p-8">
             {/* Header */}
             <div className="flex items-start justify-between gap-4 pb-3 border-b border-black/5">
               <div className="flex items-center gap-3">
-                <img
-                  src={
-                    (selectedProductForVariant.images && selectedProductForVariant.images[0]) ||
-                    selectedProductForVariant.imageUrl ||
-                    'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=300&q=80'
-                  }
-                  alt={selectedProductForVariant.name}
-                  className="w-16 h-16 rounded-2xl object-cover border border-[#FBCBCB] bg-stone-50 shrink-0"
-                />
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                     {selectedProductForVariant.category || matchedStore.categoryLabel}
@@ -722,6 +704,71 @@ export const DynamicStorefrontPage = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Image Gallery — every merchant-uploaded image, switchable */}
+            {(() => {
+              const gallery = (Array.isArray(selectedProductForVariant.images) && selectedProductForVariant.images.length > 0)
+                ? selectedProductForVariant.images
+                : [selectedProductForVariant.imageUrl].filter(Boolean);
+              const safeGallery = gallery.length > 0 ? gallery : ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80'];
+              const activeIdx = Math.min(quickViewImage, safeGallery.length - 1);
+              return (
+                <div className="space-y-2.5">
+                  <div className="relative aspect-square rounded-2xl overflow-hidden border border-[#FBCBCB] bg-stone-50">
+                    <img src={safeGallery[activeIdx]} alt={selectedProductForVariant.name} className="w-full h-full object-cover" />
+                    {safeGallery.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setQuickViewImage((activeIdx - 1 + safeGallery.length) % safeGallery.length)}
+                          className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 border border-stone-200 shadow flex items-center justify-center hover:bg-white transition cursor-pointer"
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickViewImage((activeIdx + 1) % safeGallery.length)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 border border-stone-200 shadow flex items-center justify-center hover:bg-white transition cursor-pointer"
+                          aria-label="Next image"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-bold font-mono">
+                          {activeIdx + 1} / {safeGallery.length}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  {safeGallery.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {safeGallery.map((img, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setQuickViewImage(i)}
+                          className={`w-14 h-14 rounded-xl overflow-hidden border-2 shrink-0 transition cursor-pointer ${i === activeIdx ? 'border-[#9F1239] scale-105 shadow' : 'border-stone-200 opacity-70 hover:opacity-100'}`}
+                        >
+                          <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Product Description */}
+            {selectedProductForVariant.description && (
+              <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                  About this product
+                </span>
+                <p className="text-xs text-stone-600 leading-relaxed whitespace-pre-line line-clamp-6">
+                  {selectedProductForVariant.description}
+                </p>
+              </div>
+            )}
 
             {/* Dynamic Option Sets (Exact Merchant-Created Options Only) */}
             <div className="space-y-4">

@@ -18,20 +18,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { CreateThemeModal } from '../../components/super-admin/themes/CreateThemeModal';
 import { ThemePreviewModal } from '../../components/common/ThemePreviewModal';
+import { ThemeStorefrontPreview } from '../admin/channels/AdminThemes';
 import { MASTER_THEME_CATALOG as MASTER_THEMES_CATALOG, THEME_META } from '../../data/themeRegistry';
 import { api } from '../../services/api';
 
 
-/* Unified card cover: the platform cover image with the theme name overlaid.
-   The name comes from the catalog (DB overrides respected) — super admin
-   edits it via the Edit Template button. */
+/* Card cover — the SAME real per-theme imagery the merchant Themes page
+   shows (the theme's actual hero photograph), with the theme name kept
+   on a bottom gradient so both portals preview templates identically. */
 const MiniThemeStorefrontCard = ({ theme }) => {
   return (
-    <div className="w-full h-full relative overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#1a1a2e' }}>
-      <img src="/theme-images/card-cover.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.85 }} />
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)' }} />
-      <div className="relative z-10 text-center px-4">
-        <h3 className="font-serif font-black text-white leading-tight" style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>
+    <div className="w-full h-full relative overflow-hidden" style={{ backgroundColor: '#1a1a2e' }}>
+      <ThemeStorefrontPreview theme={theme} />
+      <div className="absolute inset-x-0 bottom-0 z-10 px-3 py-2" style={{ background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.55))' }}>
+        <h3 className="font-serif font-black text-white leading-tight" style={{ fontSize: 'clamp(0.8rem, 1.8vw, 1.05rem)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>
           {theme.name}
         </h3>
       </div>

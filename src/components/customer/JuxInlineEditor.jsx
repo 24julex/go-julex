@@ -450,6 +450,34 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       if (el && norm(el.textContent)) selectTextEl(el, sec, sid);
     };
 
+    // Enter text-edit mode on a contenteditable node with the caret placed
+    // WHERE THE USER DOUBLE-CLICKED — never a select-all (selecting the whole
+    // sentence made every first keystroke wipe the text).
+    const enterTextEdit = (node, x, y) => {
+      node.setAttribute('contenteditable', 'true');
+      node.classList.add('jx-editing');
+      node.focus();
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      let placed = false;
+      try {
+        const pointRange = document.caretRangeFromPoint
+          ? document.caretRangeFromPoint(x, y)
+          : (document.caretPositionFromPoint ? document.caretPositionFromPoint(x, y) : null);
+        const range = pointRange && pointRange.startContainer !== undefined ? pointRange : null;
+        if (range && (node === range.startContainer || node.contains(range.startContainer))) {
+          selection.addRange(range);
+          placed = true;
+        }
+      } catch (err) { /* fall through to end-of-text caret */ }
+      if (!placed) {
+        const endRange = document.createRange();
+        endRange.selectNodeContents(node);
+        endRange.collapse(false); // caret at the end of the text
+        selection.addRange(endRange);
+      }
+    };
+
     const onDblClick = (e) => {
       if (inToolbar(e)) return;
       const floatNode = e.target.closest?.('[data-jx-float]');
@@ -462,14 +490,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
           const span = floatNode.querySelector('span');
           if (!span) return;
           selectFloatText(span, f);
-          span.setAttribute('contenteditable', 'true');
-          span.classList.add('jx-editing');
-          span.focus();
-          const range = document.createRange();
-          range.selectNodeContents(span);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
+          enterTextEdit(span, e.clientX, e.clientY);
         }
         return;
       }
@@ -487,14 +508,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       }
       if (!el || !norm(el.textContent)) return;
       selectTextEl(el, sec, sid);
-      el.setAttribute('contenteditable', 'true');
-      el.classList.add('jx-editing');
-      el.focus();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
+      enterTextEdit(el, e.clientX, e.clientY);
     };
 
     // ---- drag (Move) + image resize ----
