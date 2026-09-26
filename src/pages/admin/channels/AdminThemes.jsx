@@ -17,21 +17,24 @@ import {
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
 import { HARMONIOUS_THEME_PRESETS } from './AdminThemeBuilder';
-import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, THEME_META, buildThemeSectionsForApply } from '../../../data/themeRegistry';
+import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, buildThemeSectionsForApply } from '../../../data/themeRegistry';
 import { ThemePreviewModal } from '../../../components/common/ThemePreviewModal';
 import { api } from '../../../services/api';
 
 
 export const ThemeStorefrontPreview = ({ theme, isLarge = false }) => {
-  // Real-image preview: the theme's actual hero + product photographs from
-  // THEME_META (served locally from /theme-images/) — not an illustration
-  const themeMeta = THEME_META[theme.presetId] || {};
-  const hero = themeMeta.heroImage || theme.thumbnail;
-  const products = (themeMeta.products || []).slice(0, 3);
-
+  // Unified platform card cover — the SAME preview style the super admin
+  // Themes page shows, so merchants and the platform see identical cards.
+  const displayName = theme.name || String(theme.presetId || '').replace(/_/g, ' ').replace(/^preset /i, '').toUpperCase();
   return (
-    <div className="w-full h-full relative bg-white overflow-hidden">
-      <img src={hero} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: '50% 18%', transform: 'scale(1.8)', transformOrigin: '50% 18%' }} />
+    <div className="w-full h-full relative overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#1a1a2e' }}>
+      <img src="/theme-images/card-cover.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.85 }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)' }} />
+      <div className="relative z-10 text-center px-4">
+        <h3 className="font-serif font-black text-white leading-tight" style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>
+          {displayName}
+        </h3>
+      </div>
     </div>
   );
 };
