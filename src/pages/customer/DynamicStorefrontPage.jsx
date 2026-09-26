@@ -715,7 +715,7 @@ export const DynamicStorefrontPage = () => {
               return (
                 <div className="space-y-2.5">
                   <div className="relative aspect-square rounded-2xl overflow-hidden border border-[#FBCBCB] bg-stone-50 w-[85%] mx-auto">
-                    <img src={safeGallery[activeIdx]} alt={selectedProductForVariant.name} className="w-full h-full object-cover" />
+                    <img src={safeGallery[activeIdx]} alt={selectedProductForVariant.name} className="w-full h-full object-cover" style={{ filter: 'brightness(1.1) saturate(1.04)' }} />
                     {safeGallery.length > 1 && (
                       <>
                         <button
