@@ -714,7 +714,7 @@ export const DynamicStorefrontPage = () => {
               const activeIdx = Math.min(quickViewImage, safeGallery.length - 1);
               return (
                 <div className="space-y-2.5">
-                  <div className="relative aspect-square rounded-2xl overflow-hidden border border-[#FBCBCB] bg-stone-50">
+                  <div className="relative aspect-square rounded-2xl overflow-hidden border border-[#FBCBCB] bg-stone-50 w-[85%] mx-auto">
                     <img src={safeGallery[activeIdx]} alt={selectedProductForVariant.name} className="w-full h-full object-cover" />
                     {safeGallery.length > 1 && (
                       <>
@@ -807,7 +807,7 @@ export const DynamicStorefrontPage = () => {
             {selectedProductForVariant.specs && (
               <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-1 text-xs">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
-                  Craft Specifications:
+                  Product Specifications:
                 </span>
                 {Object.entries(selectedProductForVariant.specs)
                   .filter(([k, v]) => v !== null && v !== undefined && typeof v !== 'object')

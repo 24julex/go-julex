@@ -364,22 +364,15 @@ export const AdminThemes = () => {
                     </span>
                   )}
 
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 p-4">
+                  {/* Hover overlay: Live Preview sits at the BOTTOM of the
+                      image so it never covers the theme name lettering. */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-end justify-center p-4 pb-3">
                     <button
                       onClick={() => setDemoModalTheme(theme)}
                       className="px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold text-xs transition flex items-center gap-1 shadow-xs cursor-pointer"
                     >
                       <Eye className="w-4 h-4" /> Live Preview
                     </button>
-                    {!isCurrentlyActive && (
-                      <button
-                        onClick={() => handleApplyTheme(theme)}
-                        className="px-3.5 py-2 rounded-xl font-bold text-xs transition shadow-xs text-black cursor-pointer"
-                        style={{ background: 'linear-gradient(135deg, #D4A017, #F5C842)' }}
-                      >
-                        Apply Theme
-                      </button>
-                    )}
                   </div>
                 </div>
 
