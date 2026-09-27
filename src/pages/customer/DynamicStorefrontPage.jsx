@@ -996,9 +996,9 @@ export const DynamicStorefrontPage = () => {
                     ))}
                     {/* Editorial kicker — ABOVE the letters, left-aligned,
                         clear of the floating cards and lettering. */}
-                    <div className="absolute left-0 sm:left-[2%] -top-6 sm:-top-8 z-30 pointer-events-none text-left">
-                      <p className="italic text-xs sm:text-base md:text-lg leading-tight tracking-wider" style={botanSerif}>Explore</p>
-                      <p className="font-medium text-[9px] sm:text-xs md:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }} dangerouslySetInnerHTML={{ __html: tagText.replace(/ /g, '&nbsp;').replace(/(.{0,18})(?=$)/, '$1<br/>') }} />
+                    <div className="absolute left-0 sm:left-[2%] -top-6 sm:-top-8 z-30 text-left">
+                      <p className="italic text-xs sm:text-base md:text-lg leading-tight tracking-wider" style={botanSerif} data-jx-field="kickerLead">{section.data.kickerLead || 'Explore'}</p>
+                      <p data-jx-field="badgeText" className="font-medium text-[9px] sm:text-xs md:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }} dangerouslySetInnerHTML={{ __html: tagText.replace(/ /g, '&nbsp;').replace(/(.{0,18})(?=$)/, '$1<br/>') }} />
                     </div>
                     {/* Monumental letters — IN FRONT of the imagery */}
                     <div className="relative z-20 flex justify-between items-baseline select-none w-full leading-none" style={{ color: BOTAN.olive, fontFamily: BOTAN_SERIF }}>
@@ -1023,7 +1023,8 @@ export const DynamicStorefrontPage = () => {
           if (section.type === 'product_grid' || section.type === 'products') {
             const visible = botanCategory === 'all' ? botanItems : botanItems.filter(p => p.category === botanCategory);
             return (
-              <section key={section.id} id="curations" className="py-24 sm:py-32 px-4 sm:px-8 max-w-7xl mx-auto border-t" style={{ borderColor: BOTAN.sand }}>
+              <section key={section.id} id="curations" className="py-24 sm:py-32 px-4 sm:px-8 max-w-7xl mx-auto border-t scroll-mt-24" style={{ borderColor: BOTAN.sand }}>
+            <span id="products" className="block scroll-mt-24" aria-hidden="true" />
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                   <div>
                     <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>{section.data.subtitle || 'Spring Edition'}</span>
@@ -1269,7 +1270,7 @@ export const DynamicStorefrontPage = () => {
                 <span className="opacity-70">✦</span>
                 <span>{section.data.text || 'Complimentary shipping on all orders — direct from our studio'}</span>
                 {section.data.linkText && (
-                  <a href={section.data.linkUrl || '#products'} className="underline underline-offset-2 hover:opacity-80">
+                  <a href={section.data.linkUrl || '#curations'} className="underline underline-offset-2 hover:opacity-80">
                     {section.data.linkText}
                   </a>
                 )}
@@ -1289,7 +1290,7 @@ export const DynamicStorefrontPage = () => {
                   <span>//</span>
                   <span>{section.data.text || '100% DIRECT FROM CREATOR'}</span>
                   {section.data.linkText && (
-                    <a href={section.data.linkUrl || '#products'} className="underline font-black ml-2">
+                    <a href={section.data.linkUrl || '#curations'} className="underline font-black ml-2">
                       [{section.data.linkText}]
                     </a>
                   )}
@@ -1308,7 +1309,7 @@ export const DynamicStorefrontPage = () => {
                 <span className="px-2 py-0.5 rounded-full bg-black/10 text-[10px] font-bold">🌱 Natural Craft</span>
                 <span>{section.data.text}</span>
                 {section.data.linkText && (
-                  <a href={section.data.linkUrl || '#products'} className="font-bold underline ml-1 hover:opacity-80">
+                  <a href={section.data.linkUrl || '#curations'} className="font-bold underline ml-1 hover:opacity-80">
                     {section.data.linkText} →
                   </a>
                 )}
@@ -1339,7 +1340,7 @@ export const DynamicStorefrontPage = () => {
               >
                 <span>{section.data.text}</span>
                 {section.data.linkText && (
-                  <a href={section.data.linkUrl || '#products'} className="underline underline-offset-4 hover:opacity-70 transition">
+                  <a href={section.data.linkUrl || '#curations'} className="underline underline-offset-4 hover:opacity-70 transition">
                     {section.data.linkText}
                   </a>
                 )}
@@ -1365,7 +1366,7 @@ export const DynamicStorefrontPage = () => {
                   <span className="hidden sm:inline opacity-60">✕</span>
                   <span>{section.data.text}</span>
                   {section.data.linkText && (
-                    <a href={section.data.linkUrl || '#products'} className="underline underline-offset-4 hover:opacity-80 transition">
+                    <a href={section.data.linkUrl || '#curations'} className="underline underline-offset-4 hover:opacity-80 transition">
                       {section.data.linkText}
                     </a>
                   )}
@@ -1388,7 +1389,7 @@ export const DynamicStorefrontPage = () => {
                   <span style={{ color: sage }}>✦</span>
                   <span>{section.data.text}</span>
                   {section.data.linkText && (
-                    <a href={section.data.linkUrl || '#products'} className="underline underline-offset-4 font-bold hover:opacity-80" style={{ color: sage }}>
+                    <a href={section.data.linkUrl || '#curations'} className="underline underline-offset-4 font-bold hover:opacity-80" style={{ color: sage }}>
                       {section.data.linkText}
                     </a>
                   )}
@@ -1408,7 +1409,7 @@ export const DynamicStorefrontPage = () => {
                   <span style={{ color: '#E3B23C' }}>✦</span>
                   <span>{section.data.text}</span>
                   {section.data.linkText && (
-                    <a href={section.data.linkUrl || '#products'} className="underline underline-offset-2 hover:opacity-70 transition">
+                    <a href={section.data.linkUrl || '#curations'} className="underline underline-offset-2 hover:opacity-70 transition">
                       {section.data.linkText}
                     </a>
                   )}
@@ -1434,7 +1435,7 @@ export const DynamicStorefrontPage = () => {
                 <span className="w-8 h-px inline-block" style={{ backgroundColor: styles?.accentColor || '#B4552D' }} />
                 <span>{section.data.text}</span>
                 {section.data.linkText && (
-                  <a href={section.data.linkUrl || '#products'} className="underline underline-offset-4 font-semibold hover:opacity-70 transition">
+                  <a href={section.data.linkUrl || '#curations'} className="underline underline-offset-4 font-semibold hover:opacity-70 transition">
                     {section.data.linkText}
                   </a>
                 )}
@@ -1455,7 +1456,7 @@ export const DynamicStorefrontPage = () => {
                 <span style={{ color: '#7DE3C3' }}>★</span>
                 {section.data.linkText && (
                   <a
-                    href={section.data.linkUrl || '#products'}
+                    href={section.data.linkUrl || '#curations'}
                     className="ml-1 px-3 py-0.5 rounded-full font-black text-white hover:brightness-95 transition"
                     style={{ backgroundColor: '#B8A7FF' }}
                   >
@@ -1476,7 +1477,7 @@ export const DynamicStorefrontPage = () => {
               <span>✨ {section.data.text}</span>
               {section.data.linkText && (
                 <a
-                  href={section.data.linkUrl || '#products'}
+                  href={section.data.linkUrl || '#curations'}
                   className="font-bold underline ml-1.5 hover:opacity-80 transition"
                 >
                   {section.data.linkText} →
@@ -4601,6 +4602,7 @@ export const DynamicStorefrontPage = () => {
             key={'jxw_' + (sec.id || i)}
             className={isJulexEditMode ? 'jx-edit-wrap' : undefined}
             data-sid={sec.id}
+            id={sec.type === 'video_reels' ? 'featured' : sec.type === 'footer' ? 'footer' : undefined}
             title={isJulexEditMode ? 'Click to edit ' + (sec.name || sec.type) : undefined}
           >
             {el}
