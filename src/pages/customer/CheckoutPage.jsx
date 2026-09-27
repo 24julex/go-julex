@@ -41,7 +41,7 @@ import {
 export const CheckoutPage = () => {
   const { currentUser, isAuthenticated } = useAuth();
   const {
-    cartItems,
+    cartItems: allCartItems,
     getCartTotals,
     clearCart,
     appliedPromo,
@@ -51,6 +51,15 @@ export const CheckoutPage = () => {
     addToCart,
     showToast
   } = useCart();
+  // STRICT MULTI-TENANT CART ISOLATION: this checkout only ever sees the
+  // current store's items — no other store's products, no platform content.
+  // (Derived from the route so it applies before any other logic runs.)
+  const routeStoreSub = (window.location.pathname.match(/\/store\/([^/]+)\/checkout/) || [])[1] || '';
+  const belongsToStore = (it) => {
+    const s = String(it.storeSubdomain || it.tenantId || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/\.go\.julex\.shop$/, '').replace(/^store_/, '');
+    return !routeStoreSub || s === routeStoreSub;
+  };
+  const cartItems = allCartItems.filter(belongsToStore);
   const { createOrder } = useProducts();
   const navigate = useNavigate();
 
@@ -80,7 +89,7 @@ export const CheckoutPage = () => {
     setCouponBusy(false);
   };
 
-  const cartTotals = (typeof getCartTotals === 'function' ? getCartTotals() : {}) || {};
+  const cartTotals = (typeof getCartTotals === 'function' ? getCartTotals(cartItems) : {}) || {};
   const {
     originalSubtotal = 0,
     productSavings = 0,

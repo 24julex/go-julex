@@ -25,7 +25,7 @@ import {
 
 export const CartPage = () => {
   const {
-    cartItems,
+    cartItems: allCartItems,
     updateQuantity,
     removeFromCart,
     clearCart,
@@ -40,7 +40,15 @@ export const CartPage = () => {
   const [promoError, setPromoError] = useState('');
   const navigate = useNavigate();
   const { subdomain: routeSubdomain } = useParams();
-  const cleanSub = String(routeSubdomain || cartItems[0]?.storeSubdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+  const cleanSub = String(routeSubdomain || allCartItems[0]?.storeSubdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+  // STRICT MULTI-TENANT CART ISOLATION: on a store's own cart page only THAT
+  // store's items exist — no other store's products, no platform content.
+  const belongsToStore = (it) => {
+    const itSub = String(it.storeSubdomain || it.tenantId || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+    return !cleanSub || itSub === cleanSub;
+  };
+  const cartItems = allCartItems.filter(belongsToStore);
+
 
   // The store's PUBLISHED template owns this page too.
   const [botanTheme, setBotanTheme] = useState(null);
@@ -61,7 +69,7 @@ export const CartPage = () => {
     totalSavings,
     finalAmount,
     itemCount
-  } = getCartTotals();
+  } = getCartTotals(cartItems);
 
   const handleApplyPromo = (e) => {
     e.preventDefault();

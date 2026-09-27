@@ -212,15 +212,17 @@ export const CartProvider = ({ children }) => {
     showToast('Promo voucher removed', 'info');
   };
 
-  // Calculate cart totals
-  const getCartTotals = () => {
-    const originalSubtotal = cartItems.reduce((acc, item) => {
+  // Calculate cart totals. Accepts an optional items override so a STORE page
+  // can total only its own items — strict multi-tenant cart isolation.
+  const getCartTotals = (itemsOverride) => {
+    const totalsItems = Array.isArray(itemsOverride) ? itemsOverride : cartItems;
+    const originalSubtotal = totalsItems.reduce((acc, item) => {
       const p = Number(item.comparePriceINR || item.comparePrice || item.price || item.sellingPriceINR || 0);
       const q = Number(item.quantity) || 1;
       return acc + (p * q);
     }, 0);
 
-    const discountedSubtotal = cartItems.reduce((acc, item) => {
+    const discountedSubtotal = totalsItems.reduce((acc, item) => {
       const p = Number(item.finalPrice || item.sellingPriceINR || item.price || 0);
       const q = Number(item.quantity) || 1;
       return acc + (p * q);

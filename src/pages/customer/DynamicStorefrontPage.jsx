@@ -1086,9 +1086,9 @@ export const DynamicStorefrontPage = () => {
           // ---- 6. Craft pillars (customer promise) ----
           if (section.type === 'testimonials') {
             const pillars = [
-              { h: 'Sustainable Micro-Farms', p: 'Every stem is sourced from biodynamic growers close to our studio, guaranteeing unprecedented scent and longevity.' },
-              { h: 'Architectural Balance', p: 'We approach composition not merely as decoration, but as transient living sculpture suited for discerning interiors.' },
-              { h: 'Cold-Chain Courier', p: 'From cutting bench to doorstep in temperature-guarded transit, so every bloom arrives at its precise moment of openness.' }
+              { h: section.data.pillar1h || 'Sustainable Micro-Farms', p: section.data.pillar1p || 'Every stem is sourced from biodynamic growers close to our studio, guaranteeing unprecedented scent and longevity.' },
+              { h: section.data.pillar2h || 'Architectural Balance', p: section.data.pillar2p || 'We approach composition not merely as decoration, but as transient living sculpture suited for discerning interiors.' },
+              { h: section.data.pillar3h || 'Cold-Chain Courier', p: section.data.pillar3p || 'From cutting bench to doorstep in temperature-guarded transit, so every bloom arrives at its precise moment of openness.' }
             ];
             return (
               <section key={section.id} className="py-24 sm:py-32 px-4 sm:px-8 border-t border-b" style={{ backgroundColor: BOTAN.bgLight, borderColor: BOTAN.sand }}>
@@ -1097,8 +1097,8 @@ export const DynamicStorefrontPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-sm font-light leading-relaxed" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>
                     {pillars.map((x) => (
                       <div key={x.h} className="text-center sm:text-left">
-                        <h4 className="text-xl font-medium mb-2" style={botanSerif}>{x.h}</h4>
-                        <p>{x.p}</p>
+                        <h4 className="text-xl font-medium mb-2" style={botanSerif} data-jx-field={`pillar${pillars.indexOf(x) + 1}h`}>{x.h}</h4>
+                        <p data-jx-field={`pillar${pillars.indexOf(x) + 1}p`}>{x.p}</p>
                       </div>
                     ))}
                   </div>
@@ -1132,8 +1132,8 @@ export const DynamicStorefrontPage = () => {
                     </div>
                     <p className="text-sm font-light leading-relaxed" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>{section.data.text}</p>
                     <div className="p-6 sm:p-8 rounded-2xl border italic text-xl" style={{ backgroundColor: BOTAN.bg, borderColor: BOTAN.sand, fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>
-                      "Flowers should not be forced into symmetry. We let the curve of each petal guide the room's atmosphere."
-                      <span className="block mt-3 not-italic text-xs tracking-widest uppercase font-medium" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }}>— {matchedStore.name}, Creative Direction</span>
+                      "<span data-jx-field="quote">{section.data.quote || "Flowers should not be forced into symmetry. We let the curve of each petal guide the room's atmosphere."}</span>"
+                      <span className="block mt-3 not-italic text-xs tracking-widest uppercase font-medium" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }} data-jx-field="quoteAuthor">— {section.data.quoteAuthor || matchedStore.name + ', Creative Direction'}</span>
                     </div>
                   </div>
                 </div>
@@ -1192,8 +1192,8 @@ export const DynamicStorefrontPage = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-8">
                   <div className="pb-16 border-b flex flex-col md:flex-row md:items-center justify-between gap-8" style={{ borderColor: 'rgba(215,207,190,0.8)' }}>
                     <div>
-                      <span className="text-2xl sm:text-3xl block" style={botanSerif}>Join the Botanical Gazette</span>
-                      <p className="text-xs mt-1" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }}>Seasonal harvest alerts, care manuals, and exhibition previews.</p>
+                      <span className="text-2xl sm:text-3xl block" style={botanSerif} data-jx-field="gazetteTitle">{section.data.gazetteTitle || 'Join the Botanical Gazette'}</span>
+                      <p className="text-xs mt-1" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }} data-jx-field="gazetteSub">{section.data.gazetteSub || 'Seasonal harvest alerts, care manuals, and exhibition previews.'}</p>
                     </div>
                     {botanNewsDone ? (
                       <p className="text-xs font-medium" style={{ color: BOTAN.olive }}>Subscribed — welcome to the gazette. 🌿</p>
@@ -1206,7 +1206,7 @@ export const DynamicStorefrontPage = () => {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 text-xs" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>
                     <div>
-                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Atelier</h5>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif} data-jx-field="fcol1">{section.data.fcol1 || 'Atelier'}</h5>
                       <ul className="space-y-2.5">
                         <li><a className="hover:underline" href="#curations">Current Harvest</a></li>
                         <li><a className="hover:underline" href="#atelier">Botanical Ethics</a></li>
@@ -1215,7 +1215,7 @@ export const DynamicStorefrontPage = () => {
                       </ul>
                     </div>
                     <div>
-                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Sanctuaries</h5>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif} data-jx-field="fcol2">{section.data.fcol2 || 'Sanctuaries'}</h5>
                       <ul className="space-y-2.5">
                         <li>Paris • Rue Vivienne</li>
                         <li>Kyoto • Gion District</li>
@@ -1224,7 +1224,7 @@ export const DynamicStorefrontPage = () => {
                       </ul>
                     </div>
                     <div>
-                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Care &amp; Policy</h5>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif} data-jx-field="fcol3">{section.data.fcol3 || 'Care & Policy'}</h5>
                       <ul className="space-y-2.5">
                         <li><a className="hover:underline" href="#">Stem Hydration Guide</a></li>
                         <li><a className="hover:underline" href="#">Cold-Chain Courier</a></li>
@@ -1233,7 +1233,7 @@ export const DynamicStorefrontPage = () => {
                       </ul>
                     </div>
                     <div>
-                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Inquiries</h5>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif} data-jx-field="fcol4">{section.data.fcol4 || 'Inquiries'}</h5>
                       <p className="leading-relaxed">Press &amp; Visual Styling:<br /><span className="underline">studio@{(cleanSubdomain || 'atelier')}.go.julex.shop</span></p>
                       <p className="mt-4 leading-relaxed">Appointments:<br /><span className="underline">via the studio consult form</span></p>
                     </div>

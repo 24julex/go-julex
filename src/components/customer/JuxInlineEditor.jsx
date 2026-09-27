@@ -270,6 +270,10 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
   const resolveTextField = (el, sec) => {
     if (!sec) return null;
     const fields = TEXT_FIELDS_BY_TYPE[sec.type] || [];
+    // A per-element data-jx-field hint wins — lets a renderer expose MANY
+    // independently editable texts in one section (each maps to its own
+    // data field instead of colliding on the generic names).
+    if (el && el.dataset && el.dataset.jxField) return el.dataset.jxField;
     for (const f of fields) {
       if (sec.data && norm(sec.data[f]) === norm(el.textContent) && norm(el.textContent)) return f;
     }
