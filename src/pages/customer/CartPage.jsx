@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { formatCurrency, formatINR } from '../../utils/formatters';
 import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
@@ -108,6 +108,12 @@ export const CartPage = () => {
     rootEl.classList.add('jx-storefront');
     return () => rootEl.classList.remove('jx-storefront');
   }, [cleanSub]);
+
+  // A store visitor who lands on the PLATFORM cart route is sent straight
+  // into their store's own themed cart — no unthemed platform pages.
+  if (!routeSubdomain && cleanSub) {
+    return <Navigate to={`/store/${cleanSub}/cart`} replace />;
+  }
 
   // ============================================================
   // BOTANICAL ATELIER BAG — the store's chosen template owns
@@ -236,10 +242,10 @@ export const CartPage = () => {
               <span>← Return to Storefront & Browse Products</span>
             </button>
             <Link
-              to="/catalog"
+              to={cleanSub ? `/store/${cleanSub}/catalog` : '/catalog'}
               className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-6 rounded-2xl bg-white border border-[var(--border,#E7D9B5)] hover:bg-[var(--bg-page,#FFFDF5)] text-[color:var(--heading,#6B4D00)] font-semibold text-xs transition"
             >
-              <span>Explore All Stores Catalog</span>
+              <span>{cleanSub ? "Browse This Store's Curations" : 'Explore All Stores Catalog'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -257,7 +263,7 @@ export const CartPage = () => {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-[color:var(--accent,#8A6200)]">
               <span className="px-2.5 py-0.5 rounded-full bg-[var(--bg-page,#FFFDF5)] border border-[var(--border,#DCC78B)]">
-                0% PLATFORM FEE COMMERCE
+                0% COMMISSION · DIRECT FROM THE MAKER
               </span>
             </div>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[color:var(--heading,#0F172A)] mt-1.5 tracking-tight">
@@ -385,7 +391,7 @@ export const CartPage = () => {
             <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-200 space-y-2 text-emerald-950 shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>Go Julex 0% Platform Fee Model</span>
+                <span>0% Commission Guarantee</span>
               </div>
               <p className="text-[11px] text-emerald-900 leading-relaxed">
                 Your entire payment goes 100% directly to the artisan merchant studio without third-party marketplace commissions.

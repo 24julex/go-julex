@@ -4789,7 +4789,7 @@ export const DynamicStorefrontPage = () => {
 
                   <div className="space-y-2 pt-1">
                     <Link
-                      to="/checkout"
+                      to={`/store/${cleanSubdomain}/checkout`}
                       onClick={() => setIsBagDrawerOpen(false)}
                       className="w-full py-3 rounded-2xl text-white text-xs font-bold text-center block shadow-md transition transform active:scale-98 cursor-pointer hover:opacity-90"
                       style={{ backgroundColor: tAccent }}
@@ -4799,7 +4799,7 @@ export const DynamicStorefrontPage = () => {
 
                     <div className="flex items-center justify-between gap-2">
                       <Link
-                        to="/cart"
+                        to={`/store/${cleanSubdomain}/cart`}
                         onClick={() => setIsBagDrawerOpen(false)}
                         className="flex-1 py-2 text-center rounded-xl bg-white border border-[#FBCBCB] hover:bg-[#fedddd] text-[#881337] text-[11px] font-semibold transition"
                       >

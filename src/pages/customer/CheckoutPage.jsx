@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link, useParams } from 'react-router-dom';
+import { useNavigate, Link, useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useProducts } from '../../context/ProductContext';
@@ -396,6 +396,13 @@ export const CheckoutPage = () => {
     if (s.bodyFont) vars.fontFamily = `'${s.bodyFont}', sans-serif`;
     return vars;
   })();
+
+  // A store visitor who lands on the PLATFORM checkout route goes to their
+  // store's own themed checkout (only while a cart is pending — confirmed
+  // orders render their receipt here regardless of route).
+  if (!subdomain && !confirmedOrder && resolvedSubdomain && cartItems.length > 0) {
+    return <Navigate to={`/store/${resolvedSubdomain}/checkout`} replace />;
+  }
 
   // ============================================================
   // BOTANICAL ATELIER CHECKOUT — the store's chosen template
@@ -1047,7 +1054,7 @@ export const CheckoutPage = () => {
             <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-200 space-y-1.5 text-emerald-950 shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>Go Julex 0% Platform Commission</span>
+                <span>0% Commission Applied</span>
               </div>
               <p className="text-[11px] text-emerald-900 leading-relaxed">
                 You are purchasing direct from the maker. No intermediary cuts applied.
