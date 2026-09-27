@@ -445,6 +445,14 @@ export const DynamicStorefrontPage = () => {
   // Quick View gallery — index of the product image currently shown
   const [quickViewImage, setQuickViewImage] = useState(0);
 
+  // Escape key closes the Quick View — nobody gets trapped in the modal.
+  useEffect(() => {
+    if (!selectedProductForVariant) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setSelectedProductForVariant(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedProductForVariant]);
+
   // Helper to extract exact option sets for a product
   const getProductOptionSets = (prod) => {
     if (!prod) return [];
@@ -693,13 +701,18 @@ export const DynamicStorefrontPage = () => {
       )}
 
       {/* Product Quick View — full gallery, description, specs & options.
-          EVERY accent follows the ACTIVE theme (no hardcoded pink). */}
+          EVERY accent follows the ACTIVE theme (no hardcoded pink).
+          Escape key, backdrop click, and the close button all dismiss it. */}
       {selectedProductForVariant && (() => {
         const qvAccent = (styles?.accentColor || '#9F1239').trim();
         const qvBorderHex = (String(styles?.cardBorder || '').match(/#([0-9a-f]{3,8})/i)?.[0]) || '#FBCBCB';
         const qvBorder = { borderColor: qvBorderHex };
+        const closeQuickView = () => setSelectedProductForVariant(null);
         return (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) closeQuickView(); }}
+        >
           <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border text-[#0F172A] space-y-5 p-6 sm:p-8" style={{ ...qvBorder, fontFamily: styles?.bodyFont || undefined }}>
             {/* Header */}
             <div className="flex items-start justify-between gap-4 pb-3 border-b border-black/5">
@@ -962,20 +975,23 @@ export const DynamicStorefrontPage = () => {
             // 8 letters → still grand, never cramped).
             const letterSize = `min(${Math.min(26, Math.floor(150 / letters.length))}vw, 420px)`;
             const mp = activeThemeMeta?.products || [];
+            // Each float is REPLACABLE from section data (float1..float4);
+            // theme photography is only the default.
             const floats = [
-              { cls: 'left-[1%] sm:left-[3%] md:left-[5%] top-[35%] sm:top-[30%] -translate-y-1/2 w-24 sm:w-36 md:w-44 lg:w-52', img: mp[0]?.image || section.data.imageUrl },
-              { cls: 'left-[44%] sm:left-[47%] md:left-[51%] top-[-6%] sm:top-[-8%] md:top-[-10%] w-24 sm:w-36 md:w-44 lg:w-52', img: mp[1]?.image || section.data.imageUrl },
-              { cls: 'left-[30%] sm:left-[35%] md:left-[36%] bottom-[-8%] sm:bottom-[-6%] md:bottom-[-5%] w-20 sm:w-32 md:w-40 lg:w-44', img: mp[2]?.image || section.data.imageUrl },
-              { cls: 'right-[0%] sm:right-[2%] md:right-[3%] top-[32%] -translate-y-1/2 w-20 sm:w-32 md:w-40 lg:w-44 opacity-90 sm:opacity-100', img: mp[3]?.image || mp[0]?.image || section.data.imageUrl }
+              { field: 'float1', cls: 'left-[1%] sm:left-[3%] md:left-[5%] top-[35%] sm:top-[30%] -translate-y-1/2 w-24 sm:w-36 md:w-44 lg:w-52', img: section.data.float1 || mp[0]?.image || section.data.imageUrl },
+              { field: 'float2', cls: 'left-[44%] sm:left-[47%] md:left-[51%] top-[-6%] sm:top-[-8%] md:top-[-10%] w-24 sm:w-36 md:w-44 lg:w-52', img: section.data.float2 || mp[1]?.image || section.data.imageUrl },
+              { field: 'float3', cls: 'left-[30%] sm:left-[35%] md:left-[36%] bottom-[-8%] sm:bottom-[-6%] md:bottom-[-5%] w-20 sm:w-32 md:w-40 lg:w-44', img: section.data.float3 || mp[2]?.image || section.data.imageUrl },
+              { field: 'float4', cls: 'right-[0%] sm:right-[2%] md:right-[3%] top-[32%] -translate-y-1/2 w-20 sm:w-32 md:w-40 lg:w-44 opacity-90 sm:opacity-100', img: section.data.float4 || mp[3]?.image || mp[0]?.image || section.data.imageUrl }
             ].filter(f => f.img);
             const tagText = String(section.data.badgeText || 'our fresh spring growing').toUpperCase();
             return (
               <main key={section.id} id="top" className="relative pt-10 sm:pt-14 min-h-[88vh] flex flex-col justify-between overflow-hidden">
                 <div className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-10 lg:py-16 flex-grow flex items-center justify-center">
                   <div className="relative w-full select-none">
+                    {/* Floating botanical cards — BEHIND the monumental letters */}
                     {floats.map((f, i) => (
-                      <div key={i} className={`absolute z-20 aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-4 transition duration-700 hover:-translate-y-1.5 hover:scale-[1.02] ${f.cls}`} style={{ borderColor: BOTAN.bg }}>
-                        <img src={f.img} alt={`${matchedStore.name} botanical study ${i + 1}`} className="w-full h-full object-cover" loading="eager" />
+                      <div key={i} className={`absolute z-10 aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-4 transition duration-700 hover:-translate-y-1.5 hover:scale-[1.02] ${f.cls}`} style={{ borderColor: BOTAN.bg }}>
+                        <img src={f.img} alt={`${matchedStore.name} botanical study ${i + 1}`} className="w-full h-full object-cover" loading="eager" data-jx-field={f.field} />
                       </div>
                     ))}
                     {/* Editorial kicker — ABOVE the letters, left-aligned,
@@ -984,7 +1000,8 @@ export const DynamicStorefrontPage = () => {
                       <p className="italic text-xs sm:text-base md:text-lg leading-tight tracking-wider" style={botanSerif}>Explore</p>
                       <p className="font-medium text-[9px] sm:text-xs md:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }} dangerouslySetInnerHTML={{ __html: tagText.replace(/ /g, '&nbsp;').replace(/(.{0,18})(?=$)/, '$1<br/>') }} />
                     </div>
-                    <div className="relative z-10 flex justify-between items-baseline select-none pointer-events-none w-full leading-none" style={{ color: BOTAN.olive, fontFamily: BOTAN_SERIF }}>
+                    {/* Monumental letters — IN FRONT of the imagery */}
+                    <div className="relative z-20 flex justify-between items-baseline select-none w-full leading-none" style={{ color: BOTAN.olive, fontFamily: BOTAN_SERIF }}>
                       {letters.map((ch, i) => (
                         <span key={i} style={{ fontSize: letterSize, lineHeight: 0.82, letterSpacing: i === 0 ? '-0.04em' : '-0.02em' }}>{ch}</span>
                       ))}

@@ -369,7 +369,9 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
   };
 
   const selectImage = (img, sec, sid) => {
-    const field = resolveImageField(sec);
+    // A per-image data-jx-field wins (e.g. hero float1..float4) so EACH image
+    // in a section is individually replaceable; else the section's image field.
+    const field = (img && img.dataset && img.dataset.jxField) || resolveImageField(sec);
     const cfg = readCfg(keys) || ensureCfg();
     const st = ((cfg.imgStyles || []).find((x) => x.sid === sid && x.field === field)) || {};
     finishTextEdit(false);
