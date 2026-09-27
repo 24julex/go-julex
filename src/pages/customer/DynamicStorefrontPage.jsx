@@ -679,35 +679,40 @@ export const DynamicStorefrontPage = () => {
     >
       {/* Visitor light/dark preference — themed to this store's accent */}
       <StorefrontModeToggle accent={styles?.accentColor || '#D4A017'} />
-      {/* Toast Notification */}
+      {/* Toast Notification — themed to this store's accent */}
       {addedItemNotice && (
         <div className="fixed bottom-6 right-6 z-50 animate-bounce-short">
-          <div className="px-5 py-3 rounded-2xl bg-[#9F1239] text-white shadow-2xl flex items-center gap-3 text-xs font-bold">
+          <div className="px-5 py-3 rounded-2xl text-white shadow-2xl flex items-center gap-3 text-xs font-bold" style={{ backgroundColor: styles?.accentColor || '#9F1239' }}>
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>Added "{addedItemNotice}" to your bag!</span>
-            <Link to="/cart" className="underline font-black ml-2 text-white">
+            <Link to={cleanSubdomain ? `/store/${cleanSubdomain}/cart` : '/cart'} className="underline font-black ml-2 text-white">
               View Bag →
             </Link>
           </div>
         </div>
       )}
 
-      {/* Product Quick View — full gallery, description, specs & options */}
-      {selectedProductForVariant && (
+      {/* Product Quick View — full gallery, description, specs & options.
+          EVERY accent follows the ACTIVE theme (no hardcoded pink). */}
+      {selectedProductForVariant && (() => {
+        const qvAccent = (styles?.accentColor || '#9F1239').trim();
+        const qvBorderHex = (String(styles?.cardBorder || '').match(/#([0-9a-f]{3,8})/i)?.[0]) || '#FBCBCB';
+        const qvBorder = { borderColor: qvBorderHex };
+        return (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#FBCBCB] text-[#0F172A] space-y-5 p-6 sm:p-8">
+          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border text-[#0F172A] space-y-5 p-6 sm:p-8" style={{ ...qvBorder, fontFamily: styles?.bodyFont || undefined }}>
             {/* Header */}
             <div className="flex items-start justify-between gap-4 pb-3 border-b border-black/5">
               <div className="flex items-center gap-3">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border" style={{ color: qvAccent, backgroundColor: `${qvAccent}14`, borderColor: `${qvAccent}55` }}>
                     {selectedProductForVariant.category || matchedStore.categoryLabel}
                   </span>
-                  <h3 className="font-bold text-base sm:text-lg text-[#0F172A] leading-snug line-clamp-1 mt-1">
+                  <h3 className="font-bold text-base sm:text-lg text-[#0F172A] leading-snug line-clamp-1 mt-1" style={{ fontFamily: styles?.headingFont || undefined }}>
                     {selectedProductForVariant.name}
                   </h3>
                   <div className="flex items-baseline gap-2 mt-0.5">
-                    <span className="font-mono font-bold text-base text-[#9F1239]">
+                    <span className="font-mono font-bold text-base" style={{ color: qvAccent }}>
                       ₹{(() => {
                         const v = findVariantFor(selectedProductForVariant, selectedOptionValues);
                         return Number(v ? v.price : (selectedProductForVariant.sellingPriceINR || selectedProductForVariant.price || 0)).toLocaleString('en-IN');
@@ -739,7 +744,7 @@ export const DynamicStorefrontPage = () => {
               const activeIdx = Math.min(quickViewImage, safeGallery.length - 1);
               return (
                 <div className="space-y-2.5">
-                  <div className="relative aspect-square rounded-2xl overflow-hidden border border-[#FBCBCB] bg-stone-50 w-[85%] mx-auto">
+                  <div className="relative aspect-square rounded-2xl overflow-hidden border bg-stone-50 w-[85%] mx-auto" style={qvBorder}>
                     <img src={safeGallery[activeIdx]} alt={selectedProductForVariant.name} className="w-full h-full object-cover" style={{ filter: 'brightness(1.1) saturate(1.04)' }} />
                     {safeGallery.length > 1 && (
                       <>
@@ -772,7 +777,8 @@ export const DynamicStorefrontPage = () => {
                           key={i}
                           type="button"
                           onClick={() => setQuickViewImage(i)}
-                          className={`w-14 h-14 rounded-xl overflow-hidden border-2 shrink-0 transition cursor-pointer ${i === activeIdx ? 'border-[#9F1239] scale-105 shadow' : 'border-stone-200 opacity-70 hover:opacity-100'}`}
+                          className={`w-14 h-14 rounded-xl overflow-hidden border-2 shrink-0 transition cursor-pointer ${i === activeIdx ? 'scale-105 shadow' : 'border-stone-200 opacity-70 hover:opacity-100'}`}
+                          style={i === activeIdx ? { borderColor: qvAccent } : undefined}
                         >
                           <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
                         </button>
@@ -803,9 +809,9 @@ export const DynamicStorefrontPage = () => {
                   <div key={optionSet.id || optionSet.name} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
-                        <SlidersHorizontal className="w-3.5 h-3.5 text-[#9F1239]" /> Select {optionSet.name}
+                        <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: qvAccent }} /> Select {optionSet.name}
                       </label>
-                      <span className="text-[11px] text-[#9F1239] font-bold">Selected: {currentVal}</span>
+                      <span className="text-[11px] font-bold" style={{ color: qvAccent }}>Selected: {currentVal}</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {optionSet.values.map((val) => (
@@ -815,9 +821,10 @@ export const DynamicStorefrontPage = () => {
                           onClick={() => setSelectedOptionValues(prev => ({ ...prev, [optionSet.name]: val }))}
                           className={`px-4 py-2 rounded-2xl text-xs font-bold transition border cursor-pointer ${
                             currentVal === val
-                              ? 'bg-[#9F1239] text-white border-[#9F1239] shadow-sm transform scale-105'
-                              : 'bg-white text-stone-800 border-stone-200 hover:border-[#9F1239] hover:bg-rose-50/50'
+                              ? 'text-white shadow-sm transform scale-105'
+                              : 'bg-white text-stone-800 border-stone-200 hover:bg-stone-50'
                           }`}
+                          style={currentVal === val ? { backgroundColor: qvAccent, borderColor: qvAccent } : undefined}
                         >
                           {val}
                         </button>
@@ -866,7 +873,7 @@ export const DynamicStorefrontPage = () => {
 
               <button
                 onClick={handleConfirmAddToCart}
-                className="flex-1 py-3.5 px-6 rounded-2xl bg-[#9F1239] hover:bg-[#881337] text-white font-bold text-xs shadow-md transition transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-3.5 px-6 rounded-2xl text-white font-bold text-xs shadow-md transition transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer" style={{ backgroundColor: qvAccent }}
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>
@@ -879,7 +886,8 @@ export const DynamicStorefrontPage = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Dynamic Sections Loop with Template-Specific Layout Architectures */}
       {(() => {
@@ -970,7 +978,9 @@ export const DynamicStorefrontPage = () => {
                         <img src={f.img} alt={`${matchedStore.name} botanical study ${i + 1}`} className="w-full h-full object-cover" loading="eager" />
                       </div>
                     ))}
-                    <div className="absolute left-[20%] sm:left-[23%] md:left-[25%] top-[42%] sm:top-[44%] z-30 pointer-events-none text-right">
+                    {/* Editorial kicker — ABOVE the letters, left-aligned,
+                        clear of the floating cards and lettering. */}
+                    <div className="absolute left-0 sm:left-[2%] -top-6 sm:-top-8 z-30 pointer-events-none text-left">
                       <p className="italic text-xs sm:text-base md:text-lg leading-tight tracking-wider" style={botanSerif}>Explore</p>
                       <p className="font-medium text-[9px] sm:text-xs md:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }} dangerouslySetInnerHTML={{ __html: tagText.replace(/ /g, '&nbsp;').replace(/(.{0,18})(?=$)/, '$1<br/>') }} />
                     </div>

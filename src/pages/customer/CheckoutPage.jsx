@@ -356,6 +356,16 @@ export const CheckoutPage = () => {
 
   const currentSubdomain = resolvedSubdomain || matchedStore.subdomain?.replace(/\.gojulex\.com$/, '').replace(/^store_/, '') || 'ramstshirt';
 
+  // Mark <html> as a merchant storefront while mounted: the global light/dark
+  // overrides are scoped away from .jx-storefront so the published theme's
+  // colors render exactly as designed (same as every other store page).
+  useEffect(() => {
+    if (!currentSubdomain) return undefined;
+    const rootEl = document.documentElement;
+    rootEl.classList.add('jx-storefront');
+    return () => rootEl.classList.remove('jx-storefront');
+  }, [currentSubdomain]);
+
   // The store's PUBLISHED template owns this page too.
   const [botanTheme, setBotanTheme] = useState(null);
   useEffect(() => {
@@ -366,6 +376,26 @@ export const CheckoutPage = () => {
       .catch(() => {});
     return () => { cancelled = true; };
   }, [currentSubdomain]);
+
+
+  // Theme tokens from the store's PUBLISHED template — the selected theme
+  // drives every page's colors/typography (single source of truth).
+  const themeVars = (() => {
+    const s = botanTheme;
+    if (!s) return {};
+    const borderHex = String(s.cardBorder || '').match(/#([0-9a-f]{3,8})/i)?.[0];
+    const vars = {
+      '--bg-page': s.backgroundColor,
+      '--bg-soft': s.surfaceColor || s.backgroundColor,
+      '--accent': s.accentColor,
+      '--accent-dark': s.accentColor,
+      '--heading': s.headingColor,
+      '--text': s.textColor
+    };
+    if (borderHex) vars['--border'] = borderHex;
+    if (s.bodyFont) vars.fontFamily = `'${s.bodyFont}', sans-serif`;
+    return vars;
+  })();
 
   // ============================================================
   // BOTANICAL ATELIER CHECKOUT — the store's chosen template
@@ -512,12 +542,12 @@ export const CheckoutPage = () => {
   if (confirmedOrder) {
     const shipping = confirmedOrder.shippingAddress || {};
     return (
-      <div className="min-h-screen bg-[#FFFDF5] py-10 px-4 text-[#0F172A] animate-fade-in">
+      <div className="min-h-screen bg-[var(--bg-page,#FFFDF5)] py-10 px-4 text-[color:var(--heading,#0F172A)] animate-fade-in" style={themeVars}>
       <StorefrontModeToggle accent="#D4A017" />
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Top Brand Header */}
           <div className="flex items-center justify-between px-2">
-            <Link to={currentSubdomain ? `/store/${currentSubdomain}` : '/'} className="flex items-center gap-2 text-xs font-bold text-[#6B4D00] hover:underline">
+            <Link to={currentSubdomain ? `/store/${currentSubdomain}` : '/'} className="flex items-center gap-2 text-xs font-bold text-[color:var(--heading,#6B4D00)] hover:underline">
               ← Return to {matchedStore.name}
             </Link>
             <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1.5">
@@ -525,7 +555,7 @@ export const CheckoutPage = () => {
             </span>
           </div>
 
-          <div className="bg-white rounded-3xl border border-[#E7D9B5] p-6 sm:p-10 text-center space-y-6 shadow-sm relative overflow-hidden">
+          <div className="bg-white rounded-3xl border border-[var(--border,#E7D9B5)] p-6 sm:p-10 text-center space-y-6 shadow-sm relative overflow-hidden">
             {/* Top Success Badge */}
             <div className="w-20 h-20 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto flex items-center justify-center shadow-xs">
               <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
@@ -535,54 +565,54 @@ export const CheckoutPage = () => {
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Order confirmed · pay on delivery
               </span>
-              <h1 className="font-serif text-2xl sm:text-4xl font-bold text-[#0F172A]">
+              <h1 className="font-serif text-2xl sm:text-4xl font-bold text-[color:var(--heading,#0F172A)]">
                 Thank You for Your Order!
               </h1>
-              <p className="text-xs sm:text-sm text-[#475569] max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-[color:var(--text,#475569)] max-w-md mx-auto">
                 Your order has been received. Payment is due when your order arrives.
               </p>
             </div>
 
             {/* Quick Summary Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#FFFDF5] border border-[#E7D9B5] text-left text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[var(--bg-page,#FFFDF5)] border border-[var(--border,#E7D9B5)] text-left text-xs">
               <div>
-                <span className="text-[10px] text-[#475569] font-bold block uppercase">Order ID</span>
-                <span className="font-mono font-bold text-[#8A6200] mt-0.5 block">{confirmedOrder.id}</span>
+                <span className="text-[10px] text-[color:var(--text,#475569)] font-bold block uppercase">Order ID</span>
+                <span className="font-mono font-bold text-[color:var(--accent,#8A6200)] mt-0.5 block">{confirmedOrder.id}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#475569] font-bold block uppercase">Status</span>
+                <span className="text-[10px] text-[color:var(--text,#475569)] font-bold block uppercase">Status</span>
                 <span className="text-emerald-700 font-bold mt-0.5 block">Processing · payment pending</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#475569] font-bold block uppercase">Due on delivery</span>
-                <span className="font-mono font-bold text-[#0F172A] mt-0.5 block">₹{Number(confirmedOrder.totalAmount || 0).toLocaleString('en-IN')}</span>
+                <span className="text-[10px] text-[color:var(--text,#475569)] font-bold block uppercase">Due on delivery</span>
+                <span className="font-mono font-bold text-[color:var(--heading,#0F172A)] mt-0.5 block">₹{Number(confirmedOrder.totalAmount || 0).toLocaleString('en-IN')}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#475569] font-bold block uppercase">Tracking No.</span>
-                <span className="font-mono text-[#0F172A] text-[11px] font-bold mt-0.5 block">{confirmedOrder.trackingNumber || 'Provided when shipped'}</span>
+                <span className="text-[10px] text-[color:var(--text,#475569)] font-bold block uppercase">Tracking No.</span>
+                <span className="font-mono text-[color:var(--heading,#0F172A)] text-[11px] font-bold mt-0.5 block">{confirmedOrder.trackingNumber || 'Provided when shipped'}</span>
               </div>
             </div>
 
             {/* Items List */}
             <div className="space-y-3 text-left">
-              <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-[#8A6200]" /> Purchased Items ({confirmedOrder.items?.length || 0})
+              <h4 className="text-xs font-bold text-[color:var(--heading,#0F172A)] uppercase tracking-wider flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-[color:var(--accent,#8A6200)]" /> Purchased Items ({confirmedOrder.items?.length || 0})
               </h4>
-              <div className="divide-y divide-[#E7D9B5] border border-[#E7D9B5] rounded-2xl bg-white overflow-hidden">
+              <div className="divide-y divide-[#E7D9B5] border border-[var(--border,#E7D9B5)] rounded-2xl bg-white overflow-hidden">
                 {confirmedOrder.items?.map((item, idx) => (
                   <div key={item.id || idx} className="p-3.5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <img
                         src={item.image || item.productImage || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=150&q=80'}
                         alt={item.name}
-                        className="w-12 h-12 rounded-xl object-cover border border-[#E7D9B5] bg-stone-50 shrink-0"
+                        className="w-12 h-12 rounded-xl object-cover border border-[var(--border,#E7D9B5)] bg-stone-50 shrink-0"
                       />
                       <div>
-                        <p className="font-bold text-xs text-[#0F172A] line-clamp-1">{item.name}</p>
-                        <p className="text-[10px] text-[#475569] font-mono">Qty: {item.quantity || 1} • {item.brand || matchedStore.name}</p>
+                        <p className="font-bold text-xs text-[color:var(--heading,#0F172A)] line-clamp-1">{item.name}</p>
+                        <p className="text-[10px] text-[color:var(--text,#475569)] font-mono">Qty: {item.quantity || 1} • {item.brand || matchedStore.name}</p>
                       </div>
                     </div>
-                    <span className="font-mono font-bold text-xs text-[#8A6200] shrink-0">
+                    <span className="font-mono font-bold text-xs text-[color:var(--accent,#8A6200)] shrink-0">
                       ₹{((item.finalPrice || item.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
                     </span>
                   </div>
@@ -591,33 +621,33 @@ export const CheckoutPage = () => {
             </div>
 
             {/* Shipping & Payment Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-xs p-4 rounded-2xl border border-[#E7D9B5] bg-[#FFFDF5]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-xs p-4 rounded-2xl border border-[var(--border,#E7D9B5)] bg-[var(--bg-page,#FFFDF5)]">
               <div>
-                <span className="text-[10px] font-bold text-[#475569] uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#8A6200]" /> Delivery Destination
+                <span className="text-[10px] font-bold text-[color:var(--text,#475569)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                  <MapPin className="w-3.5 h-3.5 text-[color:var(--accent,#8A6200)]" /> Delivery Destination
                 </span>
-                <p className="font-bold text-[#0F172A]">{shipping.fullName || confirmedOrder.customerName}</p>
-                <p className="text-[#475569] mt-0.5">{shipping.street}, {shipping.city}, {shipping.state} - {shipping.zipCode}</p>
-                <p className="text-[#475569]">Phone: {confirmedOrder.customerPhone}</p>
+                <p className="font-bold text-[color:var(--heading,#0F172A)]">{shipping.fullName || confirmedOrder.customerName}</p>
+                <p className="text-[color:var(--text,#475569)] mt-0.5">{shipping.street}, {shipping.city}, {shipping.state} - {shipping.zipCode}</p>
+                <p className="text-[color:var(--text,#475569)]">Phone: {confirmedOrder.customerPhone}</p>
               </div>
 
               <div>
-                <span className="text-[10px] font-bold text-[#475569] uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                <span className="text-[10px] font-bold text-[color:var(--text,#475569)] uppercase tracking-wider flex items-center gap-1.5 mb-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Payment & Commission
                 </span>
-                <p className="font-bold text-[#0F172A]">{confirmedOrder.paymentMethod}</p>
+                <p className="font-bold text-[color:var(--heading,#0F172A)]">{confirmedOrder.paymentMethod}</p>
                 <p className="text-emerald-700 font-medium mt-0.5">0% Platform Fee Applied (₹0 fee)</p>
-                <p className="text-[#475569]">Contact email: {confirmedOrder.customerEmail}</p>
+                <p className="text-[color:var(--text,#475569)]">Contact email: {confirmedOrder.customerEmail}</p>
               </div>
             </div>
 
             {/* 3. Live Order Transit Timeline Tracker */}
-            <div className="p-5 rounded-2xl border border-[#E7D9B5] bg-white text-left space-y-3 shadow-2xs">
+            <div className="p-5 rounded-2xl border border-[var(--border,#E7D9B5)] bg-white text-left space-y-3 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-[#8A6200]" /> Live Shipment Tracker
+                <span className="text-xs font-bold text-[color:var(--heading,#0F172A)] uppercase tracking-wider flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-[color:var(--accent,#8A6200)]" /> Live Shipment Tracker
                 </span>
-                <span className="text-[11px] font-mono font-bold text-[#8A6200]">
+                <span className="text-[11px] font-mono font-bold text-[color:var(--accent,#8A6200)]">
                   {confirmedOrder.trackingNumber || 'Pending dispatch'}
                 </span>
               </div>
@@ -628,21 +658,21 @@ export const CheckoutPage = () => {
                     ✓
                   </div>
                   <span className="text-[10px] font-bold text-emerald-800 block leading-tight">Order Placed</span>
-                  <span className="text-[9px] text-[#475569]">Just now</span>
+                  <span className="text-[9px] text-[color:var(--text,#475569)]">Just now</span>
                 </div>
                 <div className="text-center space-y-1">
                   <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto text-xs font-bold shadow-xs">
                     ✓
                   </div>
                   <span className="text-[10px] font-bold text-emerald-800 block leading-tight">Payment due</span>
-                  <span className="text-[9px] text-[#475569]">On delivery</span>
+                  <span className="text-[9px] text-[color:var(--text,#475569)]">On delivery</span>
                 </div>
                 <div className="text-center space-y-1">
-                  <div className="w-7 h-7 rounded-full bg-[#8A6200] text-white flex items-center justify-center mx-auto text-xs font-bold shadow-xs animate-pulse">
+                  <div className="w-7 h-7 rounded-full bg-[var(--accent,#8A6200)] text-white flex items-center justify-center mx-auto text-xs font-bold shadow-xs animate-pulse">
                     3
                   </div>
-                  <span className="text-[10px] font-bold text-[#8A6200] block leading-tight">Packing & Transit</span>
-                  <span className="text-[9px] text-[#475569]">In Progress</span>
+                  <span className="text-[10px] font-bold text-[color:var(--accent,#8A6200)] block leading-tight">Packing & Transit</span>
+                  <span className="text-[9px] text-[color:var(--text,#475569)]">In Progress</span>
                 </div>
                 <div className="text-center space-y-1 opacity-50">
                   <div className="w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center mx-auto text-xs font-bold">
@@ -658,7 +688,7 @@ export const CheckoutPage = () => {
             <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to={currentSubdomain ? `/store/${currentSubdomain}` : '/'}
-                className="px-6 py-3.5 rounded-2xl bg-white hover:bg-[#FFFDF5] border border-[#E7D9B5] text-[#6B4D00] text-xs font-bold transition shadow-xs flex items-center gap-2"
+                className="px-6 py-3.5 rounded-2xl bg-white hover:bg-[var(--bg-page,#FFFDF5)] border border-[var(--border,#E7D9B5)] text-[color:var(--heading,#6B4D00)] text-xs font-bold transition shadow-xs flex items-center gap-2"
               >
                 <span>← Continue Shopping at {matchedStore.name}</span>
               </Link>
@@ -674,14 +704,14 @@ export const CheckoutPage = () => {
   // ----------------------------------------------------
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-[80vh] bg-[#FFFDF5] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-[#E7D9B5] p-8 text-center space-y-6 shadow-sm">
-          <div className="w-20 h-20 rounded-3xl bg-[#FFFDF5] text-[#8A6200] mx-auto flex items-center justify-center border border-[#DCC78B]">
+      <div className="min-h-[80vh] bg-[var(--bg-page,#FFFDF5)] flex items-center justify-center p-4" style={themeVars}>
+        <div className="max-w-md w-full bg-white rounded-3xl border border-[var(--border,#E7D9B5)] p-8 text-center space-y-6 shadow-sm">
+          <div className="w-20 h-20 rounded-3xl bg-[var(--bg-page,#FFFDF5)] text-[color:var(--accent,#8A6200)] mx-auto flex items-center justify-center border border-[var(--border,#DCC78B)]">
             <ShoppingBag className="w-10 h-10 stroke-[2]" />
           </div>
           <div className="space-y-2">
-            <h2 className="font-serif text-2xl font-bold text-[#0F172A]">Your Shopping Bag is Empty</h2>
-            <p className="text-xs text-[#475569] max-w-sm mx-auto leading-relaxed">
+            <h2 className="font-serif text-2xl font-bold text-[color:var(--heading,#0F172A)]">Your Shopping Bag is Empty</h2>
+            <p className="text-xs text-[color:var(--text,#475569)] max-w-sm mx-auto leading-relaxed">
               Add a piece from the store to proceed, or click below to immediately test the complete 1-click checkout experience.
             </p>
           </div>
@@ -701,13 +731,13 @@ export const CheckoutPage = () => {
                 });
                 showToast('Sample piece loaded! Ready for checkout testing 🚀', 'success');
               }}
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-xs shadow-md shadow-rose-900/20 transition transform active:scale-98 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-2xl bg-[var(--accent,#8A6200)] hover:bg-[var(--accent-dark,#6B4D00)] text-white font-bold text-xs shadow-md shadow-rose-900/20 transition transform active:scale-98 cursor-pointer"
             >
               <span>⚡ Load Sample Product (₹1,499) & Test Checkout</span>
             </button>
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-6 rounded-2xl bg-white border border-[#E7D9B5] hover:bg-[#FFFDF5] text-[#6B4D00] font-semibold text-xs transition cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-6 rounded-2xl bg-white border border-[var(--border,#E7D9B5)] hover:bg-[var(--bg-page,#FFFDF5)] text-[color:var(--heading,#6B4D00)] font-semibold text-xs transition cursor-pointer"
             >
               <span>← Return to Storefront</span>
             </button>
@@ -721,23 +751,23 @@ export const CheckoutPage = () => {
   // CHECKOUT FORM VIEW
   // ----------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#FFFDF5] text-[#0F172A] py-6 sm:py-10">
+    <div className="min-h-screen bg-[var(--bg-page,#FFFDF5)] text-[color:var(--heading,#0F172A)] py-6 sm:py-10" style={themeVars}>
       <StorefrontModeToggle accent="#D4A017" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Top Minimalist Brand Header */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#E7D9B5]">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--border,#E7D9B5)]">
           <Link
             to={currentSubdomain ? `/store/${currentSubdomain}` : '/'}
             className="flex items-center gap-2.5 group"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#8A6200] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-[var(--accent,#8A6200)] text-white flex items-center justify-center font-bold text-sm shadow-xs">
               {matchedStore.name?.charAt(0) || 'S'}
             </div>
             <div>
-              <span className="font-bold text-sm text-[#0F172A] group-hover:text-[#8A6200] transition">
+              <span className="font-bold text-sm text-[color:var(--heading,#0F172A)] group-hover:text-[color:var(--accent,#8A6200)] transition">
                 {matchedStore.name}
               </span>
-              <span className="text-[10px] text-[#6B4D00] block">← Return to Store</span>
+              <span className="text-[10px] text-[color:var(--heading,#6B4D00)] block">← Return to Store</span>
             </div>
           </Link>
 
@@ -748,17 +778,17 @@ export const CheckoutPage = () => {
         </div>
 
         {/* Top Header */}
-        <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] flex items-center justify-between shadow-xs">
+        <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] flex items-center justify-between shadow-xs">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#8A6200]">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#FFFDF5] border border-[#DCC78B]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[color:var(--accent,#8A6200)]">
+              <span className="px-2.5 py-0.5 rounded-full bg-[var(--bg-page,#FFFDF5)] border border-[var(--border,#DCC78B)]">
                 STORE CHECKOUT
               </span>
             </div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A] mt-1 tracking-tight">
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[color:var(--heading,#0F172A)] mt-1 tracking-tight">
               Finalize Your Order
             </h1>
-            <p className="text-xs text-[#475569] mt-0.5">
+            <p className="text-xs text-[color:var(--text,#475569)] mt-0.5">
               Review your order and delivery details before placing it.
             </p>
           </div>
@@ -772,14 +802,14 @@ export const CheckoutPage = () => {
           {/* Left Column: Contact, Shipping & Payment */}
           <div className="lg:col-span-8 space-y-6">
             {/* 1. Customer Details */}
-            <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
-              <h2 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
-                <User className="w-4 h-4 text-[#8A6200]" /> 1. Customer Information
+            <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-4 shadow-xs">
+              <h2 className="text-sm font-bold text-[color:var(--heading,#0F172A)] uppercase tracking-wider flex items-center gap-2">
+                <User className="w-4 h-4 text-[color:var(--accent,#8A6200)]" /> 1. Customer Information
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">Full Name *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">Full Name *</label>
                   <input
                     type="text"
                     required
@@ -787,12 +817,12 @@ export const CheckoutPage = () => {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">Phone Number (For Delivery Contact) *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">Phone Number (For Delivery Contact) *</label>
                   <input
                     type="text"
                     required
@@ -800,12 +830,12 @@ export const CheckoutPage = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>
 
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">Email Address *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">Email Address *</label>
                   <input
                     type="email"
                     required
@@ -813,21 +843,21 @@ export const CheckoutPage = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="name@example.com"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>
               </div>
             </div>
 
             {/* 2. Shipping Address */}
-            <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
-              <h2 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#8A6200]" /> 2. Delivery Address
+            <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-4 shadow-xs">
+              <h2 className="text-sm font-bold text-[color:var(--heading,#0F172A)] uppercase tracking-wider flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[color:var(--accent,#8A6200)]" /> 2. Delivery Address
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">Street Address / House No. *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">Street Address / House No. *</label>
                   <input
                     type="text"
                     required
@@ -835,12 +865,12 @@ export const CheckoutPage = () => {
                     value={formData.street}
                     onChange={handleInputChange}
                     placeholder="Flat 402, Sunshine Residency, Studio Main Road"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">City *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">City *</label>
                   <input
                     type="text"
                     required
@@ -848,12 +878,12 @@ export const CheckoutPage = () => {
                     value={formData.city}
                     onChange={handleInputChange}
                     placeholder="Chennai"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">State *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">State *</label>
                   <input
                     type="text"
                     required
@@ -861,12 +891,12 @@ export const CheckoutPage = () => {
                     value={formData.state}
                     onChange={handleInputChange}
                     placeholder="Tamil Nadu"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-medium"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">PIN Code *</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">PIN Code *</label>
                   <input
                     type="text"
                     required
@@ -874,26 +904,26 @@ export const CheckoutPage = () => {
                     value={formData.zipCode}
                     onChange={handleInputChange}
                     placeholder="600001"
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-mono font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100 font-mono font-medium"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#475569]">Country</label>
+                  <label className="text-xs font-semibold text-[color:var(--text,#475569)]">Country</label>
                   <input
                     type="text"
                     disabled
                     value="India"
-                    className="w-full px-3.5 py-2.5 text-xs bg-[#FFFDF5] border border-[#E7D9B5] rounded-xl text-[#475569] font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-[var(--bg-page,#FFFDF5)] border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--text,#475569)] font-medium"
                   />
                 </div>
               </div>
             </div>
 
             {/* 3. Payment Method */}
-            <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
-              <h2 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#8A6200]" /> 3. Select Payment Method
+            <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-4 shadow-xs">
+              <h2 className="text-sm font-bold text-[color:var(--heading,#0F172A)] uppercase tracking-wider flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-[color:var(--accent,#8A6200)]" /> 3. Select Payment Method
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -902,8 +932,8 @@ export const CheckoutPage = () => {
                   aria-disabled="true"
                   className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${
                     formData.paymentMethod === 'upi'
-                      ? 'bg-[#FFFDF5] border-[#8A6200] ring-2 ring-rose-100'
-                      : 'bg-white border-[#E7D9B5] hover:border-[#D4A017]'
+                      ? 'bg-[var(--bg-page,#FFFDF5)] border-[#8A6200] ring-2 ring-rose-100'
+                      : 'bg-white border-[var(--border,#E7D9B5)] hover:border-[#D4A017]'
                   } opacity-50 cursor-not-allowed`}
                 >
                   <div className="flex items-center gap-3">
@@ -911,8 +941,8 @@ export const CheckoutPage = () => {
                       <QrCode className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-bold text-xs text-[#0F172A]">UPI / QR (Google Pay / PhonePe)</p>
-                      <p className="text-[10px] text-[#475569] font-semibold">Coming soon</p>
+                      <p className="font-bold text-xs text-[color:var(--heading,#0F172A)]">UPI / QR (Google Pay / PhonePe)</p>
+                      <p className="text-[10px] text-[color:var(--text,#475569)] font-semibold">Coming soon</p>
                     </div>
                   </div>
                   <input
@@ -921,7 +951,7 @@ export const CheckoutPage = () => {
                     checked={false}
                     disabled
                     onChange={() => {}}
-                    className="text-[#8A6200]"
+                    className="text-[color:var(--accent,#8A6200)]"
                   />
                 </label>
 
@@ -930,17 +960,17 @@ export const CheckoutPage = () => {
                   aria-disabled="true"
                   className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${
                     formData.paymentMethod === 'card'
-                      ? 'bg-[#FFFDF5] border-[#8A6200] ring-2 ring-rose-100'
-                      : 'bg-white border-[#E7D9B5] hover:border-[#D4A017]'
+                      ? 'bg-[var(--bg-page,#FFFDF5)] border-[#8A6200] ring-2 ring-rose-100'
+                      : 'bg-white border-[var(--border,#E7D9B5)] hover:border-[#D4A017]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#FFFDF5] text-[#8A6200] flex items-center justify-center border border-[#DCC78B]">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--bg-page,#FFFDF5)] text-[color:var(--accent,#8A6200)] flex items-center justify-center border border-[var(--border,#DCC78B)]">
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-bold text-xs text-[#0F172A]">Credit & Debit Cards</p>
-                      <p className="text-[10px] text-[#475569]">Visa, Mastercard, RuPay</p>
+                      <p className="font-bold text-xs text-[color:var(--heading,#0F172A)]">Credit & Debit Cards</p>
+                      <p className="text-[10px] text-[color:var(--text,#475569)]">Visa, Mastercard, RuPay</p>
                     </div>
                   </div>
                   <input
@@ -949,7 +979,7 @@ export const CheckoutPage = () => {
                     checked={false}
                     disabled
                     onChange={() => {}}
-                    className="text-[#8A6200]"
+                    className="text-[color:var(--accent,#8A6200)]"
                   />
                 </label>
 
@@ -958,8 +988,8 @@ export const CheckoutPage = () => {
                   onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })}
                   className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${
                     formData.paymentMethod === 'cod'
-                      ? 'bg-[#FFFDF5] border-[#8A6200] ring-2 ring-rose-100'
-                      : 'bg-white border-[#E7D9B5] hover:border-[#D4A017]'
+                      ? 'bg-[var(--bg-page,#FFFDF5)] border-[#8A6200] ring-2 ring-rose-100'
+                      : 'bg-white border-[var(--border,#E7D9B5)] hover:border-[#D4A017]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -967,8 +997,8 @@ export const CheckoutPage = () => {
                       <Banknote className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-bold text-xs text-[#0F172A]">Cash on Delivery (COD)</p>
-                      <p className="text-[10px] text-[#475569]">Pay on arrival at doorstep</p>
+                      <p className="font-bold text-xs text-[color:var(--heading,#0F172A)]">Cash on Delivery (COD)</p>
+                      <p className="text-[10px] text-[color:var(--text,#475569)]">Pay on arrival at doorstep</p>
                     </div>
                   </div>
                   <input
@@ -976,7 +1006,7 @@ export const CheckoutPage = () => {
                     name="paymentMethod"
                     checked={formData.paymentMethod === 'cod'}
                     onChange={() => {}}
-                    className="text-[#8A6200]"
+                    className="text-[color:var(--accent,#8A6200)]"
                   />
                 </label>
 
@@ -985,8 +1015,8 @@ export const CheckoutPage = () => {
                   aria-disabled="true"
                   className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${
                     formData.paymentMethod === 'netbanking'
-                      ? 'bg-[#FFFDF5] border-[#8A6200] ring-2 ring-rose-100'
-                      : 'bg-white border-[#E7D9B5] hover:border-[#D4A017]'
+                      ? 'bg-[var(--bg-page,#FFFDF5)] border-[#8A6200] ring-2 ring-rose-100'
+                      : 'bg-white border-[var(--border,#E7D9B5)] hover:border-[#D4A017]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -994,8 +1024,8 @@ export const CheckoutPage = () => {
                       <Building className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-bold text-xs text-[#0F172A]">Net Banking & IMPS</p>
-                      <p className="text-[10px] text-[#475569]">All Major Indian Banks</p>
+                      <p className="font-bold text-xs text-[color:var(--heading,#0F172A)]">Net Banking & IMPS</p>
+                      <p className="text-[10px] text-[color:var(--text,#475569)]">All Major Indian Banks</p>
                     </div>
                   </div>
                   <input
@@ -1004,7 +1034,7 @@ export const CheckoutPage = () => {
                     checked={false}
                     disabled
                     onChange={() => {}}
-                    className="text-[#8A6200]"
+                    className="text-[color:var(--accent,#8A6200)]"
                   />
                 </label>
               </div>
@@ -1025,10 +1055,10 @@ export const CheckoutPage = () => {
             </div>
 
             {/* Items in Checkout */}
-            <div className="p-5 rounded-3xl bg-white border border-[#E7D9B5] space-y-3.5 shadow-xs">
-              <h3 className="font-serif text-base font-bold text-[#0F172A] flex items-center justify-between">
+            <div className="p-5 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-3.5 shadow-xs">
+              <h3 className="font-serif text-base font-bold text-[color:var(--heading,#0F172A)] flex items-center justify-between">
                 <span>Items ({itemCount})</span>
-                <Link to="/cart" className="text-xs text-[#8A6200] font-bold hover:underline">
+                <Link to="/cart" className="text-xs text-[color:var(--accent,#8A6200)] font-bold hover:underline">
                   Edit Bag
                 </Link>
               </h3>
@@ -1044,14 +1074,14 @@ export const CheckoutPage = () => {
                         <img
                           src={itemImg}
                           alt={item.name}
-                          className="w-10 h-10 rounded-lg object-cover border border-[#E7D9B5] bg-stone-50 shrink-0"
+                          className="w-10 h-10 rounded-lg object-cover border border-[var(--border,#E7D9B5)] bg-stone-50 shrink-0"
                         />
                         <div className="min-w-0">
-                          <p className="font-bold text-[#0F172A] truncate text-[11px]">{item.name}</p>
-                          <p className="text-[10px] text-[#475569]">Qty: {item.quantity || 1}</p>
+                          <p className="font-bold text-[color:var(--heading,#0F172A)] truncate text-[11px]">{item.name}</p>
+                          <p className="text-[10px] text-[color:var(--text,#475569)]">Qty: {item.quantity || 1}</p>
                         </div>
                       </div>
-                      <span className="font-mono font-bold text-[#8A6200] shrink-0 text-xs">
+                      <span className="font-mono font-bold text-[color:var(--accent,#8A6200)] shrink-0 text-xs">
                         ₹{(itemPrice * (item.quantity || 1)).toLocaleString('en-IN')}
                       </span>
                     </div>
@@ -1061,13 +1091,13 @@ export const CheckoutPage = () => {
             </div>
 
             {/* Price Calculations & Submit Button */}
-            <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
-              <h3 className="font-serif text-lg font-bold text-[#0F172A]">Payment Valuation</h3>
+            <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-4 shadow-xs">
+              <h3 className="font-serif text-lg font-bold text-[color:var(--heading,#0F172A)]">Payment Valuation</h3>
 
               <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between text-[#475569]">
+                <div className="flex items-center justify-between text-[color:var(--text,#475569)]">
                   <span>Item Subtotal</span>
-                  <span className="font-mono font-bold text-[#0F172A]">₹{originalSubtotal.toLocaleString('en-IN')}</span>
+                  <span className="font-mono font-bold text-[color:var(--heading,#0F172A)]">₹{originalSubtotal.toLocaleString('en-IN')}</span>
                 </div>
 
                 {productSavings > 0 && (
@@ -1084,21 +1114,21 @@ export const CheckoutPage = () => {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-[#475569]">
+                <div className="flex items-center justify-between text-[color:var(--text,#475569)]">
                   <span>Insured Express Shipping</span>
                   <span className="text-emerald-700 font-bold">FREE (Complimentary)</span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm font-bold text-[#0F172A] pt-3 border-t border-[#E7D9B5]">
+                <div className="flex items-center justify-between text-sm font-bold text-[color:var(--heading,#0F172A)] pt-3 border-t border-[var(--border,#E7D9B5)]">
                   <span>Total Amount Payable</span>
-                  <span className="font-mono text-xl text-[#8A6200] font-black">₹{finalAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-mono text-xl text-[color:var(--accent,#8A6200)] font-black">₹{finalAmount.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
               <div className="pt-2">
                 {/* Coupon / Promo Code — customer entry point */}
-                  <div className="p-4 rounded-2xl bg-white border border-[#E7D9B5] space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#475569]">
+                  <div className="p-4 rounded-2xl bg-white border border-[var(--border,#E7D9B5)] space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--text,#475569)]">
                       🎟️ Have a coupon?
                     </label>
                     {appliedCoupon ? (
@@ -1118,13 +1148,13 @@ export const CheckoutPage = () => {
                           value={checkoutPromoInput}
                           onChange={(e) => { setCheckoutPromoInput(e.target.value); setCheckoutPromoError(''); }}
                           placeholder="Enter coupon code (e.g. WELCOME10)"
-                          className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#E7D9B5] text-xs font-semibold uppercase placeholder:normal-case placeholder:font-normal"
+                          className="flex-1 px-3.5 py-2.5 rounded-xl border border-[var(--border,#E7D9B5)] text-xs font-semibold uppercase placeholder:normal-case placeholder:font-normal"
                         />
                         <button
                           type="button"
                           onClick={handleApplyCoupon}
                           disabled={couponBusy}
-                          className="px-5 py-2.5 rounded-xl bg-[#8A6200] hover:bg-[#6B4D00] text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                          className="px-5 py-2.5 rounded-xl bg-[var(--accent,#8A6200)] hover:bg-[var(--accent-dark,#6B4D00)] text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
                         >
                           {couponBusy ? 'Checking…' : 'Apply'}
                         </button>
@@ -1134,14 +1164,14 @@ export const CheckoutPage = () => {
                       <p className="text-[11px] font-semibold text-rose-600">{checkoutPromoError}</p>
                     )}
                     {appliedCoupon && (
-                      <div className="flex justify-between text-xs pt-1 border-t border-dashed border-[#E7D9B5]">
-                        <span className="text-[#475569]">Order total:</span>
-                        <span className="line-through text-[#6B4D00]">₹{finalAmount.toLocaleString('en-IN')}</span>
+                      <div className="flex justify-between text-xs pt-1 border-t border-dashed border-[var(--border,#E7D9B5)]">
+                        <span className="text-[color:var(--text,#475569)]">Order total:</span>
+                        <span className="line-through text-[color:var(--heading,#6B4D00)]">₹{finalAmount.toLocaleString('en-IN')}</span>
                       </div>
                     )}
                     {appliedCoupon && (
                       <div className="flex justify-between text-xs">
-                        <span className="font-bold text-[#0F172A]">Payable after discount:</span>
+                        <span className="font-bold text-[color:var(--heading,#0F172A)]">Payable after discount:</span>
                         <span className="font-black text-emerald-700">₹{payableAmount.toLocaleString('en-IN')}</span>
                       </div>
                     )}
@@ -1150,7 +1180,7 @@ export const CheckoutPage = () => {
                   <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition transform active:scale-98 disabled:opacity-60"
+                  className="w-full py-4 px-6 rounded-2xl bg-[var(--accent,#8A6200)] hover:bg-[var(--accent-dark,#6B4D00)] text-white font-bold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition transform active:scale-98 disabled:opacity-60"
                 >
                   {isProcessing ? (
                     <>
@@ -1166,7 +1196,7 @@ export const CheckoutPage = () => {
                 </button>
               </div>
 
-              <div className="pt-2 flex items-center justify-center gap-3 text-[11px] text-[#475569]">
+              <div className="pt-2 flex items-center justify-center gap-3 text-[11px] text-[color:var(--text,#475569)]">
                 <span>Payment will be collected on delivery.</span>
               </div>
             </div>

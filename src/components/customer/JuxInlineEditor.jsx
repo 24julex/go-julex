@@ -553,7 +553,10 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
           return;
         }
       }
-      if (!cur || !cur.move || !cur.el || !cur.el.contains(e.target)) return;
+      // ANY selected text/image box drags DIRECTLY — no Move toggle needed.
+      // (While text-edit mode is active, keep the caret working instead.)
+      const editingNow = e.target.closest?.('.jx-editing');
+      if (!cur || !cur.el || !cur.el.contains(e.target) || editingNow) return;
       e.preventDefault(); e.stopPropagation();
       if (cur.kind === 'float_text' || cur.kind === 'float_image') {
         const node = cur.el.closest('[data-jx-float]');

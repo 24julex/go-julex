@@ -79,6 +79,36 @@ export const CartPage = () => {
     applyPromoCode(code);
   };
 
+
+  // Theme tokens from the store's PUBLISHED template — the selected theme
+  // drives every page's colors/typography (single source of truth).
+  const themeVars = (() => {
+    const s = botanTheme;
+    if (!s) return {};
+    const borderHex = String(s.cardBorder || '').match(/#([0-9a-f]{3,8})/i)?.[0];
+    const vars = {
+      '--bg-page': s.backgroundColor,
+      '--bg-soft': s.surfaceColor || s.backgroundColor,
+      '--accent': s.accentColor,
+      '--accent-dark': s.accentColor,
+      '--heading': s.headingColor,
+      '--text': s.textColor
+    };
+    if (borderHex) vars['--border'] = borderHex;
+    if (s.bodyFont) vars.fontFamily = `'${s.bodyFont}', sans-serif`;
+    return vars;
+  })();
+
+  // Mark <html> as a merchant storefront while mounted: the global light/dark
+  // overrides are scoped away from .jx-storefront so the published theme's
+  // colors render exactly as designed (same as every other store page).
+  useEffect(() => {
+    if (!cleanSub) return undefined;
+    const rootEl = document.documentElement;
+    rootEl.classList.add('jx-storefront');
+    return () => rootEl.classList.remove('jx-storefront');
+  }, [cleanSub]);
+
   // ============================================================
   // BOTANICAL ATELIER BAG — the store's chosen template owns
   // this page: glass nav, greige canvas, olive ink, pill
@@ -187,27 +217,27 @@ export const CartPage = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-[80vh] bg-[#FFFDF5] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-[#E7D9B5] p-8 text-center space-y-6 shadow-sm">
-          <div className="w-20 h-20 rounded-3xl bg-[#FFFDF5] text-[#8A6200] mx-auto flex items-center justify-center border border-[#DCC78B]">
+      <div className="min-h-[80vh] bg-[var(--bg-page,#FFFDF5)] flex items-center justify-center p-4" style={themeVars}>
+        <div className="max-w-md w-full bg-white rounded-3xl border border-[var(--border,#E7D9B5)] p-8 text-center space-y-6 shadow-sm">
+          <div className="w-20 h-20 rounded-3xl bg-[var(--bg-page,#FFFDF5)] text-[color:var(--accent,#8A6200)] mx-auto flex items-center justify-center border border-[var(--border,#DCC78B)]">
             <ShoppingBag className="w-10 h-10 stroke-[2]" />
           </div>
           <div className="space-y-2">
-            <h2 className="font-serif text-2xl font-bold text-[#0F172A]">Your Shopping Bag is Empty</h2>
-            <p className="text-xs text-[#475569] max-w-sm mx-auto leading-relaxed">
+            <h2 className="font-serif text-2xl font-bold text-[color:var(--heading,#0F172A)]">Your Shopping Bag is Empty</h2>
+            <p className="text-xs text-[color:var(--text,#475569)] max-w-sm mx-auto leading-relaxed">
               You haven't added any products to your bag yet. Click below to return to the store and add a piece.
             </p>
           </div>
           <div className="pt-2 space-y-2.5">
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-xs shadow-md shadow-rose-900/20 transition transform active:scale-98 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-2xl bg-[var(--accent,#8A6200)] hover:bg-[var(--accent-dark,#6B4D00)] text-white font-bold text-xs shadow-md shadow-rose-900/20 transition transform active:scale-98 cursor-pointer"
             >
               <span>← Return to Storefront & Browse Products</span>
             </button>
             <Link
               to="/catalog"
-              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-6 rounded-2xl bg-white border border-[#E7D9B5] hover:bg-[#FFFDF5] text-[#6B4D00] font-semibold text-xs transition"
+              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-6 rounded-2xl bg-white border border-[var(--border,#E7D9B5)] hover:bg-[var(--bg-page,#FFFDF5)] text-[color:var(--heading,#6B4D00)] font-semibold text-xs transition"
             >
               <span>Explore All Stores Catalog</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -219,21 +249,21 @@ export const CartPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF5] text-[#0F172A] py-8 sm:py-12">
+    <div className="min-h-screen bg-[var(--bg-page,#FFFDF5)] text-[color:var(--heading,#0F172A)] py-8 sm:py-12" style={themeVars}>
       <StorefrontModeToggle accent="#D4A017" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header */}
-        <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#8A6200]">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#FFFDF5] border border-[#DCC78B]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[color:var(--accent,#8A6200)]">
+              <span className="px-2.5 py-0.5 rounded-full bg-[var(--bg-page,#FFFDF5)] border border-[var(--border,#DCC78B)]">
                 0% PLATFORM FEE COMMERCE
               </span>
             </div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A] mt-1.5 tracking-tight">
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[color:var(--heading,#0F172A)] mt-1.5 tracking-tight">
               Review Your Shopping Bag ({itemCount} {itemCount === 1 ? 'item' : 'items'})
             </h1>
-            <p className="text-xs text-[#475569] mt-0.5">
+            <p className="text-xs text-[color:var(--text,#475569)] mt-0.5">
               100% direct-to-maker purchase • 0% marketplace commission cuts applied.
             </p>
           </div>
@@ -261,25 +291,25 @@ export const CartPage = () => {
               return (
                 <div
                   key={item.id}
-                  className="p-5 rounded-3xl bg-white border border-[#E7D9B5] shadow-xs hover:border-[#DCC78B] transition flex flex-col sm:flex-row items-center justify-between gap-5"
+                  className="p-5 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] shadow-xs hover:border-[var(--border,#DCC78B)] transition flex flex-col sm:flex-row items-center justify-between gap-5"
                 >
                   {/* Image and Basic Info */}
                   <div className="flex items-center gap-4 w-full sm:w-auto min-w-0">
                     <img
                       src={itemImg}
                       alt={item.name}
-                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-[#E7D9B5] bg-stone-50 shrink-0"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-[var(--border,#E7D9B5)] bg-stone-50 shrink-0"
                     />
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FFFDF5] text-[#6B4D00] border border-[#DCC78B]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--bg-page,#FFFDF5)] text-[color:var(--heading,#6B4D00)] border border-[var(--border,#DCC78B)]">
                           {item.brand || 'Bespoke D2C'}
                         </span>
                       </div>
-                      <h3 className="font-bold text-sm sm:text-base text-[#0F172A] truncate">
+                      <h3 className="font-bold text-sm sm:text-base text-[color:var(--heading,#0F172A)] truncate">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-[#475569] font-mono">
+                      <p className="text-xs text-[color:var(--text,#475569)] font-mono">
                         Item ID: {String(item.id).slice(-8)}
                       </p>
 
@@ -292,22 +322,22 @@ export const CartPage = () => {
                   </div>
 
                   {/* Quantity Controls and Price */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 border-[#E7D9B5] pt-3 sm:pt-0 shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 border-[var(--border,#E7D9B5)] pt-3 sm:pt-0 shrink-0">
                     {/* Quantity Stepper */}
-                    <div className="flex items-center bg-white border border-[#E7D9B5] rounded-xl overflow-hidden shadow-2xs">
+                    <div className="flex items-center bg-white border border-[var(--border,#E7D9B5)] rounded-xl overflow-hidden shadow-2xs">
                       <button
                         onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
-                        className="text-[#475569] hover:text-[#0F172A] hover:bg-[#FFFDF5] px-2.5 py-1 font-bold text-xs transition"
+                        className="text-[color:var(--text,#475569)] hover:text-[color:var(--heading,#0F172A)] hover:bg-[var(--bg-page,#FFFDF5)] px-2.5 py-1 font-bold text-xs transition"
                       >
                         -
                       </button>
-                      <span className="text-xs font-bold font-mono text-[#0F172A] px-3">
+                      <span className="text-xs font-bold font-mono text-[color:var(--heading,#0F172A)] px-3">
                         {item.quantity || 1}
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
                         disabled={item.stock !== undefined && (item.quantity || 1) >= item.stock}
-                        className="text-[#475569] hover:text-[#0F172A] hover:bg-[#FFFDF5] px-2.5 py-1 font-bold text-xs disabled:opacity-30 transition"
+                        className="text-[color:var(--text,#475569)] hover:text-[color:var(--heading,#0F172A)] hover:bg-[var(--bg-page,#FFFDF5)] px-2.5 py-1 font-bold text-xs disabled:opacity-30 transition"
                       >
                         +
                       </button>
@@ -315,7 +345,7 @@ export const CartPage = () => {
 
                     {/* Price */}
                     <div className="text-right min-w-[100px]">
-                      <div className="font-bold text-base text-[#0F172A] font-mono">
+                      <div className="font-bold text-base text-[color:var(--heading,#0F172A)] font-mono">
                         ₹{itemTotal.toLocaleString('en-IN')}
                       </div>
                       {hasItemDiscount && (
@@ -341,7 +371,7 @@ export const CartPage = () => {
             <div className="pt-2 flex items-center justify-between">
               <Link
                 to="/catalog"
-                className="inline-flex items-center gap-2 text-xs font-bold text-[#8A6200] hover:text-[#6B4D00] transition"
+                className="inline-flex items-center gap-2 text-xs font-bold text-[color:var(--accent,#8A6200)] hover:text-[color:var(--heading,#6B4D00)] transition"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Continue Shopping & Browse Catalog</span>
@@ -363,10 +393,10 @@ export const CartPage = () => {
             </div>
 
             {/* Promo Code Box */}
-            <div className="p-5 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
+            <div className="p-5 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-4 shadow-xs">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
-                  <Tag className="w-4 h-4 text-[#8A6200]" /> Store Promo Code
+                <h4 className="text-xs font-bold text-[color:var(--heading,#0F172A)] uppercase tracking-wider flex items-center gap-1.5">
+                  <Tag className="w-4 h-4 text-[color:var(--accent,#8A6200)]" /> Store Promo Code
                 </h4>
               </div>
 
@@ -395,11 +425,11 @@ export const CartPage = () => {
                       value={promoInput}
                       onChange={(e) => setPromoInput(e.target.value)}
                       placeholder="Coupon code (e.g. WELCOME10)"
-                      className="flex-grow px-3 py-2 text-xs bg-white border border-[#E7D9B5] rounded-xl text-[#0F172A] uppercase tracking-wider font-mono font-bold focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100"
+                      className="flex-grow px-3 py-2 text-xs bg-white border border-[var(--border,#E7D9B5)] rounded-xl text-[color:var(--heading,#0F172A)] uppercase tracking-wider font-mono font-bold focus:outline-none focus:border-[#A87A00] focus:ring-2 focus:ring-rose-100"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#8A6200] hover:bg-[#6B4D00] text-white text-xs font-bold rounded-xl shadow-xs transition"
+                      className="px-4 py-2 bg-[var(--accent,#8A6200)] hover:bg-[var(--accent-dark,#6B4D00)] text-white text-xs font-bold rounded-xl shadow-xs transition"
                     >
                       Apply
                     </button>
@@ -410,9 +440,9 @@ export const CartPage = () => {
 
               {/* Available Coupons */}
               {availableCoupons.length > 0 && (
-                <div className="pt-3 border-t border-[#E7D9B5] space-y-2">
-                  <p className="text-[10px] font-bold text-[#475569] uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#8A6200]" /> Available Coupons:
+                <div className="pt-3 border-t border-[var(--border,#E7D9B5)] space-y-2">
+                  <p className="text-[10px] font-bold text-[color:var(--text,#475569)] uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-[color:var(--accent,#8A6200)]" /> Available Coupons:
                   </p>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
                     {availableCoupons.map((c) => {
@@ -424,15 +454,15 @@ export const CartPage = () => {
                           onClick={() => handleQuickApply(c.code)}
                           className={`p-2.5 rounded-xl border transition cursor-pointer flex items-center justify-between text-xs ${
                             isCurrentApplied
-                              ? 'bg-[#FFFDF5] border-[#8A6200] text-[#6B4D00]'
-                              : 'bg-[#FFFDF5] border-[#E7D9B5] hover:border-[#A87A00] text-[#0F172A]'
+                              ? 'bg-[var(--bg-page,#FFFDF5)] border-[#8A6200] text-[color:var(--heading,#6B4D00)]'
+                              : 'bg-[var(--bg-page,#FFFDF5)] border-[var(--border,#E7D9B5)] hover:border-[#A87A00] text-[color:var(--heading,#0F172A)]'
                           }`}
                         >
                           <div>
-                            <span className="font-mono font-bold text-[#8A6200] text-[11px] block">{c.code}</span>
-                            <p className="text-[10px] text-[#475569]">{c.description || `${c.discountValue}% off`}</p>
+                            <span className="font-mono font-bold text-[color:var(--accent,#8A6200)] text-[11px] block">{c.code}</span>
+                            <p className="text-[10px] text-[color:var(--text,#475569)]">{c.description || `${c.discountValue}% off`}</p>
                           </div>
-                          <span className="text-[10px] px-2 py-0.5 rounded-lg bg-[#FFE4E6] text-[#6B4D00] font-bold">
+                          <span className="text-[10px] px-2 py-0.5 rounded-lg bg-[#FFE4E6] text-[color:var(--heading,#6B4D00)] font-bold">
                             {isCurrentApplied ? 'Applied' : 'Tap to Apply'}
                           </span>
                         </div>
@@ -444,13 +474,13 @@ export const CartPage = () => {
             </div>
 
             {/* Order Summary & Checkout */}
-            <div className="p-6 rounded-3xl bg-white border border-[#E7D9B5] space-y-4 shadow-xs">
-              <h3 className="font-serif text-lg font-bold text-[#0F172A]">Order Summary</h3>
+            <div className="p-6 rounded-3xl bg-white border border-[var(--border,#E7D9B5)] space-y-4 shadow-xs">
+              <h3 className="font-serif text-lg font-bold text-[color:var(--heading,#0F172A)]">Order Summary</h3>
 
               <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between text-[#475569]">
+                <div className="flex items-center justify-between text-[color:var(--text,#475569)]">
                   <span>Original Subtotal</span>
-                  <span className="font-mono font-bold text-[#0F172A]">₹{originalSubtotal.toLocaleString('en-IN')}</span>
+                  <span className="font-mono font-bold text-[color:var(--heading,#0F172A)]">₹{originalSubtotal.toLocaleString('en-IN')}</span>
                 </div>
 
                 {productSavings > 0 && (
@@ -467,28 +497,28 @@ export const CartPage = () => {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-[#475569]">
+                <div className="flex items-center justify-between text-[color:var(--text,#475569)]">
                   <span>Delivery Charges</span>
                   <span className="text-emerald-700 font-bold">FREE Express Delivery</span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm font-bold text-[#0F172A] pt-3 border-t border-[#E7D9B5]">
+                <div className="flex items-center justify-between text-sm font-bold text-[color:var(--heading,#0F172A)] pt-3 border-t border-[var(--border,#E7D9B5)]">
                   <span>Total Amount</span>
-                  <span className="font-mono text-xl text-[#8A6200] font-black">₹{finalAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-mono text-xl text-[color:var(--accent,#8A6200)] font-black">₹{finalAmount.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
               <div className="pt-2">
                 <button
                   onClick={() => navigate('/checkout')}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#8A6200] hover:bg-[#6B4D00] text-white font-bold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition transform active:scale-98"
+                  className="w-full py-4 px-6 rounded-2xl bg-[var(--accent,#8A6200)] hover:bg-[var(--accent-dark,#6B4D00)] text-white font-bold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition transform active:scale-98"
                 >
                   <span>Proceed to 1-Click Checkout</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="pt-2 flex items-center justify-center gap-3 text-[11px] text-[#475569]">
+              <div className="pt-2 flex items-center justify-center gap-3 text-[11px] text-[color:var(--text,#475569)]">
                 <span>🔒 256-Bit SSL Encrypted</span>
                 <span>•</span>
                 <span>⚡ Instant Confirmation</span>
