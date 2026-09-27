@@ -55,6 +55,28 @@ import { HARMONIOUS_THEME_PRESETS } from '../admin/channels/AdminThemeBuilder';
 import { THEME_META , buildThemeSectionsForApply} from '../../data/themeRegistry';
 import { formatCurrency, calculateDiscount } from '../../utils/formatters';
 
+// ============================================================
+// WILDSTEM BOTANICAL ATELIER — exact-UI port of the attached
+// botanical portfolio template (glass nav, monumental serif
+// hero with floating botanical cards, curations grid, atelier
+// editorial, olive consultation panel, gazette footer).
+// ============================================================
+const BOTAN = {
+  bg: '#E2DBD2', bgLight: '#ECE7E1', olive: '#284627', oliveDark: '#1E361D',
+  oliveLight: '#3D5E3C', terracotta: '#D49B84', blush: '#F3E8E2', sand: '#D7CFBE'
+};
+const BOTAN_SERIF = "'Cormorant Garamond', Georgia, serif";
+const BOTAN_SANS = "'Plus Jakarta Sans', sans-serif";
+const botanSerif = { fontFamily: BOTAN_SERIF, color: BOTAN.olive };
+const BotanLeafMark = ({ size = 'w-8 h-8' }) => (
+  <svg className={`${size} transition-transform duration-500 group-hover:rotate-12`} style={{ color: BOTAN.olive }} fill="currentColor" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 24C18 24 18 19 14 15C10 11 5 11 5 11C5 11 5 16 9 20C13 24 18 24 18 24Z" opacity="0.9" />
+    <path d="M18 24C18 24 18 19 22 15C26 11 31 11 31 11C31 11 31 16 27 20C23 24 18 24 18 24Z" opacity="0.9" />
+    <circle cx="18" cy="27" r="2.5" />
+    <path d="M18 27V34" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+  </svg>
+);
+
 export const DynamicStorefrontPage = () => {
   const { subdomain } = useParams();
   const navigate = useNavigate();
@@ -101,6 +123,11 @@ export const DynamicStorefrontPage = () => {
   const [bloomCategory, setBloomCategory] = useState('All');
   // Camel Editorial Fashion template: working category filter
   const [camelCategory, setCamelCategory] = useState('All');
+  // Botanical Atelier: curations filter + consultation & gazette forms
+  const [botanCategory, setBotanCategory] = useState('all');
+  const [botanForm, setBotanForm] = useState({ name: '', email: '', type: 'Private Residence Arrangement', date: '' });
+  const [botanFormDone, setBotanFormDone] = useState(false);
+  const [botanNewsDone, setBotanNewsDone] = useState(false);
   const [newsletterDone, setNewsletterDone] = useState(false);
   const [isCustomerAuthOpen, setIsCustomerAuthOpen] = useState(false);
   const [activeShowcaseTab, setActiveShowcaseTab] = useState('checkout');
@@ -557,7 +584,10 @@ export const DynamicStorefrontPage = () => {
   };
 
   const handleQuickAdd = (product) => {
-    const isOutOfStock = (Number(product.stockQuantity ?? product.stock ?? 0) <= 0) || product.status === 'No' || product.status === false || product.available === false;
+    // Demo/catalog products carry no stock field — treat unknown stock as
+    // available; only an explicit 0 (or a disabled status) blocks the add.
+    const stockVal = product.stockQuantity ?? product.stock;
+    const isOutOfStock = (stockVal !== undefined ? Number(stockVal) <= 0 : false) || product.status === 'No' || product.status === false || product.available === false;
     if (isOutOfStock) {
       return;
     }
@@ -861,6 +891,341 @@ export const DynamicStorefrontPage = () => {
       const __enabled = sections.filter(s => s.enabled);
       const __rendered = __enabled.map((section) => {
         const layoutStyle = styles?.layoutStyle || HARMONIOUS_THEME_PRESETS.find(p => p.id === styles?.presetId || p.id === themeConfig.presetId)?.layoutStyle || 'haute_atelier';
+
+        // ============================================================
+        // WILDSTEM BOTANICAL ATELIER — exact-UI port of the attached
+        // template. Every section below mirrors the template markup
+        // (glass nav, monumental hero, curations, editorial, olive
+        // consultation panel, gazette footer) with store data bound in.
+        // ============================================================
+        if (layoutStyle === 'botanical_atelier') {
+          const botanItems = (storeProducts && storeProducts.length > 0) ? storeProducts : (activeThemeMeta?.products || []);
+          const botanCats = ['all', ...Array.from(new Set(botanItems.map(p => p.category).filter(Boolean)))];
+
+          // ---- 1. Announcement strip ----
+          if (section.type === 'announcement') {
+            return (
+              <div key={section.id} className="w-full py-2 px-4 text-center" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bgLight }}>
+                <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase font-medium">
+                  {section.data.text}
+                  {section.data.linkText && (
+                    <a href={section.data.linkUrl || '#curations'} className="underline ml-2 hover:opacity-80">{section.data.linkText} →</a>
+                  )}
+                </p>
+              </div>
+            );
+          }
+
+          // ---- 2. Glass navigation header ----
+          if (section.type === 'header') {
+            return (
+              <header key={section.id} className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(226,219,210,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(215,207,190,0.5)' }}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 sm:h-24 flex items-center justify-between">
+                  <a href="#top" className="flex items-center gap-3 group">
+                    <BotanLeafMark />
+                    <span className="text-2xl font-light tracking-[0.2em]" style={botanSerif}>
+                      {section.data.logoText || matchedStore.name}
+                    </span>
+                  </a>
+                  <nav className="hidden md:flex items-center space-x-8 text-xs tracking-[0.2em] uppercase font-medium" style={{ color: BOTAN.olive }}>
+                    <a href="#curations" className="hover:opacity-60 transition-colors">{section.data.navLink1 || 'Curations'}</a>
+                    <a href="#atelier" className="hover:opacity-60 transition-colors">{section.data.navLink2 || 'The Atelier'}</a>
+                    <a href="#consultation" className="hover:opacity-60 transition-colors">{section.data.navLink3 || 'Studio Consult'}</a>
+                  </nav>
+                  <div className="flex items-center gap-4 sm:gap-5">
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="relative p-2 group cursor-pointer" style={{ color: BOTAN.olive }} aria-label="Open Shopping Bag">
+                      <ShoppingBag className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" strokeWidth={1.6} />
+                      {totalItemsCount > 0 && (
+                        <span className="absolute top-1 right-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-medium shadow-sm" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                          {totalItemsCount}
+                        </span>
+                      )}
+                    </button>
+                    <a href="#consultation" className="hidden sm:inline-block border px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all duration-300" style={{ borderColor: BOTAN.olive, color: BOTAN.olive }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BOTAN.olive; e.currentTarget.style.color = BOTAN.bg; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = BOTAN.olive; }}>
+                      Book Atelier
+                    </a>
+                  </div>
+                </div>
+              </header>
+            );
+          }
+
+          // ---- 3. Monumental hero with floating botanical cards ----
+          if (section.type === 'hero') {
+            const heroWord = String(section.data.headline || matchedStore.name || 'Atelier').trim().split(/\s+/)[0].slice(0, 10) || 'Atelier';
+            const letters = heroWord.split('');
+            const letterSize = `clamp(90px, ${Math.max(9, Math.floor(78 / letters.length))}vw, ${Math.max(150, Math.floor(640 / letters.length))}px)`;
+            const mp = activeThemeMeta?.products || [];
+            const floats = [
+              { cls: 'left-[-2%] sm:left-[2%] md:left-[4%] top-[35%] sm:top-[30%] -translate-y-1/2 w-28 sm:w-44 md:w-56 lg:w-64', img: mp[0]?.image || section.data.imageUrl },
+              { cls: 'left-[44%] sm:left-[47%] md:left-[51%] top-[-8%] sm:top-[-10%] md:top-[-12%] w-28 sm:w-40 md:w-52 lg:w-60', img: mp[1]?.image || section.data.imageUrl },
+              { cls: 'left-[30%] sm:left-[35%] md:left-[36%] bottom-[-10%] sm:bottom-[-8%] md:bottom-[-6%] w-24 sm:w-36 md:w-48 lg:w-52', img: mp[2]?.image || section.data.imageUrl },
+              { cls: 'right-[-4%] sm:right-[1%] md:right-[2%] top-[32%] -translate-y-1/2 w-24 sm:w-36 md:w-44 lg:w-52 opacity-90 sm:opacity-100', img: mp[3]?.image || mp[0]?.image || section.data.imageUrl }
+            ].filter(f => f.img);
+            const tagText = String(section.data.badgeText || 'our fresh spring growing').toUpperCase();
+            return (
+              <main key={section.id} id="top" className="relative pt-10 sm:pt-14 min-h-[88vh] flex flex-col justify-between overflow-hidden">
+                <div className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-10 lg:py-16 flex-grow flex items-center justify-center">
+                  <div className="relative w-full select-none">
+                    {floats.map((f, i) => (
+                      <div key={i} className={`absolute z-20 aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-4 transition duration-700 hover:-translate-y-1.5 hover:scale-[1.02] ${f.cls}`} style={{ borderColor: BOTAN.bg }}>
+                        <img src={f.img} alt={`${matchedStore.name} botanical study ${i + 1}`} className="w-full h-full object-cover" loading="eager" />
+                      </div>
+                    ))}
+                    <div className="absolute left-[20%] sm:left-[23%] md:left-[25%] top-[42%] sm:top-[44%] z-30 pointer-events-none text-right">
+                      <p className="italic text-xs sm:text-base md:text-lg leading-tight tracking-wider" style={botanSerif}>Explore</p>
+                      <p className="font-medium text-[9px] sm:text-xs md:text-sm tracking-[0.25em] sm:tracking-[0.3em] uppercase" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }} dangerouslySetInnerHTML={{ __html: tagText.replace(/ /g, '&nbsp;').replace(/(.{0,18})(?=$)/, '$1<br/>') }} />
+                    </div>
+                    <div className="relative z-10 flex justify-between items-baseline select-none pointer-events-none w-full leading-none" style={{ color: BOTAN.olive, fontFamily: BOTAN_SERIF }}>
+                      {letters.map((ch, i) => (
+                        <span key={i} style={{ fontSize: letterSize, lineHeight: 0.82, letterSpacing: i === 0 ? '-0.04em' : '-0.02em' }}>{ch}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <section className="relative z-30 w-full border-t py-8 sm:py-10 px-4 sm:px-8" style={{ borderColor: 'rgba(215,207,190,0.8)', backgroundColor: 'rgba(226,219,210,0.95)' }}>
+                  <div className="max-w-4xl mx-auto text-center">
+                    <p className="text-xs sm:text-sm md:text-base leading-relaxed font-normal tracking-wide" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>
+                      {section.data.subtext || `This is a space to share more about the business: who's behind it, what it does and what this site has to offer. It's an opportunity to tell the story behind the business or highlight a particular feature that sets it apart from competitors.`}
+                    </p>
+                  </div>
+                </section>
+              </main>
+            );
+          }
+
+          // ---- 4. Curations grid (filterable product catalog) ----
+          if (section.type === 'product_grid' || section.type === 'products') {
+            const visible = botanCategory === 'all' ? botanItems : botanItems.filter(p => p.category === botanCategory);
+            return (
+              <section key={section.id} id="curations" className="py-24 sm:py-32 px-4 sm:px-8 max-w-7xl mx-auto border-t" style={{ borderColor: BOTAN.sand }}>
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                  <div>
+                    <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>{section.data.subtitle || 'Spring Edition'}</span>
+                    <h2 className="text-4xl sm:text-6xl font-normal tracking-tight" style={botanSerif}>{section.data.title || 'Curated Living Botanical Works'}</h2>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs tracking-widest uppercase">
+                    {botanCats.map((c) => (
+                      <button key={c} onClick={() => setBotanCategory(c)} className="px-4 py-2 rounded-full border transition-all cursor-pointer"
+                        style={botanCategory === c ? { backgroundColor: BOTAN.olive, color: BOTAN.bg, borderColor: BOTAN.olive } : { borderColor: 'rgba(40,70,39,0.4)', color: BOTAN.olive }}>
+                        {c === 'all' ? 'All Editions' : c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12">
+                  {visible.map((p) => (
+                    <article key={p.id} className="group cursor-pointer" onClick={() => handleQuickAdd(p)}>
+                      <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                        <img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] tracking-wider uppercase backdrop-blur-sm" style={{ backgroundColor: 'rgba(226,219,210,0.9)', color: BOTAN.olive }}>{p.tag || p.category || 'Atelier Pick'}</span>
+                        <button aria-label={`Add ${p.name} to bag`} onClick={(e) => { e.stopPropagation(); handleQuickAdd(p); }} className="absolute bottom-4 right-4 p-3 rounded-full opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-lg hover:scale-110" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }} title="Quick Add">
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="text-xl sm:text-2xl group-hover:underline" style={botanSerif}>{p.name}</h3>
+                        <span className="text-sm font-semibold" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }}>
+                          ₹{Number(p.sellingPriceINR || p.price || 0).toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <p className="text-xs mt-1 font-light" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }}>{p.description || p.tagline || p.tag || ''}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            );
+          }
+
+          // ---- 5. Best sellers strip ----
+          if (section.type === 'video_reels') {
+            return (
+              <section key={section.id} className="py-16 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto" style={{ backgroundColor: BOTAN.bg }}>
+                <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>{section.data.subtitle || 'Most Loved'}</span>
+                <h2 className="text-3xl sm:text-5xl font-normal tracking-tight mb-12" style={botanSerif}>{section.data.title || 'Best Sellers'}</h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                  {botanItems.slice(0, 4).map((p) => (
+                    <article key={p.id} className="group cursor-pointer" onClick={() => handleQuickAdd(p)}>
+                      <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                        <img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      </div>
+                      <h3 className="text-lg group-hover:underline leading-tight" style={botanSerif}>{p.name}</h3>
+                      <p className="text-xs font-semibold mt-0.5" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }}>₹{Number(p.sellingPriceINR || p.price || 0).toLocaleString('en-IN')}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            );
+          }
+
+          // ---- 6. Craft pillars (customer promise) ----
+          if (section.type === 'testimonials') {
+            const pillars = [
+              { h: 'Sustainable Micro-Farms', p: 'Every stem is sourced from biodynamic growers close to our studio, guaranteeing unprecedented scent and longevity.' },
+              { h: 'Architectural Balance', p: 'We approach composition not merely as decoration, but as transient living sculpture suited for discerning interiors.' },
+              { h: 'Cold-Chain Courier', p: 'From cutting bench to doorstep in temperature-guarded transit, so every bloom arrives at its precise moment of openness.' }
+            ];
+            return (
+              <section key={section.id} className="py-24 sm:py-32 px-4 sm:px-8 border-t border-b" style={{ backgroundColor: BOTAN.bgLight, borderColor: BOTAN.sand }}>
+                <div className="max-w-7xl mx-auto">
+                  <h2 className="text-4xl sm:text-5xl font-light tracking-tight text-center mb-16" style={botanSerif}>{section.data.title || 'What We Provide Our Customers'}</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-sm font-light leading-relaxed" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>
+                    {pillars.map((x) => (
+                      <div key={x.h} className="text-center sm:text-left">
+                        <h4 className="text-xl font-medium mb-2" style={botanSerif}>{x.h}</h4>
+                        <p>{x.p}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          // ---- 7. Atelier editorial (story) ----
+          if (section.type === 'story') {
+            const storyImg2 = (activeThemeMeta?.products || [])[4]?.image || activeThemeMeta?.bannerImage || section.data.imageUrl;
+            return (
+              <section key={section.id} id="atelier" className="py-24 sm:py-32 border-t" style={{ backgroundColor: BOTAN.bg, borderColor: BOTAN.sand }}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                  <div className="lg:col-span-5 relative">
+                    <div className="relative mx-auto max-w-md lg:max-w-none">
+                      <div className="w-4/5 aspect-[4/5] rounded-3xl overflow-hidden shadow-xl border-4" style={{ borderColor: BOTAN.bg }}>
+                        <img src={section.data.imageUrl} alt="Artisan botanical studio composition" className="w-full h-full object-cover" />
+                      </div>
+                      {storyImg2 && (
+                        <div className="absolute -bottom-10 -right-4 sm:-right-8 w-3/5 aspect-square rounded-2xl overflow-hidden shadow-2xl border-4" style={{ borderColor: BOTAN.bg }}>
+                          <img src={storyImg2} alt="Floral arrangement close up" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="lg:col-span-7 space-y-8 mt-12 lg:mt-0">
+                    <div className="space-y-4">
+                      <span className="text-xs uppercase tracking-[0.3em] font-semibold block" style={{ color: 'rgba(40,70,39,0.7)' }}>The Philosophy</span>
+                      <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight" style={botanSerif}>{section.data.title || `About ${matchedStore.name}`}</h2>
+                    </div>
+                    <p className="text-sm font-light leading-relaxed" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>{section.data.text}</p>
+                    <div className="p-6 sm:p-8 rounded-2xl border italic text-xl" style={{ backgroundColor: BOTAN.bg, borderColor: BOTAN.sand, fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>
+                      "Flowers should not be forced into symmetry. We let the curve of each petal guide the room's atmosphere."
+                      <span className="block mt-3 not-italic text-xs tracking-widest uppercase font-medium" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }}>— {matchedStore.name}, Creative Direction</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          // ---- 8. Olive consultation panel (promo) ----
+          if (section.type === 'promo_banner') {
+            return (
+              <section key={section.id} id="consultation" className="py-24 sm:py-32 px-4 sm:px-8 max-w-7xl mx-auto">
+                <div className="rounded-3xl p-8 sm:p-16 lg:p-20 relative overflow-hidden shadow-2xl" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                  <div className="absolute -right-20 -bottom-20 opacity-10 pointer-events-none">
+                    <svg className="w-96 h-96" fill="currentColor" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" /></svg>
+                  </div>
+                  <div className="max-w-2xl relative z-10">
+                    <span className="text-xs uppercase tracking-[0.3em] block mb-4" style={{ color: BOTAN.sand }}>Spatial &amp; Curatorial Commission</span>
+                    <h2 className="text-4xl sm:text-6xl font-light mb-6 leading-tight" style={{ fontFamily: BOTAN_SERIF }}>{section.data.title || 'Commission bespoke botanical installations.'}</h2>
+                    <p className="text-sm sm:text-base font-light leading-relaxed mb-8" style={{ color: 'rgba(226,219,210,0.8)' }}>
+                      {section.data.subtitle || 'We collaborate with private residences, boutique hotels, scenographers, and fashion maisons to construct evocative botanical atmospheres tailored to precise seasonal palettes.'}
+                    </p>
+                    {botanFormDone ? (
+                      <div className="p-5 rounded-2xl border text-sm" style={{ backgroundColor: 'rgba(226,219,210,0.12)', borderColor: 'rgba(215,207,190,0.3)' }}>
+                        Thank you — your request has been received. The studio will contact you within 48 hours.
+                      </div>
+                    ) : (
+                      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (botanForm.name && botanForm.email) setBotanFormDone(true); }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <input required value={botanForm.name} onChange={(e) => setBotanForm({ ...botanForm, name: e.target.value })} className="rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1" style={{ backgroundColor: 'rgba(226,219,210,0.1)', borderColor: 'rgba(215,207,190,0.3)', border: '1px solid', color: BOTAN.bg }} placeholder="Your Name" type="text" />
+                          <input required value={botanForm.email} onChange={(e) => setBotanForm({ ...botanForm, email: e.target.value })} className="rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1" style={{ backgroundColor: 'rgba(226,219,210,0.1)', borderColor: 'rgba(215,207,190,0.3)', border: '1px solid', color: BOTAN.bg }} placeholder="Email Address" type="email" />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <select value={botanForm.type} onChange={(e) => setBotanForm({ ...botanForm, type: e.target.value })} className="rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1" style={{ backgroundColor: BOTAN.olive, border: '1px solid rgba(215,207,190,0.3)', color: BOTAN.bg }}>
+                            <option>Private Residence Arrangement</option>
+                            <option>Editorial &amp; Fashion Runway</option>
+                            <option>Wedding &amp; Sacred Gathering</option>
+                            <option>Weekly Floral Subscription</option>
+                          </select>
+                          <input value={botanForm.date} onChange={(e) => setBotanForm({ ...botanForm, date: e.target.value })} className="rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1" style={{ backgroundColor: 'rgba(226,219,210,0.1)', borderColor: 'rgba(215,207,190,0.3)', border: '1px solid', color: BOTAN.bg }} type="date" />
+                        </div>
+                        <button className="w-full sm:w-auto px-8 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] transition-all shadow-md mt-2 cursor-pointer hover:text-white" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive }} type="submit">
+                          {section.data.ctaText || 'Request Studio Portfolio'}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          // ---- 9. Botanical gazette footer ----
+          if (section.type === 'footer') {
+            return (
+              <footer key={section.id} id="contact" className="pt-16 pb-20 border-t" style={{ backgroundColor: BOTAN.bg, borderColor: BOTAN.sand }}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-8">
+                  <div className="pb-16 border-b flex flex-col md:flex-row md:items-center justify-between gap-8" style={{ borderColor: 'rgba(215,207,190,0.8)' }}>
+                    <div>
+                      <span className="text-2xl sm:text-3xl block" style={botanSerif}>Join the Botanical Gazette</span>
+                      <p className="text-xs mt-1" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }}>Seasonal harvest alerts, care manuals, and exhibition previews.</p>
+                    </div>
+                    {botanNewsDone ? (
+                      <p className="text-xs font-medium" style={{ color: BOTAN.olive }}>Subscribed — welcome to the gazette. 🌿</p>
+                    ) : (
+                      <form className="flex w-full md:w-auto max-w-md gap-2" onSubmit={(e) => { e.preventDefault(); setBotanNewsDone(true); }}>
+                        <input required placeholder="Enter email address" type="email" className="flex-1 rounded-full px-5 py-3 text-xs focus:outline-none focus:ring-1" style={{ backgroundColor: BOTAN.bgLight, border: `1px solid ${BOTAN.sand}`, color: BOTAN.olive }} />
+                        <button className="px-6 py-3 rounded-full text-xs uppercase tracking-widest font-medium transition-colors cursor-pointer" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }} type="submit">Subscribe</button>
+                      </form>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 text-xs" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.8)' }}>
+                    <div>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Atelier</h5>
+                      <ul className="space-y-2.5">
+                        <li><a className="hover:underline" href="#curations">Current Harvest</a></li>
+                        <li><a className="hover:underline" href="#atelier">Botanical Ethics</a></li>
+                        <li><a className="hover:underline" href="#curations">Vessels &amp; Objects</a></li>
+                        <li><a className="hover:underline" href="#consultation">Spatial Commissions</a></li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Sanctuaries</h5>
+                      <ul className="space-y-2.5">
+                        <li>Paris • Rue Vivienne</li>
+                        <li>Kyoto • Gion District</li>
+                        <li>New York • West Village</li>
+                        <li>London • Marylebone High</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Care &amp; Policy</h5>
+                      <ul className="space-y-2.5">
+                        <li><a className="hover:underline" href="#">Stem Hydration Guide</a></li>
+                        <li><a className="hover:underline" href="#">Cold-Chain Courier</a></li>
+                        <li><a className="hover:underline" href="#">Sustainable Packaging</a></li>
+                        <li><a className="hover:underline" href="#">Terms of Service</a></li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-lg mb-4 font-normal" style={botanSerif}>Inquiries</h5>
+                      <p className="leading-relaxed">Press &amp; Visual Styling:<br /><span className="underline">studio@{(cleanSubdomain || 'atelier')}.go.julex.shop</span></p>
+                      <p className="mt-4 leading-relaxed">Appointments:<br /><span className="underline">via the studio consult form</span></p>
+                    </div>
+                  </div>
+                  <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between text-[11px] gap-4" style={{ borderColor: 'rgba(215,207,190,0.6)', color: 'rgba(40,70,39,0.6)' }}>
+                    <p>© {new Date().getFullYear()} {String((section.data.logoText || matchedStore.name || 'ATELIER')).toUpperCase()}. ALL RIGHTS RESERVED.</p>
+                    <p className="tracking-widest uppercase">CRAFTED FOR NATURAL LIVING &amp; ARCHITECTURAL BOTANY</p>
+                  </div>
+                </div>
+              </footer>
+            );
+          }
+
+          // Any other section type: skip silently in this layout
+          return null;
+        }
+
 
         // ----------------------------------------------------
         // 1. ANNOUNCEMENT BAR (4 Layout Variants)

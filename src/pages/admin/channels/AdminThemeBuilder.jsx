@@ -54,7 +54,7 @@ export const HARMONIOUS_THEME_PRESETS = [
     id: 'preset_botanical_atelier',
     name: '🌿 Wildstem Botanical Atelier',
     desc: 'Editorial botanical atelier: warm greige canvas, deep olive ink, terracotta accents and monumental Cormorant serif headlines',
-    layoutStyle: 'organic_artisan',
+    layoutStyle: 'botanical_atelier',
     headingFont: 'Cormorant Garamond',
     bodyFont: 'Plus Jakarta Sans',
     baseFontSize: 15,
