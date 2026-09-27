@@ -909,6 +909,542 @@ export const DynamicStorefrontPage = () => {
         const layoutStyle = styles?.layoutStyle || HARMONIOUS_THEME_PRESETS.find(p => p.id === styles?.presetId || p.id === themeConfig.presetId)?.layoutStyle || 'haute_atelier';
 
         // ============================================================
+        // DISTINCT LAYOUT VARIANTS — one bespoke skeleton per theme that
+        // previously shared a renderer. Each variant changes STRUCTURE:
+        // header architecture, hero composition, card geometry, rhythm
+        // and footer treatment — never just the palette.
+        // ============================================================
+        const VARIANTS = ['split_editorial', 'gallery_wall', 'art_deco', 'sunbaked', 'tropical_pop', 'farmhouse', 'botanical_journal', 'brutalist', 'minimalgrid', 'scandilight'];
+        if (VARIANTS.includes(layoutStyle)) {
+          const V = layoutStyle;
+          const vItems = (storeProducts && storeProducts.length > 0) ? storeProducts : (activeThemeMeta?.products || []);
+          const vFont = styles?.headingFont || 'Playfair Display';
+          const vBg = styles?.backgroundColor || '#FFFFFF';
+          const vSurface = styles?.surfaceColor || '#FFFFFF';
+          const vAccent = styles?.accentColor || '#D4A017';
+          const vInk = styles?.headingColor || '#111111';
+          const vText = styles?.textColor || '#444444';
+          const vPrice = (p) => `₹${Number(p.sellingPriceINR || p.finalPrice || p.price || 0).toLocaleString('en-IN')}`;
+
+          // ---------- ANNOUNCEMENT ----------
+          if (section.type === 'announcement') {
+            const shapes = {
+              split_editorial: 'border-y py-2 text-center text-[11px] tracking-[0.25em] uppercase',
+              gallery_wall: 'py-1.5 text-center text-[10px] tracking-[0.4em] uppercase',
+              art_deco: 'py-2.5 text-center text-[12px] tracking-[0.35em] uppercase',
+              sunbaked: 'py-2 text-center text-[11px] italic',
+              tropical_pop: 'rounded-full mx-4 my-2 py-2 text-center text-[12px] font-bold',
+              farmhouse: 'border-2 py-2 mx-2 my-2 text-center text-[12px]',
+              botanical_journal: 'border-t border-b border-dashed py-2 text-center text-[11px] font-mono uppercase',
+              brutalist: 'py-3 text-center text-[13px] font-black uppercase border-b-4',
+              minimalgrid: 'py-1 text-center text-[10px] tracking-[0.3em] uppercase',
+              scandilight: 'py-2.5 text-center text-[11px] tracking-[0.2em]'
+            };
+            return (
+              <div key={section.id} className={shapes[V]} style={{ backgroundColor: vBg, borderColor: vInk, color: vInk }}>
+                {section.data.text}
+                {section.data.linkText && <a href={section.data.linkUrl || '#products'} className="underline ml-2">{section.data.linkText}</a>}
+              </div>
+            );
+          }
+
+          // ---------- HEADER ----------
+          if (section.type === 'header') {
+            if (V === 'split_editorial') return (
+              <header key={section.id} className="border-b" style={{ borderColor: vInk, backgroundColor: vBg }}>
+                <div className="max-w-6xl mx-auto px-6 py-8 text-center">
+                  <p className="text-[10px] tracking-[0.5em] uppercase mb-2" style={{ color: vText }}>{section.data.tagline}</p>
+                  <h1 className="text-4xl sm:text-5xl" style={{ fontFamily: vFont, color: vInk }}>{section.data.logoText || matchedStore.name}</h1>
+                  <div className="flex justify-center gap-8 mt-5 text-[11px] tracking-[0.25em] uppercase" style={{ color: vInk }}>
+                    <a href="#products" className="hover:opacity-60">{section.data.navLink1}</a>
+                    <a href="#story" className="hover:opacity-60">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="hover:opacity-60 cursor-pointer">Bag ({totalItemsCount})</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'gallery_wall') return (
+              <header key={section.id} className="sticky top-0 z-40 backdrop-blur-md border-b" style={{ backgroundColor: vSurface + 'ee' }}>
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                  <span className="text-xl tracking-[0.3em] uppercase" style={{ fontFamily: vFont, color: vInk }}>{section.data.logoText || matchedStore.name}</span>
+                  <div className="flex items-center gap-6 text-[11px] uppercase tracking-widest" style={{ color: vInk }}>
+                    <a href="#products" className="hover:opacity-60">{section.data.navLink1}</a>
+                    <a href="#story" className="hover:opacity-60">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="px-4 py-1.5 rounded-full text-white cursor-pointer" style={{ backgroundColor: vInk }}>Bag · {totalItemsCount}</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'art_deco') return (
+              <header key={section.id} style={{ backgroundColor: vBg }}>
+                <div className="border-y-[3px] border-double" style={{ borderColor: vInk }} />
+                <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+                  <a href="#products" className="text-[11px] tracking-[0.3em] uppercase" style={{ color: vInk }}>{section.data.navLink1}</a>
+                  <h1 className="text-3xl sm:text-4xl text-center tracking-[0.15em]" style={{ fontFamily: vFont, color: vAccent }}>{section.data.logoText || matchedStore.name}</h1>
+                  <div className="flex items-center gap-5 text-[11px] tracking-[0.3em] uppercase" style={{ color: vInk }}>
+                    <a href="#story" className="hover:opacity-60">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="hover:opacity-60 cursor-pointer">Bag {totalItemsCount}</button>
+                  </div>
+                </div>
+                <div className="border-y-[3px] border-double" style={{ borderColor: vInk }} />
+              </header>
+            );
+            if (V === 'sunbaked') return (
+              <header key={section.id} style={{ backgroundColor: vAccent }}>
+                <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between text-white">
+                  <h1 className="text-2xl italic" style={{ fontFamily: vFont }}>{section.data.logoText || matchedStore.name}</h1>
+                  <div className="flex items-center gap-6 text-[12px] uppercase tracking-wider">
+                    <a href="#products" className="hover:opacity-70">{section.data.navLink1}</a>
+                    <a href="#story" className="hover:opacity-70">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="hover:opacity-70 cursor-pointer">Bag ({totalItemsCount})</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'tropical_pop') return (
+              <header key={section.id} className="rounded-b-[2.5rem]" style={{ backgroundColor: vInk }}>
+                <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+                  <h1 className="text-3xl lowercase font-black" style={{ color: vBg }}>{section.data.logoText || matchedStore.name}</h1>
+                  <div className="flex items-center gap-3 text-[12px] font-bold" style={{ color: vBg }}>
+                    <a href="#products" className="px-4 py-2 rounded-full hover:opacity-80" style={{ backgroundColor: vAccent }}>{section.data.navLink1}</a>
+                    <a href="#story" className="px-4 py-2 rounded-full hover:opacity-80" style={{ backgroundColor: vAccent }}>{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="px-4 py-2 rounded-full hover:opacity-80 cursor-pointer" style={{ backgroundColor: vAccent }}>Bag {totalItemsCount}</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'farmhouse') return (
+              <header key={section.id} style={{ backgroundColor: vSurface }}>
+                <div className="max-w-5xl mx-auto px-4 py-5 border-2 text-center" style={{ borderColor: vInk }}>
+                  <h1 className="text-3xl" style={{ fontFamily: vFont, color: vInk }}>{section.data.logoText || matchedStore.name}</h1>
+                  <p className="text-[11px] mt-1" style={{ color: vText }}>— {section.data.tagline} —</p>
+                  <div className="flex justify-center gap-6 mt-3 text-[11px] uppercase tracking-widest" style={{ color: vInk }}>
+                    <a href="#products" className="hover:underline">{section.data.navLink1}</a>
+                    <a href="#story" className="hover:underline">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="hover:underline cursor-pointer">Bag ({totalItemsCount})</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'botanical_journal') return (
+              <header key={section.id} style={{ backgroundColor: vBg }}>
+                <div className="max-w-4xl mx-auto px-6 py-6 border-l-4 pl-6" style={{ borderColor: vAccent }}>
+                  <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: vText }}>Index · {section.data.tagline}</p>
+                  <h1 className="text-3xl italic mt-1" style={{ fontFamily: vFont, color: vInk }}>{section.data.logoText || matchedStore.name}</h1>
+                  <div className="flex gap-5 mt-3 text-[11px] font-mono underline" style={{ color: vAccent }}>
+                    <a href="#products">{section.data.navLink1}</a>
+                    <a href="#story">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="cursor-pointer">Bag [{totalItemsCount}]</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'brutalist') return (
+              <header key={section.id} className="border-b-8" style={{ backgroundColor: vInk, borderColor: vAccent }}>
+                <div className="max-w-[1400px] mx-auto px-4 py-4 flex items-end justify-between">
+                  <h1 className="text-4xl sm:text-6xl font-black uppercase leading-none" style={{ color: vBg, fontFamily: vFont }}>{section.data.logoText || matchedStore.name}</h1>
+                  <div className="flex items-center gap-4 text-[12px] font-bold uppercase" style={{ color: vBg }}>
+                    <a href="#products" className="hover:underline">{section.data.navLink1}</a>
+                    <a href="#story" className="hover:underline">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="px-3 py-1 cursor-pointer" style={{ backgroundColor: vAccent, color: vInk }}>BAG {totalItemsCount}</button>
+                  </div>
+                </div>
+              </header>
+            );
+            if (V === 'minimalgrid') return (
+              <header key={section.id} className="border-b" style={{ borderColor: vInk + '33', backgroundColor: vBg }}>
+                <div className="max-w-7xl mx-auto px-8 h-14 flex items-center justify-between">
+                  <span className="text-[13px] tracking-[0.35em] uppercase" style={{ color: vInk }}>{section.data.logoText || matchedStore.name}</span>
+                  <div className="flex items-center gap-8 text-[11px] tracking-[0.2em] uppercase" style={{ color: vText }}>
+                    <a href="#products">{section.data.navLink1}</a>
+                    <a href="#story">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="cursor-pointer">BAG / {totalItemsCount}</button>
+                  </div>
+                </div>
+              </header>
+            );
+            return ( // scandilight
+              <header key={section.id} style={{ backgroundColor: vBg }}>
+                <div className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-12 items-center gap-6">
+                  <h1 className="col-span-5 text-2xl font-light tracking-wide" style={{ fontFamily: vFont, color: vInk }}>{section.data.logoText || matchedStore.name}</h1>
+                  <p className="col-span-4 text-[11px] leading-relaxed" style={{ color: vText }}>{section.data.tagline}</p>
+                  <div className="col-span-3 flex flex-col items-end gap-1.5 text-[11px] uppercase tracking-widest" style={{ color: vInk }}>
+                    <a href="#products" className="hover:opacity-60">{section.data.navLink1}</a>
+                    <a href="#story" className="hover:opacity-60">{section.data.navLink2}</a>
+                    <button onClick={() => setIsBagDrawerOpen(true)} className="hover:opacity-60 cursor-pointer">Bag — {totalItemsCount}</button>
+                  </div>
+                </div>
+                <div className="h-px max-w-6xl mx-auto" style={{ backgroundColor: vInk + '30' }} />
+              </header>
+            );
+          }
+
+          // ---------- HERO ----------
+          if (section.type === 'hero') {
+            const vImg = section.data.imageUrl || activeThemeMeta?.heroImage;
+            if (V === 'split_editorial') return (
+              <section key={section.id} className="grid grid-cols-1 md:grid-cols-2" style={{ backgroundColor: vBg }}>
+                <div className="px-8 py-16 flex flex-col justify-center order-2 md:order-1">
+                  <span className="text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: vAccent }}>№ 01 — {section.data.badgeText}</span>
+                  <h2 className="text-4xl sm:text-5xl leading-tight" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                  <p className="text-sm mt-5 max-w-sm leading-relaxed" style={{ color: vText }}>{section.data.subtext}</p>
+                  <a href="#products" className="mt-7 inline-block w-fit px-7 py-3 text-[11px] tracking-[0.25em] uppercase border" style={{ borderColor: vInk, color: vInk }}>{section.data.ctaText} →</a>
+                </div>
+                <div className="order-1 md:order-2 min-h-[320px]"><img src={vImg} alt="" className="w-full h-full object-cover" /></div>
+              </section>
+            );
+            if (V === 'gallery_wall') return (
+              <section key={section.id} className="relative" style={{ backgroundColor: vInk }}>
+                <img src={vImg} alt="" className="w-full h-[52vh] object-cover opacity-80" />
+                <div className="absolute bottom-0 inset-x-0 p-6 sm:p-10" style={{ backgroundColor: vInk + 'e6' }}>
+                  <p className="text-[10px] tracking-[0.4em] uppercase mb-2" style={{ color: vAccent }}>{section.data.badgeText}</p>
+                  <h2 className="text-3xl sm:text-4xl text-white" style={{ fontFamily: vFont }}>{section.data.headline}</h2>
+                  <p className="text-xs text-white/70 mt-2 max-w-xl">{section.data.subtext}</p>
+                  <a href="#products" className="inline-block mt-4 text-[11px] tracking-[0.3em] uppercase text-white border-b" style={{ borderColor: vAccent }}>{section.data.ctaText}</a>
+                </div>
+              </section>
+            );
+            if (V === 'art_deco') return (
+              <section key={section.id} className="py-14 px-6" style={{ backgroundColor: vBg }}>
+                <div className="max-w-4xl mx-auto text-center">
+                  <div className="mx-auto w-40 sm:w-64 aspect-[3/4] overflow-hidden mb-6" style={{ borderRadius: '999px 999px 0 0', border: `3px solid ${vInk}` }}>
+                    <img src={vImg} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <p className="text-[10px] tracking-[0.5em] uppercase" style={{ color: vAccent }}>✦ {section.data.badgeText} ✦</p>
+                  <h2 className="text-3xl sm:text-4xl mt-3 tracking-[0.08em]" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                  <div className="flex items-center justify-center gap-3 my-5"><span className="h-px w-16" style={{ backgroundColor: vInk }} /><span style={{ color: vAccent }}>◆</span><span className="h-px w-16" style={{ backgroundColor: vInk }} /></div>
+                  <p className="text-xs max-w-md mx-auto" style={{ color: vText }}>{section.data.subtext}</p>
+                  <a href="#products" className="inline-block mt-6 px-10 py-3 text-[11px] tracking-[0.3em] uppercase" style={{ backgroundColor: vInk, color: vBg }}>{section.data.ctaText}</a>
+                </div>
+              </section>
+            );
+            if (V === 'sunbaked') return (
+              <section key={section.id} className="relative overflow-hidden" style={{ backgroundColor: vBg }}>
+                <div className="absolute inset-0" style={{ backgroundColor: vAccent, clipPath: 'polygon(0 0, 62% 0, 38% 100%, 0 100%)' }} />
+                <div className="relative max-w-6xl mx-auto px-6 py-16 grid grid-cols-2 gap-6 items-center">
+                  <div className="text-white">
+                    <p className="text-[11px] uppercase tracking-[0.3em]">{section.data.badgeText}</p>
+                    <h2 className="text-4xl italic mt-3 leading-tight" style={{ fontFamily: vFont }}>{section.data.headline}</h2>
+                    <p className="text-xs mt-4 opacity-90">{section.data.subtext}</p>
+                    <a href="#products" className="inline-block mt-6 px-7 py-2.5 text-[11px] uppercase tracking-widest bg-white" style={{ color: vAccent }}>{section.data.ctaText}</a>
+                  </div>
+                  <div className="aspect-[4/5] max-h-[380px] ml-auto overflow-hidden shadow-2xl"><img src={vImg} alt="" className="w-full h-full object-cover" /></div>
+                </div>
+              </section>
+            );
+            if (V === 'tropical_pop') return (
+              <section key={section.id} className="py-14 px-6" style={{ backgroundColor: vBg }}>
+                <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-8">
+                  <div className="w-56 h-56 sm:w-72 sm:h-72 rounded-full overflow-hidden shrink-0 border-8" style={{ borderColor: vAccent }}>
+                    <img src={vImg} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <h2 className="text-4xl sm:text-5xl lowercase font-black leading-none" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                    <p className="text-sm mt-4" style={{ color: vText }}>{section.data.subtext}</p>
+                    <a href="#products" className="inline-block mt-6 px-8 py-3 rounded-full text-white font-bold text-sm" style={{ backgroundColor: vInk }}>{section.data.ctaText} →</a>
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'farmhouse') return (
+              <section key={section.id} className="py-12 px-4" style={{ backgroundColor: vSurface }}>
+                <div className="max-w-4xl mx-auto border-2 p-6 sm:p-10 text-center relative" style={{ borderColor: vInk }}>
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 text-[10px] uppercase tracking-[0.3em]" style={{ backgroundColor: vSurface, color: vAccent }}>{section.data.badgeText}</span>
+                  <div className="aspect-[16/9] overflow-hidden border" style={{ borderColor: vInk }}><img src={vImg} alt="" className="w-full h-full object-cover" /></div>
+                  <h2 className="text-3xl sm:text-4xl mt-6" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                  <p className="text-xs mt-3 italic" style={{ color: vText }}>{section.data.subtext}</p>
+                  <a href="#products" className="inline-block mt-5 px-8 py-2.5 border-2 text-[11px] uppercase tracking-widest" style={{ borderColor: vInk, color: vInk }}>{section.data.ctaText}</a>
+                </div>
+              </section>
+            );
+            if (V === 'botanical_journal') return (
+              <section key={section.id} className="py-10 px-6" style={{ backgroundColor: vBg }}>
+                <div className="max-w-3xl mx-auto border rounded-sm overflow-hidden" style={{ borderColor: vInk + '55' }}>
+                  <div className="px-6 py-3 border-b flex justify-between text-[10px] font-mono uppercase" style={{ borderColor: vInk + '33', color: vText, backgroundColor: vSurface }}>
+                    <span>Specimen № 001</span><span>{section.data.badgeText}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3">
+                    <div className="sm:col-span-2"><img src={vImg} alt="" className="w-full h-full object-cover aspect-[4/3]" /></div>
+                    <div className="p-5 border-l" style={{ borderColor: vInk + '33' }}>
+                      <h2 className="text-2xl italic" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                      <p className="text-[11px] mt-3 leading-relaxed" style={{ color: vText }}>{section.data.subtext}</p>
+                      <a href="#products" className="inline-block mt-4 text-[11px] font-mono underline" style={{ color: vAccent }}>{section.data.ctaText} →</a>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'brutalist') return (
+              <section key={section.id} style={{ backgroundColor: vInk }}>
+                <div className="max-w-[1400px] mx-auto px-4 py-10">
+                  <h2 className="text-5xl sm:text-8xl font-black uppercase leading-[0.9] break-words" style={{ color: vBg, fontFamily: vFont }}>{section.data.headline}</h2>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-4 items-start sm:items-end justify-between">
+                    <p className="text-sm max-w-md" style={{ color: vAccent }}>{section.data.subtext}</p>
+                    <a href="#products" className="px-8 py-4 text-sm font-black uppercase" style={{ backgroundColor: vAccent, color: vInk }}>{section.data.ctaText} ↗</a>
+                  </div>
+                  <img src={vImg} alt="" className="w-full mt-8 h-[36vh] object-cover border-4" style={{ borderColor: vAccent }} />
+                </div>
+              </section>
+            );
+            if (V === 'minimalgrid') return (
+              <section key={section.id} className="grid grid-cols-2 sm:grid-cols-4" style={{ backgroundColor: vBg }}>
+                <div className="col-span-2 p-8 sm:p-12 flex flex-col justify-center">
+                  <p className="text-[10px] tracking-[0.35em] uppercase" style={{ color: vAccent }}>{section.data.badgeText}</p>
+                  <h2 className="text-2xl sm:text-3xl mt-3 leading-snug" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                  <a href="#products" className="mt-6 text-[11px] tracking-[0.25em] uppercase underline" style={{ color: vInk }}>{section.data.ctaText}</a>
+                </div>
+                <div className="aspect-square"><img src={vImg} alt="" className="w-full h-full object-cover" /></div>
+                <div className="aspect-square flex items-center justify-center p-6" style={{ backgroundColor: vSurface }}>
+                  <p className="text-[11px] leading-relaxed text-center" style={{ color: vText }}>{section.data.subtext}</p>
+                </div>
+              </section>
+            );
+            return ( // scandilight
+              <section key={section.id} className="px-8 py-14" style={{ backgroundColor: vBg }}>
+                <div className="max-w-6xl mx-auto grid grid-cols-12 gap-8 items-end">
+                  <div className="col-span-7">
+                    <p className="text-[11px] tracking-[0.25em] uppercase" style={{ color: vAccent }}>{section.data.badgeText}</p>
+                    <h2 className="text-3xl sm:text-4xl font-light mt-4 leading-tight" style={{ fontFamily: vFont, color: vInk }}>{section.data.headline}</h2>
+                  </div>
+                  <div className="col-span-5">
+                    <div className="aspect-[4/5] overflow-hidden"><img src={vImg} alt="" className="w-full h-full object-cover" /></div>
+                    <p className="text-[11px] mt-3 leading-relaxed" style={{ color: vText }}>{section.data.subtext}</p>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          // ---------- PRODUCT GRID ----------
+          if (section.type === 'product_grid' || section.type === 'products') {
+            if (V === 'split_editorial') return (
+              <section key={section.id} id="products" className="py-14 px-6" style={{ backgroundColor: vSurface }}>
+                <div className="max-w-6xl mx-auto">
+                  <div className="flex items-baseline justify-between mb-8"><h3 className="text-2xl" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3><span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: vText }}>{section.data.subtitle}</span></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ backgroundColor: vInk + '22' }}>
+                    {vItems.slice(0, 6).map((p, i) => (
+                      <div key={p.id || i} className="p-6 cursor-pointer" style={{ backgroundColor: vSurface }} onClick={() => handleQuickAdd(p)}>
+                        <span className="text-[10px] font-mono" style={{ color: vAccent }}>0{i + 1}</span>
+                        <div className="aspect-[4/5] my-3 overflow-hidden"><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover hover:scale-105 transition duration-500" /></div>
+                        <h4 className="text-base leading-tight" style={{ fontFamily: vFont, color: vInk }}>{p.name}</h4>
+                        <p className="text-xs mt-1" style={{ color: vText }}>{vPrice(p)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'gallery_wall') return (
+              <section key={section.id} id="products" className="py-16 px-6 columns-1 sm:columns-2 lg:columns-3 gap-8" style={{ backgroundColor: vBg }}>
+                <h3 className="w-full text-2xl mb-8" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                {vItems.slice(0, 6).map((p, i) => (
+                  <div key={p.id || i} className="break-inside-avoid mb-8 cursor-pointer group" onClick={() => handleQuickAdd(p)}>
+                    <div className="overflow-hidden" style={{ border: `6px solid ${vSurface}`, boxShadow: '0 6px 20px rgba(0,0,0,0.12)' }}>
+                      <img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className={`w-full object-cover group-hover:opacity-90 ${i % 3 === 1 ? 'aspect-[3/4]' : 'aspect-square'}`} />
+                    </div>
+                    <p className="text-[10px] mt-2 uppercase tracking-widest" style={{ color: vText }}>{p.category} · {vPrice(p)}</p>
+                    <h4 className="text-lg leading-tight" style={{ fontFamily: vFont, color: vInk }}>{p.name}</h4>
+                  </div>
+                ))}
+              </section>
+            );
+            if (V === 'art_deco') return (
+              <section key={section.id} id="products" className="py-14 px-6" style={{ backgroundColor: vBg }}>
+                <div className="max-w-5xl mx-auto text-center">
+                  <h3 className="text-2xl tracking-[0.1em]" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                  <div className="flex items-center justify-center gap-3 my-6"><span className="h-px w-20" style={{ backgroundColor: vInk }} /><span style={{ color: vAccent }}>◆</span><span className="h-px w-20" style={{ backgroundColor: vInk }} /></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {vItems.slice(0, 6).map((p, i) => (
+                      <div key={p.id || i} className="border-2 p-4 cursor-pointer hover:-translate-y-1 transition" style={{ borderColor: vInk, backgroundColor: vSurface }} onClick={() => handleQuickAdd(p)}>
+                        <div className="aspect-[4/5] overflow-hidden border" style={{ borderColor: vInk + '44' }}><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover" /></div>
+                        <h4 className="text-base mt-3 tracking-wide" style={{ fontFamily: vFont, color: vInk }}>{p.name}</h4>
+                        <p className="text-xs mt-1" style={{ color: vAccent }}>{vPrice(p)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'sunbaked') return (
+              <section key={section.id} id="products" className="py-12" style={{ backgroundColor: vBg }}>
+                <div className="max-w-6xl mx-auto px-6">
+                  <h3 className="text-2xl italic mb-8" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                  <div className="flex gap-6 overflow-x-auto pb-4">
+                    {vItems.slice(0, 6).map((p, i) => (
+                      <div key={p.id || i} className="min-w-[240px] cursor-pointer group" onClick={() => handleQuickAdd(p)}>
+                        <div className="aspect-[4/5] overflow-hidden" style={{ backgroundColor: vAccent }}><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" /></div>
+                        <div className="flex justify-between items-baseline mt-2">
+                          <h4 className="text-sm italic" style={{ fontFamily: vFont, color: vInk }}>{p.name}</h4>
+                          <span className="text-xs font-bold" style={{ color: vAccent }}>{vPrice(p)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'tropical_pop') return (
+              <section key={section.id} id="products" className="py-14 px-6" style={{ backgroundColor: vSurface }}>
+                <div className="max-w-6xl mx-auto">
+                  <h3 className="text-3xl lowercase font-black mb-8" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                    {vItems.slice(0, 8).map((p, i) => (
+                      <div key={p.id || i} className={`cursor-pointer group ${i % 2 ? 'lg:mt-8' : ''}`} onClick={() => handleQuickAdd(p)}>
+                        <div className="aspect-square rounded-[2rem] overflow-hidden border-4" style={{ borderColor: vBg }}><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:rotate-3 group-hover:scale-105 transition duration-300" /></div>
+                        <h4 className="text-sm font-bold mt-2 lowercase" style={{ color: vInk }}>{p.name}</h4>
+                        <p className="text-xs" style={{ color: vAccent }}>{vPrice(p)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'farmhouse') return (
+              <section key={section.id} id="products" className="py-12 px-4" style={{ backgroundColor: vBg }}>
+                <div className="max-w-4xl mx-auto">
+                  <h3 className="text-center text-2xl mb-2" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                  <p className="text-center text-[11px] italic mb-8" style={{ color: vText }}>— {section.data.subtitle} —</p>
+                  <div className="divide-y" style={{ borderColor: vInk + '33' }}>
+                    {vItems.slice(0, 6).map((p, i) => (
+                      <div key={p.id || i} className="flex items-center gap-5 py-4 cursor-pointer group" onClick={() => handleQuickAdd(p)}>
+                        <div className="w-20 h-20 border overflow-hidden shrink-0" style={{ borderColor: vInk }}><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover" /></div>
+                        <div className="flex-1"><h4 className="text-base" style={{ fontFamily: vFont, color: vInk }}>{p.name}</h4><p className="text-[11px]" style={{ color: vText }}>{p.category}</p></div>
+                        <span className="text-sm font-bold" style={{ color: vInk }}>{vPrice(p)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'botanical_journal') return (
+              <section key={section.id} id="products" className="py-12 px-6" style={{ backgroundColor: vSurface }}>
+                <div className="max-w-3xl mx-auto">
+                  <h3 className="text-xl italic mb-6 pb-2 border-b" style={{ fontFamily: vFont, color: vInk, borderColor: vInk + '44' }}>{section.data.title} — Catalog</h3>
+                  {vItems.slice(0, 6).map((p, i) => (
+                    <div key={p.id || i} className="flex gap-4 py-4 border-b border-dashed cursor-pointer hover:bg-black/[0.02]" style={{ borderColor: vInk + '33' }} onClick={() => handleQuickAdd(p)}>
+                      <span className="text-[10px] font-mono pt-1 w-8" style={{ color: vAccent }}>{String(i + 1).padStart(2, '0')}</span>
+                      <div className="w-16 h-16 overflow-hidden rounded-sm"><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover" /></div>
+                      <div className="flex-1"><h4 className="text-sm italic" style={{ fontFamily: vFont, color: vInk }}>{p.name}</h4><p className="text-[10px] font-mono uppercase" style={{ color: vText }}>{p.category}</p></div>
+                      <span className="text-xs font-mono" style={{ color: vInk }}>{vPrice(p)}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+            if (V === 'brutalist') return (
+              <section key={section.id} id="products" style={{ backgroundColor: vBg }}>
+                <div className="max-w-[1400px] mx-auto px-4 py-10">
+                  <h3 className="text-4xl sm:text-5xl font-black uppercase mb-6" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 border-4" style={{ borderColor: vInk }}>
+                    {vItems.slice(0, 8).map((p, i) => (
+                      <div key={p.id || i} className="border-4 p-4 cursor-pointer hover:bg-black hover:text-white transition" style={{ borderColor: vInk, backgroundColor: i % 2 ? '#fff' : 'transparent', color: vInk }} onClick={() => handleQuickAdd(p)}>
+                        <div className="aspect-square overflow-hidden mb-3"><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover" /></div>
+                        <h4 className="text-sm font-black uppercase leading-tight" style={{ color: 'inherit' }}>{p.name}</h4>
+                        <p className="text-xs font-bold mt-1">{vPrice(p)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            if (V === 'minimalgrid') return (
+              <section key={section.id} id="products" className="py-12 px-8" style={{ backgroundColor: vBg }}>
+                <div className="max-w-7xl mx-auto">
+                  <div className="flex justify-between items-baseline mb-6"><h3 className="text-sm tracking-[0.3em] uppercase" style={{ color: vInk }}>{section.data.title}</h3><span className="text-[10px]" style={{ color: vText }}>{vItems.length} items</span></div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px" style={{ backgroundColor: vInk + '22' }}>
+                    {vItems.slice(0, 8).map((p, i) => (
+                      <div key={p.id || i} className="p-4 cursor-pointer" style={{ backgroundColor: vBg }} onClick={() => handleQuickAdd(p)}>
+                        <div className="aspect-square overflow-hidden"><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover hover:opacity-80 transition" /></div>
+                        <p className="text-[11px] mt-2 truncate" style={{ color: vInk }}>{p.name}</p>
+                        <p className="text-[10px]" style={{ color: vAccent }}>{vPrice(p)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+            return ( // scandilight
+              <section key={section.id} id="products" className="py-14 px-8" style={{ backgroundColor: vBg }}>
+                <div className="max-w-6xl mx-auto">
+                  <h3 className="text-xl font-light mb-8" style={{ fontFamily: vFont, color: vInk }}>{section.data.title} <span className="text-[11px] ml-2" style={{ color: vText }}>{section.data.subtitle}</span></h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+                    {vItems.slice(0, 6).map((p, i) => (
+                      <div key={p.id || i} className="cursor-pointer group" onClick={() => handleQuickAdd(p)}>
+                        <div className="aspect-[3/4] overflow-hidden mb-3" style={{ backgroundColor: vSurface }}><img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:opacity-90 transition" /></div>
+                        <div className="flex justify-between items-baseline"><h4 className="text-sm font-medium" style={{ color: vInk }}>{p.name}</h4><span className="text-[11px]" style={{ color: vText }}>{vPrice(p)}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          // ---------- SHARED MINOR SECTIONS (variant-styled) ----------
+          if (section.type === 'story') {
+            return (
+              <section key={section.id} id="story" className="py-14 px-6" style={{ backgroundColor: V === 'brutalist' ? vInk : vSurface, color: V === 'brutalist' ? vBg : vInk }}>
+                <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 items-center">
+                  <div>
+                    <div className={V === 'tropical_pop' ? 'aspect-square rounded-[2rem] overflow-hidden' : 'aspect-[4/5] overflow-hidden'} style={{ border: `2px solid ${V === 'brutalist' ? vAccent : vInk}` }}>
+                      <img src={section.data.imageUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <h3 className={V === 'brutalist' ? 'text-3xl font-black uppercase' : 'text-2xl'} style={{ fontFamily: vFont }}>{section.data.title}</h3>
+                    <p className="text-sm mt-4 leading-relaxed opacity-80">{section.data.text}</p>
+                    <a href="#products" className="inline-block mt-5 text-[11px] tracking-[0.25em] uppercase underline">{section.data.ctaText || 'View Collection'}</a>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          if (section.type === 'promo_banner') {
+            return (
+              <section key={section.id} id="consultation" className="py-12 px-6">
+                <div className="max-w-4xl mx-auto p-8 sm:p-12 text-center" style={{ backgroundColor: V === 'brutalist' ? vAccent : vInk, color: V === 'sunbaked' ? vInk : vBg, border: V === 'farmhouse' || V === 'art_deco' ? `2px solid ${vInk}` : 'none' }}>
+                  <p className="text-[10px] tracking-[0.35em] uppercase opacity-70">{section.data.subtitle}</p>
+                  <h3 className="text-2xl sm:text-3xl mt-3" style={{ fontFamily: vFont }}>{section.data.title}</h3>
+                  <a href="#footer" className="inline-block mt-6 px-8 py-3 text-[11px] tracking-[0.25em] uppercase" style={{ backgroundColor: V === 'brutalist' ? vInk : vBg, color: V === 'brutalist' ? vBg : vInk }}>{section.data.ctaText}</a>
+                </div>
+              </section>
+            );
+          }
+          if (section.type === 'testimonials' || section.type === 'video_reels') {
+            const tItems = vItems.slice(0, 3);
+            return (
+              <section key={section.id} className="py-12 px-6" style={{ backgroundColor: vBg }}>
+                <div className="max-w-5xl mx-auto">
+                  <h3 className="text-center text-xl mb-8" style={{ fontFamily: vFont, color: vInk }}>{section.data.title}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {tItems.map((p, i) => (
+                      <div key={p.id || i} className="p-5 text-center" style={{ border: `1px solid ${vInk}22`, backgroundColor: vSurface }}>
+                        <img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt="" className="w-14 h-14 rounded-full object-cover mx-auto" />
+                        <p className="text-[11px] mt-3 italic" style={{ color: vText }}>"{p.tag || p.category || 'Loved by our customers'}"</p>
+                        <p className="text-[10px] mt-2 uppercase tracking-widest" style={{ color: vAccent }}>{p.name ? p.name.split(' ')[0] : 'Customer'}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          if (section.type === 'footer') {
+            return (
+              <footer key={section.id} id="footer" className="py-10 px-6 text-center" style={{ backgroundColor: V === 'brutalist' ? vInk : vSurface, color: V === 'brutalist' ? vBg : vInk, borderTop: `2px solid ${V === 'brutalist' ? vAccent : vInk}` }}>
+                <h4 className="text-xl tracking-[0.2em] uppercase" style={{ fontFamily: vFont }}>{section.data.logoText || matchedStore.name}</h4>
+                <p className="text-[11px] mt-2 opacity-70">{section.data.tagline || section.data.copyrightText || `© ${new Date().getFullYear()} ${matchedStore.name}`}</p>
+                <div className="flex justify-center gap-6 mt-4 text-[10px] uppercase tracking-widest underline">
+                  <a href="#products">Shop</a><a href="#story">About</a>
+                  <button onClick={() => setIsBagDrawerOpen(true)} className="cursor-pointer">Bag ({totalItemsCount})</button>
+                </div>
+              </footer>
+            );
+          }
+          return null;
+        }
+
+        // ============================================================
         // WILDSTEM BOTANICAL ATELIER — exact-UI port of the attached
         // template. Every section below mirrors the template markup
         // (glass nav, monumental hero, curations, editorial, olive
@@ -2564,8 +3100,11 @@ export const DynamicStorefrontPage = () => {
                   </p>
 
                   {/* Newsletter capture row (Markly signature) */}
+                  {newsletterDone ? (
+                    <p className="text-sm font-bold" style={{ color: '#111111' }}>✓ Subscribed — watch your inbox.</p>
+                  ) : (
                   <form
-                    onSubmit={(e) => { e.preventDefault(); }}
+                    onSubmit={(e) => { e.preventDefault(); setNewsletterDone(true); }}
                     className="flex w-full max-w-md border border-[#111111]"
                   >
                     <input
@@ -2581,6 +3120,7 @@ export const DynamicStorefrontPage = () => {
                       Subscribe
                     </button>
                   </form>
+                  )}
 
                   <a
                     href="#products"
@@ -3830,7 +4370,7 @@ export const DynamicStorefrontPage = () => {
                   <p className="text-sm text-white/80 max-w-md leading-relaxed m-0">
                     {section.data.subtext || 'New arrivals, atelier stories and private sales. One email a month.'}
                   </p>
-                  <form onSubmit={(e) => e.preventDefault()} className="flex w-full max-w-md">
+                  <form onSubmit={(e) => { e.preventDefault(); setNewsletterDone(true); }} className="flex w-full max-w-md">
                     <input
                       type="email"
                       required
