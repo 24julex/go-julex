@@ -61,12 +61,7 @@ import { formatCurrency, calculateDiscount } from '../../utils/formatters';
 // hero with floating botanical cards, curations grid, atelier
 // editorial, olive consultation panel, gazette footer).
 // ============================================================
-const BOTAN = {
-  bg: '#E2DBD2', bgLight: '#ECE7E1', olive: '#284627', oliveDark: '#1E361D',
-  oliveLight: '#3D5E3C', terracotta: '#D49B84', blush: '#F3E8E2', sand: '#D7CFBE'
-};
-const BOTAN_SERIF = "'Cormorant Garamond', Georgia, serif";
-const BOTAN_SANS = "'Plus Jakarta Sans', sans-serif";
+import { BOTAN, BOTAN_SERIF, BOTAN_SANS } from '../../data/botanicalTheme';
 const botanSerif = { fontFamily: BOTAN_SERIF, color: BOTAN.olive };
 const BotanLeafMark = ({ size = 'w-8 h-8' }) => (
   <svg className={`${size} transition-transform duration-500 group-hover:rotate-12`} style={{ color: BOTAN.olive }} fill="currentColor" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
@@ -954,13 +949,16 @@ export const DynamicStorefrontPage = () => {
           if (section.type === 'hero') {
             const heroWord = String(section.data.headline || matchedStore.name || 'Atelier').trim().split(/\s+/)[0].slice(0, 10) || 'Atelier';
             const letters = heroWord.split('');
-            const letterSize = `clamp(90px, ${Math.max(9, Math.floor(78 / letters.length))}vw, ${Math.max(150, Math.floor(640 / letters.length))}px)`;
+            // Monumental but ALWAYS fitting: the word occupies ~90% of the
+            // canvas width whatever the letter count (3 letters → huge,
+            // 8 letters → still grand, never cramped).
+            const letterSize = `min(${Math.min(26, Math.floor(150 / letters.length))}vw, 420px)`;
             const mp = activeThemeMeta?.products || [];
             const floats = [
-              { cls: 'left-[-2%] sm:left-[2%] md:left-[4%] top-[35%] sm:top-[30%] -translate-y-1/2 w-28 sm:w-44 md:w-56 lg:w-64', img: mp[0]?.image || section.data.imageUrl },
-              { cls: 'left-[44%] sm:left-[47%] md:left-[51%] top-[-8%] sm:top-[-10%] md:top-[-12%] w-28 sm:w-40 md:w-52 lg:w-60', img: mp[1]?.image || section.data.imageUrl },
-              { cls: 'left-[30%] sm:left-[35%] md:left-[36%] bottom-[-10%] sm:bottom-[-8%] md:bottom-[-6%] w-24 sm:w-36 md:w-48 lg:w-52', img: mp[2]?.image || section.data.imageUrl },
-              { cls: 'right-[-4%] sm:right-[1%] md:right-[2%] top-[32%] -translate-y-1/2 w-24 sm:w-36 md:w-44 lg:w-52 opacity-90 sm:opacity-100', img: mp[3]?.image || mp[0]?.image || section.data.imageUrl }
+              { cls: 'left-[1%] sm:left-[3%] md:left-[5%] top-[35%] sm:top-[30%] -translate-y-1/2 w-24 sm:w-36 md:w-44 lg:w-52', img: mp[0]?.image || section.data.imageUrl },
+              { cls: 'left-[44%] sm:left-[47%] md:left-[51%] top-[-6%] sm:top-[-8%] md:top-[-10%] w-24 sm:w-36 md:w-44 lg:w-52', img: mp[1]?.image || section.data.imageUrl },
+              { cls: 'left-[30%] sm:left-[35%] md:left-[36%] bottom-[-8%] sm:bottom-[-6%] md:bottom-[-5%] w-20 sm:w-32 md:w-40 lg:w-44', img: mp[2]?.image || section.data.imageUrl },
+              { cls: 'right-[0%] sm:right-[2%] md:right-[3%] top-[32%] -translate-y-1/2 w-20 sm:w-32 md:w-40 lg:w-44 opacity-90 sm:opacity-100', img: mp[3]?.image || mp[0]?.image || section.data.imageUrl }
             ].filter(f => f.img);
             const tagText = String(section.data.badgeText || 'our fresh spring growing').toUpperCase();
             return (

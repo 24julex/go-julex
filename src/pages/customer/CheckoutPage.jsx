@@ -7,6 +7,7 @@ import { DEMO_STORES } from '../../data/multiVerticalMockData';
 import { formatCurrency, formatINR, formatDateTime } from '../../utils/formatters';
 import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
 import { api } from '../../services/api';
+import { BOTAN, BOTAN_SERIF, BOTAN_SANS } from '../../data/botanicalTheme';
 import confetti from 'canvas-confetti';
 import {
   ShieldCheck,
@@ -354,6 +355,156 @@ export const CheckoutPage = () => {
   })();
 
   const currentSubdomain = resolvedSubdomain || matchedStore.subdomain?.replace(/\.gojulex\.com$/, '').replace(/^store_/, '') || 'ramstshirt';
+
+  // The store's PUBLISHED template owns this page too.
+  const [botanTheme, setBotanTheme] = useState(null);
+  useEffect(() => {
+    if (!currentSubdomain) return undefined;
+    let cancelled = false;
+    api.themes.getPublicConfig(currentSubdomain)
+      .then((res) => { if (!cancelled && res?.success && res?.data?.styles) setBotanTheme(res.data.styles); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [currentSubdomain]);
+
+  // ============================================================
+  // BOTANICAL ATELIER CHECKOUT — the store's chosen template
+  // owns this page: glass nav, greige canvas, olive ink, pill
+  // form fields and an olive place-order action.
+  // ============================================================
+  if (botanTheme?.layoutStyle === 'botanical_atelier' && currentSubdomain) {
+    const botanInput = 'w-full rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-1';
+    const botanInputStyle = { backgroundColor: BOTAN.bg, border: `1px solid ${BOTAN.sand}`, color: BOTAN.olive };
+
+    const botanGlassNav = (
+      <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(226,219,210,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(215,207,190,0.5)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+          <Link to={`/store/${currentSubdomain}`} className="text-2xl font-light tracking-[0.2em]" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>
+            {matchedStore?.name || cartItems[0]?.storeName || 'Atelier'}
+          </Link>
+          <Link to={`/store/${currentSubdomain}/cart`} className="border px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all" style={{ borderColor: BOTAN.olive, color: BOTAN.olive }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BOTAN.olive; e.currentTarget.style.color = BOTAN.bg; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = BOTAN.olive; }}>
+            ← The Bag
+          </Link>
+        </div>
+      </header>
+    );
+
+    if (confirmedOrder) {
+      return (
+        <div className="min-h-screen" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive, fontFamily: BOTAN_SANS }}>
+          <StorefrontModeToggle accent={BOTAN.olive} />
+          {botanGlassNav}
+          <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+            <div className="w-16 h-16 rounded-full mx-auto mb-8 flex items-center justify-center border" style={{ borderColor: BOTAN.olive }}>
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </div>
+            <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>Commission Received</span>
+            <h1 className="text-4xl sm:text-5xl font-light mb-4" style={{ fontFamily: BOTAN_SERIF }}>Thank you — your botanical works are on their way.</h1>
+            <p className="text-sm font-light mb-2" style={{ color: 'rgba(40,70,39,0.8)' }}>
+              Order <strong style={{ fontFamily: 'monospace' }}>{confirmedOrder.orderNumber || confirmedOrder.id}</strong> is confirmed.
+            </p>
+            <p className="text-xs font-light" style={{ color: 'rgba(40,70,39,0.7)' }}>Your GST tax invoice has been emailed to you. Payment is due on delivery.</p>
+            <div className="mt-10 p-6 rounded-3xl border text-left inline-block" style={{ borderColor: BOTAN.sand, backgroundColor: BOTAN.bgLight }}>
+              <div className="text-sm space-y-1.5">
+                {(confirmedOrder.items || []).map((it, i) => (
+                  <p key={i} className="flex justify-between gap-10"><span>{it.name}{it.variant ? ` (${it.variant})` : ''} × {it.quantity}</span><span>₹{Number((it.finalPrice || it.price) * it.quantity || 0).toLocaleString('en-IN')}</span></p>
+                ))}
+                <p className="flex justify-between gap-10 pt-2 border-t font-semibold" style={{ borderColor: BOTAN.sand }}><span>Total (COD)</span><span>₹{Number(confirmedOrder.totalAmount || cartTotals.finalAmount || 0).toLocaleString('en-IN')}</span></p>
+              </div>
+            </div>
+            <div className="mt-10">
+              <Link to={`/store/${currentSubdomain}`} className="inline-block px-8 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] shadow-md" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                Return to the Atelier
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive, fontFamily: BOTAN_SANS }}>
+        <StorefrontModeToggle accent={BOTAN.olive} />
+        {botanGlassNav}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-16">
+          <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>Final Step</span>
+          <h1 className="text-4xl sm:text-5xl font-light tracking-tight mb-10" style={{ fontFamily: BOTAN_SERIF }}>Checkout</h1>
+
+          {cartItems.length === 0 ? (
+            <p className="text-sm font-light py-12" style={{ color: 'rgba(40,70,39,0.7)' }}>
+              Your bag is empty. <Link to={`/store/${currentSubdomain}/catalog`} className="underline">Browse the curations</Link> to continue.
+            </p>
+          ) : (
+            <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+              {/* Delivery details */}
+              <div className="lg:col-span-7 space-y-5">
+                <div className="p-6 sm:p-8 rounded-3xl border space-y-5" style={{ borderColor: BOTAN.sand, backgroundColor: BOTAN.bgLight }}>
+                  <h2 className="text-2xl font-light" style={{ fontFamily: BOTAN_SERIF }}>Delivery Details</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input className={botanInput} style={botanInputStyle} placeholder="Full Name" value={formData.fullName} onChange={handleInputChange} name="fullName" required />
+                    <input className={botanInput} style={botanInputStyle} placeholder="Phone" value={formData.phone} onChange={handleInputChange} name="phone" required />
+                  </div>
+                  <input className={botanInput} style={botanInputStyle} type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} name="email" required />
+                  <input className={botanInput} style={botanInputStyle} placeholder="Street Address" value={formData.street} onChange={handleInputChange} name="street" required />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <input className={botanInput} style={botanInputStyle} placeholder="City" value={formData.city} onChange={handleInputChange} name="city" required />
+                    <input className={botanInput} style={botanInputStyle} placeholder="State" value={formData.state} onChange={handleInputChange} name="state" required />
+                    <input className={botanInput} style={botanInputStyle} placeholder="PIN Code" value={formData.zipCode} onChange={handleInputChange} name="zipCode" required pattern="\d{6}" title="Six-digit PIN code" />
+                  </div>
+                  <p className="text-[11px] font-light" style={{ color: 'rgba(40,70,39,0.6)' }}>Your invoice will be emailed to this address the moment the order is placed.</p>
+                </div>
+
+                <div className="p-6 sm:p-8 rounded-3xl border space-y-3" style={{ borderColor: BOTAN.olive, backgroundColor: 'rgba(40,70,39,0.06)' }}>
+                  <h2 className="text-xl font-light" style={{ fontFamily: BOTAN_SERIF }}>Payment Method</h2>
+                  <p className="text-sm font-medium">Cash on Delivery</p>
+                  <p className="text-xs font-light" style={{ color: 'rgba(40,70,39,0.7)' }}>Online payment is being configured — pay the courier on arrival. 0% platform fee applies.</p>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="lg:col-span-5 lg:sticky lg:top-28 p-6 sm:p-8 rounded-3xl border space-y-5" style={{ borderColor: BOTAN.sand, backgroundColor: BOTAN.bgLight }}>
+                <h2 className="text-2xl font-light" style={{ fontFamily: BOTAN_SERIF }}>Your Selection</h2>
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                  {cartItems.map((item) => (
+                    <div key={item.cartItemId || item.id} className="flex gap-3 items-center">
+                      <div className="w-14 aspect-[4/5] rounded-xl overflow-hidden shrink-0" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                        <img src={(item.images && item.images[0]) || item.image || item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs truncate">{item.name}{item.variant ? ` · ${item.variant}` : ''}</p>
+                        <p className="text-[10px] font-light" style={{ color: 'rgba(40,70,39,0.7)' }}>Qty {item.quantity || 1}</p>
+                      </div>
+                      <span className="text-xs font-semibold shrink-0">₹{Number((item.finalPrice || item.price) * (item.quantity || 1) || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-2 text-sm border-t pt-3" style={{ borderColor: BOTAN.sand }}>
+                  <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Subtotal</span><span>₹{Number(cartTotals.originalSubtotal || 0).toLocaleString('en-IN')}</span></div>
+                  {appliedCoupon && <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Coupon {appliedCoupon.code || ''}</span><span>− ₹{Number(cartTotals.promoSavings || 0).toLocaleString('en-IN')}</span></div>}
+                  <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Courier</span><span>FREE</span></div>
+                  <div className="flex justify-between items-baseline pt-2 border-t" style={{ borderColor: BOTAN.sand }}>
+                    <span className="text-xs uppercase tracking-[0.2em] font-semibold">Total</span>
+                    <span className="text-xl font-semibold" style={{ fontFamily: BOTAN_SERIF }}>₹{Number(cartTotals.finalAmount || 0).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <input value={checkoutPromoInput} onChange={(e) => setCheckoutPromoInput(e.target.value)} placeholder="Coupon code" className="flex-1 rounded-full px-5 py-3 text-xs focus:outline-none focus:ring-1" style={{ backgroundColor: BOTAN.bg, border: `1px solid ${BOTAN.sand}`, color: BOTAN.olive }} />
+                  <button type="button" onClick={handleApplyCoupon} disabled={couponBusy} className="px-5 py-3 rounded-full text-[10px] uppercase tracking-widest font-medium cursor-pointer disabled:opacity-50" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                    {couponBusy ? '…' : 'Apply'}
+                  </button>
+                </div>
+                {checkoutPromoError && <p className="text-[11px]" style={{ color: '#B3261E' }}>{checkoutPromoError}</p>}
+                <button type="submit" disabled={isProcessing} className="w-full px-8 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] shadow-md transition hover:opacity-90 cursor-pointer disabled:opacity-60" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                  {isProcessing ? 'Placing Order…' : 'Place Order · Cash on Delivery'}
+                </button>
+                <p className="text-[10px] text-center font-light" style={{ color: 'rgba(40,70,39,0.6)' }}>By placing this order you agree to the atelier's terms. Invoice arrives by email instantly.</p>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // ----------------------------------------------------
   // ORDER CONFIRMED VIEW

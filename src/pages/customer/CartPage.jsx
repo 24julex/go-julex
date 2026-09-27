@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { formatCurrency, formatINR } from '../../utils/formatters';
 import { StorefrontModeToggle } from '../../components/customer/StorefrontModeToggle';
+import { api } from '../../services/api';
+import { BOTAN, BOTAN_SERIF, BOTAN_SANS } from '../../data/botanicalTheme';
 import {
   ShoppingBag,
   Trash2,
@@ -37,6 +39,19 @@ export const CartPage = () => {
   const [promoInput, setPromoInput] = useState('');
   const [promoError, setPromoError] = useState('');
   const navigate = useNavigate();
+  const { subdomain: routeSubdomain } = useParams();
+  const cleanSub = String(routeSubdomain || cartItems[0]?.storeSubdomain || '').toLowerCase().replace(/\.gojulex\.com$/, '').replace(/^store_/, '');
+
+  // The store's PUBLISHED template owns this page too.
+  const [botanTheme, setBotanTheme] = useState(null);
+  useEffect(() => {
+    if (!cleanSub) return undefined;
+    let cancelled = false;
+    api.themes.getPublicConfig(cleanSub)
+      .then((res) => { if (!cancelled && res?.success && res?.data?.styles) setBotanTheme(res.data.styles); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [cleanSub]);
 
   const {
     originalSubtotal,
@@ -63,6 +78,112 @@ export const CartPage = () => {
     setPromoError('');
     applyPromoCode(code);
   };
+
+  // ============================================================
+  // BOTANICAL ATELIER BAG — the store's chosen template owns
+  // this page: glass nav, greige canvas, olive ink, pill
+  // quantity steppers and an olive checkout action.
+  // ============================================================
+  if (botanTheme?.layoutStyle === 'botanical_atelier' && cleanSub) {
+    const botanGlassNav = (
+      <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(226,219,210,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(215,207,190,0.5)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+          <Link to={`/store/${cleanSub}`} className="text-2xl font-light tracking-[0.2em]" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>
+            {cartItems[0]?.storeName || 'Atelier'}
+          </Link>
+          <Link to={`/store/${cleanSub}/catalog`} className="border px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all" style={{ borderColor: BOTAN.olive, color: BOTAN.olive }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BOTAN.olive; e.currentTarget.style.color = BOTAN.bg; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = BOTAN.olive; }}>
+            Continue Curations
+          </Link>
+        </div>
+      </header>
+    );
+
+    if (cartItems.length === 0) {
+      return (
+        <div className="min-h-screen" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive, fontFamily: BOTAN_SANS }}>
+          <StorefrontModeToggle accent={BOTAN.olive} />
+          {botanGlassNav}
+          <div className="max-w-xl mx-auto px-4 py-24 text-center">
+            <ShoppingBag className="w-12 h-12 mx-auto mb-6" strokeWidth={1.2} style={{ color: BOTAN.olive }} />
+            <h1 className="text-4xl font-light mb-3" style={{ fontFamily: BOTAN_SERIF }}>Your bag is empty</h1>
+            <p className="text-sm font-light mb-10" style={{ color: 'rgba(40,70,39,0.7)' }}>Nothing curated yet — return to the atelier and add a botanical work.</p>
+            <Link to={`/store/${cleanSub}/catalog`} className="inline-block px-8 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] shadow-md" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+              Browse the Curations
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive, fontFamily: BOTAN_SANS }}>
+        <StorefrontModeToggle accent={BOTAN.olive} />
+        {botanGlassNav}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-16">
+          <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>Your Selection</span>
+          <h1 className="text-4xl sm:text-5xl font-light tracking-tight mb-10" style={{ fontFamily: BOTAN_SERIF }}>
+            The Shopping Bag <span className="text-lg align-middle font-normal">({itemCount} {itemCount === 1 ? 'work' : 'works'})</span>
+          </h1>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            {/* Items */}
+            <div className="lg:col-span-7 space-y-5">
+              {cartItems.map((item) => (
+                <div key={item.cartItemId || item.id} className="flex gap-5 p-4 rounded-3xl border" style={{ borderColor: BOTAN.sand, backgroundColor: 'rgba(236,231,225,0.5)' }}>
+                  <Link to={`/store/${cleanSub}/product/${item.id}`} className="w-24 sm:w-28 aspect-[4/5] rounded-2xl overflow-hidden shrink-0" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                    <img src={(item.images && item.images[0]) || item.image || item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  </Link>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex justify-between items-baseline gap-3">
+                      <Link to={`/store/${cleanSub}/product/${item.id}`} className="text-lg sm:text-xl leading-tight hover:underline" style={{ fontFamily: BOTAN_SERIF }}>{item.name}</Link>
+                      <span className="text-sm font-semibold shrink-0">₹{Number(item.finalPrice || item.price || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                    {item.variant && <p className="text-[11px] font-light" style={{ color: 'rgba(40,70,39,0.7)' }}>{item.variant}</p>}
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center rounded-full border" style={{ borderColor: 'rgba(40,70,39,0.4)' }}>
+                        <button onClick={() => updateQuantity(item.cartItemId || item.id, Math.max(1, (item.quantity || 1) - 1))} className="px-3.5 py-2 cursor-pointer">−</button>
+                        <span className="px-2 text-xs font-semibold">{item.quantity || 1}</span>
+                        <button onClick={() => updateQuantity(item.cartItemId || item.id, (item.quantity || 1) + 1)} className="px-3.5 py-2 cursor-pointer">+</button>
+                      </div>
+                      <button onClick={() => removeFromCart(item.cartItemId || item.id)} className="p-2 rounded-full hover:opacity-60 transition cursor-pointer" style={{ color: 'rgba(40,70,39,0.6)' }} aria-label="Remove item" title="Remove">
+                        <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Summary */}
+            <div className="lg:col-span-5 lg:sticky lg:top-28 p-6 sm:p-8 rounded-3xl border space-y-5" style={{ borderColor: BOTAN.sand, backgroundColor: BOTAN.bgLight }}>
+              <h2 className="text-2xl font-light" style={{ fontFamily: BOTAN_SERIF }}>Order Summary</h2>
+              <div className="space-y-2.5 text-sm">
+                <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Subtotal</span><span>₹{Number(originalSubtotal || 0).toLocaleString('en-IN')}</span></div>
+                {(productSavings || 0) > 0 && <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Maker savings</span><span>− ₹{Number(productSavings).toLocaleString('en-IN')}</span></div>}
+                {(promoSavings || 0) > 0 && <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Promo {appliedPromo?.code ? `(${appliedPromo.code})` : ''}</span><span>− ₹{Number(promoSavings).toLocaleString('en-IN')}</span></div>}
+                <div className="flex justify-between"><span style={{ color: 'rgba(40,70,39,0.7)' }}>Courier</span><span style={{ color: BOTAN.olive }}>FREE</span></div>
+                <div className="flex justify-between items-baseline pt-3 border-t" style={{ borderColor: BOTAN.sand }}>
+                  <span className="text-xs uppercase tracking-[0.2em] font-semibold">Total</span>
+                  <span className="text-xl font-semibold" style={{ fontFamily: BOTAN_SERIF }}>₹{Number(finalAmount || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleApplyPromo} className="flex gap-2">
+                <input value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="Promo code" className="flex-1 rounded-full px-5 py-3 text-xs focus:outline-none focus:ring-1" style={{ backgroundColor: BOTAN.bg, border: `1px solid ${BOTAN.sand}`, color: BOTAN.olive }} />
+                <button type="submit" className="px-5 py-3 rounded-full text-[10px] uppercase tracking-widest font-medium cursor-pointer" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>Apply</button>
+              </form>
+              {promoError && <p className="text-[11px]" style={{ color: '#B3261E' }}>{promoError}</p>}
+
+              <button onClick={() => navigate(`/store/${cleanSub}/checkout`)} className="w-full px-8 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] shadow-md transition hover:opacity-90 cursor-pointer" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                Proceed to Checkout
+              </button>
+              <p className="text-[10px] text-center font-light" style={{ color: 'rgba(40,70,39,0.6)' }}>Cash on delivery · 0% platform fee · direct from the atelier</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (

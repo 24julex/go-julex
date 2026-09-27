@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { formatCurrency, calculateDiscount } from '../../utils/formatters';
 import { INITIAL_PRODUCTS_BY_STORE, DEMO_STORES } from '../../data/multiVerticalMockData';
 import { api } from '../../services/api';
+import { BOTAN, BOTAN_SERIF, BOTAN_SANS } from '../../data/botanicalTheme';
 import {
   ShoppingBag,
   Heart,
@@ -236,6 +237,132 @@ export const ProductDetailPage = () => {
     setReviewSubmitted(true);
     showToast('Thank you! Your artisan feedback has been posted.');
   };
+
+  // ============================================================
+  // BOTANICAL ATELIER PRODUCT PAGE — the store's chosen
+  // template owns every page: greige canvas, glass nav,
+  // Cormorant serif, olive ink, 4:5 gallery and pill actions.
+  // ============================================================
+  if (storeTheme?.layoutStyle === 'botanical_atelier' && cleanSubdomain) {
+    const gallery = (Array.isArray(product.images) && product.images.length > 0)
+      ? product.images
+      : [product.imageUrl].filter(Boolean);
+    const safeGallery = gallery.length > 0 ? gallery : ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80'];
+    const specs = [];
+    try {
+      const raw = typeof product.specsJson === 'string' ? JSON.parse(product.specsJson) : product.specs;
+      if (raw && typeof raw === 'object') {
+        Object.entries(raw).forEach(([k, v]) => {
+          if (v !== null && v !== undefined && typeof v !== 'object') specs.push([k, String(v)]);
+        });
+      }
+    } catch (e) {}
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive, fontFamily: BOTAN_SANS }}>
+        <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(226,219,210,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(215,207,190,0.5)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+            <Link to={`/store/${cleanSubdomain}`} className="text-2xl font-light tracking-[0.2em]" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>
+              {matchedStore?.name || 'Atelier'}
+            </Link>
+            <Link to={`/store/${cleanSubdomain}/catalog`} className="border px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all" style={{ borderColor: BOTAN.olive, color: BOTAN.olive }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BOTAN.olive; e.currentTarget.style.color = BOTAN.bg; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = BOTAN.olive; }}>
+              All Curations
+            </Link>
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-16">
+          <p className="text-[10px] uppercase tracking-[0.25em] mb-8" style={{ color: 'rgba(40,70,39,0.7)' }}>
+            <Link to={`/store/${cleanSubdomain}`} className="hover:underline">Atelier</Link> · <Link to={`/store/${cleanSubdomain}/catalog`} className="hover:underline">Curations</Link> · {product.category || 'Botanical Work'}
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+            {/* Gallery */}
+            <div className="lg:col-span-6 space-y-4 lg:sticky lg:top-28">
+              <div className="aspect-[4/5] rounded-3xl overflow-hidden border-4 shadow-xl" style={{ borderColor: BOTAN.bg, backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                <img src={safeGallery[Math.min(selectedImage, safeGallery.length - 1)]} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+              {safeGallery.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                  {safeGallery.map((img, idx) => (
+                    <button key={idx} type="button" onClick={() => setSelectedImage(idx)} className={`w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0 transition cursor-pointer ${idx === selectedImage ? 'scale-105' : 'opacity-70 hover:opacity-100'}`} style={{ borderColor: idx === selectedImage ? BOTAN.olive : BOTAN.sand }}>
+                      <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Details */}
+            <div className="lg:col-span-6 space-y-8">
+              <div className="space-y-3">
+                {product.brand && (
+                  <span className="text-xs uppercase tracking-[0.3em] font-semibold block" style={{ color: 'rgba(40,70,39,0.7)' }}>{product.brand}</span>
+                )}
+                <h1 className="text-4xl sm:text-5xl font-light leading-tight" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>{product.name}</h1>
+                <div className="flex items-baseline gap-3 pt-1">
+                  <span className="text-2xl font-semibold" style={{ color: BOTAN.olive }}>₹{Number(finalPrice || 0).toLocaleString('en-IN')}</span>
+                  {product.discountPercent > 0 && (
+                    <>
+                      <span className="text-sm line-through" style={{ color: 'rgba(40,70,39,0.5)' }}>₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] tracking-wider uppercase" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>{product.discountPercent}% OFF</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {product.description && (
+                <p className="text-sm font-light leading-relaxed" style={{ color: 'rgba(40,70,39,0.8)' }}>{product.description}</p>
+              )}
+
+              {productOptionSets.length > 0 && (
+                <div className="space-y-5">
+                  {productOptionSets.map((os) => (
+                    <div key={os.id || os.name} className="space-y-2">
+                      <label className="text-xs uppercase tracking-[0.25em] font-semibold block" style={{ color: 'rgba(40,70,39,0.7)' }}>Select {os.name}</label>
+                      <div className="flex flex-wrap gap-2">
+                        {os.values.map((val) => (
+                          <button key={val} type="button" onClick={() => setSelectedDetailOptions((prev) => ({ ...prev, [os.name]: val }))}
+                            className="px-4 py-2 rounded-full border text-xs transition-all cursor-pointer"
+                            style={selectedDetailOptions[os.name] === val ? { backgroundColor: BOTAN.olive, color: BOTAN.bg, borderColor: BOTAN.olive } : { borderColor: 'rgba(40,70,39,0.4)', color: BOTAN.olive }}>
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {specs.length > 0 && (
+                <div className="p-5 rounded-2xl border" style={{ borderColor: BOTAN.sand, backgroundColor: BOTAN.bgLight }}>
+                  <span className="text-[10px] uppercase tracking-[0.25em] font-semibold block mb-2" style={{ color: 'rgba(40,70,39,0.7)' }}>Product Specifications</span>
+                  <div className="space-y-1 text-xs font-light" style={{ color: 'rgba(40,70,39,0.8)' }}>
+                    {specs.map(([k, v]) => (
+                      <p key={k}><strong style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive, fontWeight: 500 }}>{k}:</strong> {v}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                <div className="flex items-center rounded-full border" style={{ borderColor: 'rgba(40,70,39,0.4)' }}>
+                  <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-3 text-lg cursor-pointer" style={{ color: BOTAN.olive }}>−</button>
+                  <span className="px-2 text-sm font-semibold">{quantity}</span>
+                  <button type="button" onClick={() => setQuantity(Math.min(20, quantity + 1))} className="px-4 py-3 text-lg cursor-pointer" style={{ color: BOTAN.olive }}>+</button>
+                </div>
+                <button type="button" onClick={handleAddToCart} disabled={isOutOfStock}
+                  className="flex-1 px-8 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] transition-all shadow-md cursor-pointer disabled:opacity-50"
+                  style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>
+                  {isOutOfStock ? 'Sold Out' : 'Add to Bag'}
+                </button>
+              </div>
+              <p className="text-[11px] font-light" style={{ color: 'rgba(40,70,39,0.6)' }}>Cash on delivery · 0% platform fee · shipped straight from the atelier</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

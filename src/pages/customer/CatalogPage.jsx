@@ -8,6 +8,7 @@ import { StorefrontModeToggle } from '../../components/customer/StorefrontModeTo
 import { INITIAL_PRODUCTS_BY_STORE, DEMO_STORES } from '../../data/multiVerticalMockData';
 import { HARMONIOUS_THEME_PRESETS } from '../admin/channels/AdminThemeBuilder';
 import { api } from '../../services/api';
+import { BOTAN, BOTAN_SERIF, BOTAN_SANS } from '../../data/botanicalTheme';
 import { SlidersHorizontal, ArrowUpDown, X, Store } from 'lucide-react';
 
 export const CatalogPage = () => {
@@ -263,6 +264,92 @@ export const CatalogPage = () => {
     }
     return brands;
   }, [cleanSubdomain, products, brands]);
+
+  // ============================================================
+  // BOTANICAL ATELIER CATALOG — the store's chosen template
+  // owns every page: same greige canvas, Cormorant serif,
+  // olive ink, filter pills and 4:5 curation cards as the
+  // storefront home.
+  // ============================================================
+  if (themeStyles?.layoutStyle === 'botanical_atelier' && cleanSubdomain) {
+    const visible = selectedCategory && selectedCategory !== ''
+      ? products.filter(p => p.category === selectedCategory)
+      : products;
+    const searched = searchQuery
+      ? visible.filter(p => String(p.name || '').toLowerCase().includes(searchQuery.toLowerCase()))
+      : visible;
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: BOTAN.bg, color: BOTAN.olive, fontFamily: BOTAN_SANS }}>
+        <StorefrontModeToggle accent={BOTAN.olive} />
+        {/* Glass nav — same as the storefront home */}
+        <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(226,219,210,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(215,207,190,0.5)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+            <Link to={`/store/${cleanSubdomain}`} className="flex items-center gap-3 group">
+              <span className="text-2xl font-light tracking-[0.2em]" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>
+                {matchedStore?.name || 'Atelier'}
+              </span>
+            </Link>
+            <div className="flex items-center gap-4">
+              <Link to={`/store/${cleanSubdomain}`} className="border px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all" style={{ borderColor: BOTAN.olive, color: BOTAN.olive }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BOTAN.olive; e.currentTarget.style.color = BOTAN.bg; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = BOTAN.olive; }}>
+                ← The Atelier
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <section className="py-16 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+              <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>The Full Collection</span>
+              <h1 className="text-4xl sm:text-6xl font-normal tracking-tight" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>Curated Botanical Works</h1>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search the collection…"
+              className="w-full md:w-72 rounded-full px-5 py-3 text-xs focus:outline-none focus:ring-1"
+              style={{ backgroundColor: BOTAN.bgLight, border: `1px solid ${BOTAN.sand}`, color: BOTAN.olive }}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-xs tracking-widest uppercase mb-12">
+            <button onClick={() => setSelectedCategory('')} className="px-4 py-2 rounded-full border transition-all cursor-pointer" style={selectedCategory === '' ? { backgroundColor: BOTAN.olive, color: BOTAN.bg, borderColor: BOTAN.olive } : { borderColor: 'rgba(40,70,39,0.4)', color: BOTAN.olive }}>All Editions</button>
+            {storeCategories.filter(c => c && c !== 'Fashion & Apparel').map((c) => (
+              <button key={c} onClick={() => setSelectedCategory(selectedCategory === c ? '' : c)} className="px-4 py-2 rounded-full border transition-all cursor-pointer" style={selectedCategory === c ? { backgroundColor: BOTAN.olive, color: BOTAN.bg, borderColor: BOTAN.olive } : { borderColor: 'rgba(40,70,39,0.4)', color: BOTAN.olive }}>{c}</button>
+            ))}
+          </div>
+
+          {searched.length === 0 ? (
+            <p className="text-sm font-light py-16 text-center" style={{ color: 'rgba(40,70,39,0.7)' }}>No works match this edition yet — check back soon.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12">
+              {searched.map((p) => (
+                <Link key={p.id} to={`/store/${cleanSubdomain}/product/${p.id}`} className="group block">
+                  <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                    <img src={(p.images && p.images[0]) || p.imageUrl || p.image} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    {(p.tag || p.category) && (
+                      <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] tracking-wider uppercase backdrop-blur-sm" style={{ backgroundColor: 'rgba(226,219,210,0.9)', color: BOTAN.olive }}>{p.tag || p.category}</span>
+                    )}
+                    {p.discountPercent > 0 && (
+                      <span className="absolute bottom-4 left-4 px-3 py-1 rounded-full text-[10px] tracking-wider uppercase" style={{ backgroundColor: BOTAN.olive, color: BOTAN.bg }}>{p.discountPercent}% OFF</span>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-xl sm:text-2xl group-hover:underline" style={{ fontFamily: BOTAN_SERIF, color: BOTAN.olive }}>{p.name}</h3>
+                    <span className="text-sm font-semibold" style={{ color: BOTAN.olive }}>
+                      ₹{Number(p.sellingPriceINR || p.finalPrice || p.price || 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <p className="text-xs mt-1 font-light" style={{ color: 'rgba(40,70,39,0.7)' }}>{p.description || p.tagline || p.tag || ''}</p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div
