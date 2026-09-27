@@ -14,6 +14,23 @@ import { HARMONIOUS_THEME_PRESETS } from '../pages/admin/channels/AdminThemeBuil
 // public/theme-images/ (hotlinked CDNs break previews).
 // ============================================================
 export const THEME_META = {
+  preset_botanical_atelier: {
+    brandName: 'Wildstem Botanical Atelier',
+    tagline: 'Contemporary Floral Atelier & Botanical Studio',
+    aesthetic: 'Editorial Botanical Atelier',
+    thumbnail: '/theme-images/organic-1.webp',
+    heroImage: '/theme-images/organic-1.webp',
+    storyImage: '/theme-images/organic-3.jpg',
+    bannerImage: '/theme-images/organic-2.jpg',
+    products: [
+      { id: 'botanica_1', name: 'Dried Wildstem Bouquet', price: 1899, discountPercent: 10, image: '/theme-images/organic-1.webp', tag: 'Signature', category: 'Dried Bouquets', brand: 'Wildstem' },
+      { id: 'botanica_2', name: 'Terrarium Glass Garden', price: 2450, discountPercent: 0, image: '/theme-images/organic-2.jpg', tag: 'Atelier Pick', category: 'Terrariums', brand: 'Wildstem' },
+      { id: 'botanica_3', name: 'Botanical Soy Candle', price: 950, discountPercent: 5, image: '/theme-images/tea-2.jpg', tag: 'New', category: 'Home Fragrance', brand: 'Wildstem' },
+      { id: 'botanica_4', name: 'Pressed Flower Frame', price: 1650, discountPercent: 0, image: '/theme-images/organic-3.jpg', tag: 'Limited', category: 'Wall Art', brand: 'Wildstem' },
+      { id: 'botanica_5', name: 'Herbal Tea Trio Box', price: 1200, discountPercent: 15, image: '/theme-images/tea-1.jpg', tag: 'Best Seller', category: 'Pantry', brand: 'Wildstem' },
+      { id: 'botanica_6', name: 'Woven Botanical Basket', price: 1350, discountPercent: 0, image: '/theme-images/craft-1.webp', tag: 'Handwoven', category: 'Home Goods', brand: 'Wildstem' }
+    ]
+  },
   preset_soft_peach: {
     brandName: 'Aura Haute Atelier',
     tagline: 'Haute Couture & Bespoke Eveningwear',

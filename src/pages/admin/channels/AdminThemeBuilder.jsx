@@ -51,6 +51,26 @@ import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
 // Master Template Layout Architectures & 14 Harmonious Theme Presets
 export const HARMONIOUS_THEME_PRESETS = [
   {
+    id: 'preset_botanical_atelier',
+    name: '🌿 Wildstem Botanical Atelier',
+    desc: 'Editorial botanical atelier: warm greige canvas, deep olive ink, terracotta accents and monumental Cormorant serif headlines',
+    layoutStyle: 'organic_artisan',
+    headingFont: 'Cormorant Garamond',
+    bodyFont: 'Plus Jakarta Sans',
+    baseFontSize: 15,
+    backgroundColor: '#E2DBD2',
+    surfaceColor: '#F3E8E2',
+    headerBg: '#ECE7E1',
+    announcementBg: '#284627',
+    announcementText: '#ECE7E1',
+    accentColor: '#D49B84',
+    headingColor: '#284627',
+    textColor: '#3D5E3C',
+    cardSurface: '#F3E8E2',
+    buttonRadius: 'rounded-2xl',
+    cardBorder: 'border-[#D7CFBE]'
+  },
+  {
     id: 'preset_soft_peach',
     name: '✨ Aura Haute Atelier Luxury',
     desc: 'Asymmetrical luxury split hero, serif display typography, floating glass cards & peach drop cap',
