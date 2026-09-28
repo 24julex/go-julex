@@ -399,13 +399,28 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     const field = (img && img.dataset && img.dataset.jxField) || resolveImageField(sec);
     const cfg = readCfg(keys) || ensureCfg();
     const st = ((cfg.imgStyles || []).find((x) => x.sid === sid && x.field === field)) || {};
+    // ART-DIRECTED FRAMES: when the image sits inside a decorative frame
+    // (polaroid card, bordered tile…) the MERCHANT expects to move and resize
+    // the WHOLE card — dragging the inner <img> only slides it under the
+    // clipped frame. Climb to the nearest clipping ancestor and select that.
+    let target = img;
+    let frame = img.parentElement;
+    while (frame && frame !== document.body && !frame.classList.contains('jx-edit-wrap')) {
+      const cs = getComputedStyle(frame);
+      const clips = cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden';
+      if (clips && frame.tagName === 'DIV') {
+        target = frame; // the decorative frame — move/resize THIS
+        break;
+      }
+      frame = frame.parentElement;
+    }
     finishTextEdit(false);
     setSel({
-      kind: 'image', el: img, sid, field,
-      w: st.w || Math.round(img.getBoundingClientRect().width),
+      kind: 'image', el: target, sid, field,
+      w: st.w || Math.round(target.getBoundingClientRect().width),
       move: false,
     });
-    markSelected(img, true);
+    markSelected(target, true);
   };
 
   const selectFloatImage = (imgNode, f) => {
