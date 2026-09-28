@@ -553,6 +553,14 @@ export const DynamicStorefrontPage = () => {
     if (isJulexEditMode && matchedStore?.id) applyJuxInlineStyles(matchedStore.id, cleanSubdomain);
   }, [isJulexEditMode, matchedStore?.id, cleanSubdomain]);
 
+  // Draft preview handshake: ask the builder for the CURRENT draft the
+  // moment this listener is live, so the preview never renders a stale
+  // saved theme while waiting for the builder's next edit to stream.
+  useEffect(() => {
+    if (!isJulexDraftPreview) return undefined;
+    try { if (window.parent !== window) window.parent.postMessage({ type: 'julex-draft-request' }, '*'); } catch (e) {}
+  }, [isJulexDraftPreview]);
+
   // Visual Customizer draft: the builder streams its CURRENT sections/styles
   // into this preview — the preview never keeps an independent copy.
   useEffect(() => {

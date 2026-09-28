@@ -366,13 +366,19 @@ export const AdminThemes = () => {
 
                   {/* Hover overlay: Live Preview sits at the BOTTOM of the
                       image so it never covers the theme name lettering. */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-end justify-center p-4 pb-3">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-end justify-center gap-2 p-4 pb-3">
                     <button
                       onClick={() => setDemoModalTheme(theme)}
                       className="px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold text-xs transition flex items-center gap-1 shadow-xs cursor-pointer"
                     >
                       <Eye className="w-4 h-4" /> Live Preview
                     </button>
+                    <Link
+                      to={`/admin/channels/online-store/themes/builder?preset=${theme.presetId || theme.id}`}
+                      className="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white text-[#111] font-bold text-xs transition flex items-center gap-1 shadow-xs"
+                    >
+                      <Sliders className="w-4 h-4" /> Customize
+                    </Link>
                   </div>
                 </div>
 

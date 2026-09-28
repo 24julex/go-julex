@@ -797,6 +797,37 @@ export const AVAILABLE_BLOCK_LIBRARY = [
   }
 ];
 
+
+// Local twin of themeRegistry's buildThemeSectionsForApply (same ids, order
+// and fields). The registry imports this module, so it cannot be imported
+// back statically — this keeps the builder's defaults byte-identical to the
+// Live Preview without a circular import.
+const defaultSectionsFor = (presetId, store) => {
+  const preset = HARMONIOUS_THEME_PRESETS.find(p => p.id === presetId) || HARMONIOUS_THEME_PRESETS[0];
+  // NOTE: no THEME_META here — the registry imports this module, so a static
+  // import back would be circular and silently undefined at eval time. The
+  // async bootstrap replaces this placeholder with THEME_META-accurate
+  // sections from the registry the moment it loads.
+  const brand = store?.name || 'Our Store';
+  const tagline = 'Direct from our studio — 0% platform commission';
+  const aesthetic = preset?.desc || 'Pure D2C Craftsmanship';
+  const hero = '/theme-images/fashion-2.jpg';
+  const banner = hero;
+  const story = hero;
+  const firstProduct = (meta.products && meta.products[0]) || {};
+  return [
+    { id: 'sec_announcement', type: 'announcement', name: 'Announcement Bar', enabled: true, data: { text: `${tagline} — now live with 0% platform commission`, linkText: 'Shop Now', linkUrl: '#products' } },
+    { id: 'sec_header', type: 'header', name: 'Navigation Header', enabled: true, data: { logoText: brand, tagline, navLink1: 'Shop', navLink2: 'Categories', navLink3: 'About Us' } },
+    { id: 'sec_hero', type: 'hero', name: 'Hero Banner', enabled: true, data: { badgeText: aesthetic, headline: brand, subtext: tagline, ctaText: 'Shop the Collection', secondaryBtnText: 'Best Sellers', imageUrl: hero } },
+    { id: 'sec_products', type: 'product_grid', name: 'Product Grid', enabled: true, data: { title: 'Shop By Category', subtitle: `${tagline} — every product direct, 0% commission.`, columns: 6 } },
+    { id: 'sec_promo', type: 'promo_banner', name: 'Offer Banner', enabled: true, data: { title: `Season Offer at ${brand}`, subtitle: 'Limited-time savings across the collection. Use code BLOOM25 at checkout.', ctaText: 'Shop the Offer', imageUrl: banner } },
+    { id: 'sec_best_sellers', type: 'video_reels', name: 'Best Sellers', enabled: true, data: { title: 'Best Sellers', subtitle: 'The most-loved picks this season.', columns: 4 } },
+    { id: 'sec_pillars', type: 'testimonials', name: 'Customer Promise', enabled: true, data: { title: 'What We Provide Our Customers' } },
+    { id: 'sec_story', type: 'story', name: 'About Us', enabled: true, data: { title: `About ${brand}`, text: `${tagline}. We sell direct — no middlemen, no marketplace commissions. Every piece ships straight from our studio to you, with the full ${firstProduct.brand || brand} promise.`, imageUrl: story } },
+    { id: 'sec_footer', type: 'footer', name: 'Footer', enabled: true, data: {} }
+  ];
+};
+
 export const AdminThemeBuilder = () => {
   const { currentStore, products, addProduct, updateProduct, deleteProduct, showToast } = useMerchantAdmin();
   const navigate = useNavigate();
@@ -815,6 +846,28 @@ export const AdminThemeBuilder = () => {
     : null;
   const savedTheme = savedThemeRaw ? JSON.parse(savedThemeRaw) : null;
 
+  // ONE SOURCE OF TRUTH for which theme the builder opens on:
+  //   ?preset= link (Themes page "Customize" button)
+  //   > the store's saved draft
+  //   > the store's applied theme
+  //   > soft_peach default.
+  // The Live Preview modal always previews the clicked preset — the builder
+  // must open on that SAME preset or the two screens disagree.
+  const initialPresetId = (() => {
+    try {
+      const p = new URLSearchParams(window.location.search).get('preset');
+      if (p && HARMONIOUS_THEME_PRESETS.some(x => x.id === p || x.id === 'preset_' + p)) return p.startsWith('preset_') ? p : 'preset_' + p;
+    } catch (e) {}
+    if (savedTheme?.presetId) return savedTheme.presetId;
+    try {
+      const active = localStorage.getItem(`gojulex_store_active_theme_${currentStore?.id}`) ||
+                     localStorage.getItem(`gojulex_store_active_theme_${cleanSubdomain}`);
+      if (active && HARMONIOUS_THEME_PRESETS.some(x => x.id === active)) return active;
+    } catch (e) {}
+    return 'preset_soft_peach';
+  })();
+  const initialPreset = HARMONIOUS_THEME_PRESETS.find(p => p.id === initialPresetId) || HARMONIOUS_THEME_PRESETS[0];
+
   // Viewport State: 'mobile' | 'desktop' | 'full'
   const [viewport, setViewport] = useState('desktop');
   const [previewTick, setPreviewTick] = useState(0);
@@ -829,181 +882,26 @@ export const AdminThemeBuilder = () => {
   const [draggedIndex, setDraggedIndex] = useState(null);
 
   // Active Preset ID
-  const [activePresetId, setActivePresetId] = useState(savedTheme?.presetId || 'preset_soft_peach');
+  const [activePresetId, setActivePresetId] = useState(initialPresetId);
 
   // Global Styles & Colors State
-  const [styles, setStyles] = useState(savedTheme?.styles || {
-    presetId: 'preset_soft_peach',
-    headingFont: 'Playfair Display',
-    bodyFont: 'Inter',
-    baseFontSize: 15,
-    backgroundColor: '#FFF9F6',
-    surfaceColor: '#FFF3EC',
-    headerBg: '#FFFFFF',
-    announcementBg: '#FAD4C0',
-    announcementText: '#4A281E',
-    accentColor: '#E8927C',
-    headingColor: '#4A281E',
-    textColor: '#7A4B3A',
-    cardSurface: '#FFFFFF',
-    buttonRadius: 'rounded-2xl',
-    cardBorder: 'border-[#F7D8CA]'
-  });
+  // Default styles = the SAME preset object the live preview renders with
+  // (never a hardcoded look that disagrees with the previewed theme).
+  const [styles, setStyles] = useState(savedTheme?.styles || { ...initialPreset, presetId: initialPreset.id });
 
   // Reorderable and 100% Configurable Sections (Full Suite by Default)
   const [sections, setSections] = useState(() => {
     if (savedTheme?.sections && Array.isArray(savedTheme.sections) && savedTheme.sections.length > 0) {
       return savedTheme.sections;
     }
-    return [
-      {
-        id: 'sec_announcement',
-        type: 'announcement',
-        name: 'Announcement Bar',
-        enabled: true,
-        data: {
-          text: `✨ Complimentary Gift Packaging on Orders at ${currentStore?.name || 'My Store'} • Free Express Delivery Across India`,
-          linkText: 'Explore Catalog',
-          linkUrl: '#products',
-          overrideBg: '',
-          overrideText: ''
-        }
-      },
-    {
-      id: 'sec_header',
-      type: 'header',
-      name: 'Navigation Header',
-      enabled: true,
-      data: {
-        logoText: currentStore?.name || 'My Store',
-        logoImg: '',
-        tagline: currentStore?.categoryLabel || 'Direct-to-Consumer Boutique',
-        navLink1: 'Collections',
-        navLink2: 'New Arrivals',
-        navLink3: 'Our Story',
-        showSearch: true,
-        showCartCount: true
-      }
-    },
-    {
-      id: 'sec_hero',
-      type: 'hero',
-      name: 'Hero Banner Slider',
-      enabled: true,
-      data: {
-        badgeText: '✨ Curated Seasonal Release',
-        headline: 'Timeless Artistry Crafted For Discerning Tastes',
-        subtext: 'Explore our latest releases made with master craftsmanship, pure materials, and 0% platform markups.',
-        ctaText: 'Shop New Arrivals ↗',
-        ctaLink: '#products',
-        secondaryCtaText: 'Explore Lookbook',
-        imageUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80',
-        overrideBadgeBg: '',
-        overrideCtaBg: '',
-        overrideCtaText: ''
-      }
-    },
-    {
-      id: 'sec_badges',
-      type: 'badges',
-      name: 'Trust Badges & Value Props',
-      enabled: true,
-      data: {
-        badge1Title: 'Free Express Shipping',
-        badge1Desc: 'Pan-India doorstep delivery with live tracking.',
-        badge2Title: '100% Authentic Guaranteed',
-        badge2Desc: 'Hand-inspected genuine materials with certificate.',
-        badge3Title: 'Easy 7-Day Returns',
-        badge3Desc: 'Hassle-free replacement & exchange guarantee.',
-        badge4Title: 'Artisanal Craftsmanship',
-        badge4Desc: 'Generational craftsmanship & master design.'
-      }
-    },
-    {
-      id: 'sec_featured',
-      type: 'featured_ribbon',
-      name: 'Featured Collection Ribbon',
-      enabled: true,
-      data: {
-        badge: 'Top Picks',
-        title: 'Bestselling Masterpieces',
-        subtitle: 'Hand-picked favorites ready for same-day dispatch'
-      }
-    },
-    {
-      id: 'sec_grid',
-      type: 'product_grid',
-      name: 'Multi-Column Product Grid',
-      enabled: true,
-      data: {
-        title: 'Trending Catalog',
-        subtitle: 'Handcrafted pieces crafted for discerning tastes.',
-        columns: 3,
-        showPrice: true,
-        showQuickAdd: true,
-        showBadges: true,
-        buttonLabel: '+ Quick Add to Bag',
-        overrideCardBg: '',
-        overrideButtonBg: '',
-        overridePriceColor: ''
-      }
-    },
-    {
-      id: 'sec_story',
-      type: 'story',
-      name: 'Brand Story & Artisan Atelier',
-      enabled: true,
-      data: {
-        badge: 'Our Heritage & Philosophy',
-        headline: 'Crafted with Devotion & Integrity',
-        storyText: 'Every piece is born from a devotion to timeless design and authentic materials. We bring generational artistry and certified quality straight to your doorstep.',
-        founderName: 'Artisan Founder',
-        founderRole: 'Master Craftsman & Curator',
-        imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80'
-      }
-    },
-    {
-      id: 'sec_testimonials',
-      type: 'testimonials',
-      name: 'Customer Reviews & Social Proof',
-      enabled: true,
-      data: {
-        rating: '4.9 ★★★★★',
-        title: 'Loved by Over 10,000+ Discerning Patrons Across India',
-        quote: '"Exceptional quality, genuine materials, and delivered in pristine packaging within 48 hours."',
-        author: 'Rhea Sharma, Mumbai',
-        badge: 'Verified Buyer'
-      }
-    },
-    {
-      id: 'sec_faq',
-      type: 'faq',
-      name: 'FAQ Accordion & Help Center',
-      enabled: true,
-      data: {
-        title: 'Frequently Asked Questions',
-        subtitle: 'Everything you need to know about ordering, delivery, and care.',
-        q1: 'How long does shipping take across India?',
-        a1: 'We ship via express air logistics. Metro orders arrive within 2-3 business days, and rest of India within 4-5 business days.',
-        q2: 'What is the return and exchange policy?',
-        a2: 'We offer an easy 7-day doorstep return and replacement guarantee for any defective items.',
-        q3: 'Are the products guaranteed 100% authentic?',
-        a3: 'Yes, every product comes with an authentic certificate of origin and is hand-inspected.'
-      }
-    },
-    {
-      id: 'sec_footer',
-      type: 'footer',
-      name: 'Storefront Footer',
-      enabled: true,
-      data: {
-        tagline: '100% Direct-from-Maker Commerce • 0% Platform Commission',
-        copyrightText: `© ${new Date().getFullYear()} ${currentStore?.name || 'My Store'}. All Rights Reserved.`,
-        showNewsletter: true
-      }
-    }
-  ];
-});
+    // IDENTICAL to the Live Preview: the registry's own generator. The
+    // registry imports THIS file, so a static import would be circular —
+    // build the same defaults locally instead (registry order + fields).
+    try {
+      return defaultSectionsFor(initialPresetId, currentStore);
+    } catch (e) {}
+    return [];
+  });
   // Live iframe refresh key — bumps (debounced) whenever the auto-saved
   // draft changes, so the center canvas always mirrors the real store.
   // Live draft sync: stream the CURRENT builder state into the preview iframe.
@@ -1018,18 +916,66 @@ export const AdminThemeBuilder = () => {
   };
   useEffect(() => {
     draftRef.current = { sections, styles };
-    const t = setTimeout(postDraft, 60);
-    return () => clearTimeout(t);
+    // The iframe REMOUNTS on every preview refresh — a single early post
+    // lands before its listener exists and is silently dropped (the preview
+    // then shows the stale saved theme). Re-post across the load window.
+    const timers = [60, 400, 1200, 2500].map((d) => setTimeout(postDraft, d));
+    return () => timers.forEach(clearTimeout);
   }, [sections, styles, previewTick]);
+
+  // HANDSHAKE: the preview iframe asks for the draft the moment ITS listener
+  // is live — deterministic, immune to load timing.
+  useEffect(() => {
+    const onReq = (e) => {
+      if (e.data && e.data.type === 'julex-draft-request') postDraft();
+    };
+    window.addEventListener('message', onReq);
+    return () => window.removeEventListener('message', onReq);
+  }, []);
 
   // The PUBLISHED backend config is the canonical state. On mount, if the
   // backend has a config that is newer than this browser's localStorage
   // (or localStorage is empty), load the backend version so preset defaults
   // can never silently overwrite the merchant's published work.
   const [bootstrapped, setBootstrapped] = useState(false);
+  // Synchronous guard: a ?preset= open must stop the backend-draft fetch in
+  // the SAME commit (state-based bootstrapped only lands one render later —
+  // by then the fetch already mixed old sections into the new preset).
+  const presetAppliedRef = useRef(false);
   const [plansGateOpen, setPlansGateOpen] = useState(false);
   useEffect(() => {
-    if (bootstrapped) return;
+    if (bootstrapped || presetAppliedRef.current) return;
+    // "Customize" on a theme card passes ?preset= — the merchant explicitly
+    // chose THAT theme, so it wins over the saved draft (matching what the
+    // Live Preview on the same card shows). The draft remains untouched
+    // until the merchant actually edits and publishes.
+    try {
+      const urlPreset = new URLSearchParams(window.location.search).get('preset');
+      if (urlPreset) {
+        const pid = urlPreset.startsWith('preset_') ? urlPreset : 'preset_' + urlPreset;
+        const preset = HARMONIOUS_THEME_PRESETS.find(p => p.id === pid);
+        if (preset) {
+          presetAppliedRef.current = true;
+          setActivePresetId(preset.id);
+          setStyles({ ...preset, presetId: preset.id });
+          // Placeholder sections now (sync), then the REAL registry generator
+          // (THEME_META-accurate — the same one the Live Preview uses)
+          // replaces them the moment it loads. presetAppliedRef stops the
+          // saved-draft fetch from racing in between.
+          try {
+            const generated = defaultSectionsFor(preset.id, currentStore);
+            if (Array.isArray(generated) && generated.length > 0) setSections(generated);
+          } catch (e) {}
+          setBootstrapped(true);
+          setPreviewTick((n) => n + 1);
+          import('../../../data/themeRegistry').then(({ buildThemeSectionsForApply }) => {
+            const real = buildThemeSectionsForApply(preset.id, currentStore);
+            if (Array.isArray(real) && real.length > 0) setSections(real);
+          }).catch(() => {});
+          return;
+        }
+      }
+    } catch (e) {}
     let cancelled = false;
     api.themes.getDraftConfig(cleanSubdomain)
       .then((res) => {
