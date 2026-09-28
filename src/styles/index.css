@@ -620,12 +620,23 @@ html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
 }
 /* ONE COMMON TOP TOOLBAR — spans the top of the customizer preview */
 .jux-toolbar.jux-topbar {
-  /* LEFT RAIL: vertical tools alongside the template (was a top bar that
-     covered the template's own header). */
-  top: 50%; left: 10px; right: auto; transform: translateY(-50%);
-  flex-direction: column; flex-wrap: nowrap; padding: 10px 8px; gap: 8px;
-  max-height: 92vh; overflow-y: auto; border-radius: 16px; width: auto;
+  /* LEFT RAIL — a NARROW icon strip in its own gutter beside the template.
+     The editor pushes the template right by the same gutter, so the tools
+     NEVER cover template content. */
+  top: 12px; bottom: 12px; left: 6px; right: auto;
+  flex-direction: column; flex-wrap: nowrap; padding: 8px 4px; gap: 6px;
+  overflow-y: auto; overflow-x: hidden; border-radius: 14px;
+  width: 56px; align-items: center;
 }
+.jux-topbar .jux-tool-btn {
+  width: 44px; min-height: 34px; padding: 4px 2px; font-size: 8.5px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  line-height: 1.15; text-align: center; gap: 1px; border-radius: 9px;
+}
+.jux-topbar .jux-tool-select { width: 44px !important; font-size: 8px; padding: 3px 1px; }
+.jux-topbar .jux-tool-hint { display: none; }
+.jux-topbar .jux-swatch { width: 18px !important; height: 18px !important; }
+.jux-topbar input[type="color"] { width: 30px; height: 24px; padding: 0; }
 .jux-tool-btn:disabled, .jux-tool-select:disabled { opacity: 0.35; cursor: not-allowed; }
 .jux-tool-disabled { opacity: 0.45; }
 .jux-tool-sep { width: 22px; height: 1px; background: rgba(255,255,255,0.25); margin: 4px 0; }
