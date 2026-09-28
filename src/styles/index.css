@@ -747,3 +747,22 @@ html[data-jx-mode="dark"] .border-\[\#EFE2BC\],
 html[data-jx-mode="dark"] .border-\[\#E7D49E\],
 html[data-jx-mode="dark"] .border-stone-200,
 html[data-jx-mode="dark"] .border-black\/5 { border-color: rgba(255,255,255,0.12) !important; }
+
+/* SECTIONS list inside the edit rail (below Done) */
+.jux-sections { margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; width: 100%; }
+.jux-sections-title { display: block; color: rgba(255,255,255,0.75); font: 700 9.5px 'Work Sans', sans-serif; letter-spacing: 0.14em; margin-bottom: 6px; }
+.jux-sections-list { display: flex; flex-direction: column; gap: 3px; max-height: 40vh; overflow-y: auto; }
+.jux-section-row { display: flex; align-items: center; gap: 4px; }
+.jux-section-name { flex: 1; text-align: left; padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: #fff; font: 600 10px 'Work Sans', sans-serif; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jux-section-name:hover { background: rgba(255,255,255,0.16); }
+.jux-section-off { opacity: 0.45; text-decoration: line-through; }
+.jux-section-arrows { display: flex; flex-direction: column; gap: 1px; }
+.jux-section-arrows button { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 8px; cursor: pointer; padding: 1px 3px; line-height: 1; }
+.jux-section-arrows button:hover:not(:disabled) { color: #fff; }
+.jux-section-arrows button:disabled { opacity: 0.25; cursor: default; }
+
+/* Rail order: ONE column — tools, Done, hint, then SECTIONS below Done */
+.jux-topbar { display: flex; flex-wrap: nowrap !important; }
+.jux-topbar .jux-sections { order: 50; }
+.jux-topbar .jux-tool-done { order: 40; margin-top: 8px; }
+.jux-topbar .jux-tool-hint { order: 45; }

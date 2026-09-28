@@ -2990,38 +2990,6 @@ export const AdminThemeBuilder = () => {
                 <RefreshCw className="w-3 h-3" /> Refresh
               </button>
             </div>
-            {/* SECTIONS DOCK — bottom-left over the template: reorder,
-                show/hide, jump. Editing itself happens inline in the preview. */}
-            <div className="absolute bottom-3 left-3 z-20 max-w-[70%] flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-white/92 backdrop-blur border border-[#FBCBCB] shadow-lg">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8A6200] mr-1">Sections</span>
-              {sections.map((s, i) => (
-                <span key={s.id || i} className="flex items-center gap-0.5">
-                  <button
-                    onClick={() => {
-                      const updated = [...sections];
-                      updated[i] = { ...updated[i], enabled: !updated[i].enabled };
-                      setSections(updated);
-                    }}
-                    className={`px-2 py-1 rounded-lg text-[9px] font-bold border cursor-pointer transition ${s.enabled ? 'bg-[#FFF5F5] border-[#FBCBCB] text-[#0F172A]' : 'bg-stone-100 border-stone-200 text-stone-400 line-through'}`}
-                    title={s.enabled ? 'Hide this section' : 'Show this section'}
-                  >
-                    {s.name || s.type}
-                  </button>
-                  <button
-                    onClick={() => { if (i === 0) return; const u = [...sections]; [u[i-1], u[i]] = [u[i], u[i-1]]; setSections(u); }}
-                    disabled={i === 0}
-                    className="w-4 h-4 flex items-center justify-center text-[8px] text-stone-500 hover:text-[#8A6200] disabled:opacity-30 cursor-pointer"
-                    title="Move up"
-                  >▲</button>
-                  <button
-                    onClick={() => { if (i === sections.length - 1) return; const u = [...sections]; [u[i+1], u[i]] = [u[i], u[i+1]]; setSections(u); }}
-                    disabled={i === sections.length - 1}
-                    className="w-4 h-4 flex items-center justify-center text-[8px] text-stone-500 hover:text-[#8A6200] disabled:opacity-30 cursor-pointer"
-                    title="Move down"
-                  >▼</button>
-                </span>
-              ))}
-            </div>
             <iframe
               key={previewTick}
               name="julex-preview-frame"

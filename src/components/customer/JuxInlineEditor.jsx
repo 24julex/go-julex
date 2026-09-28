@@ -917,6 +917,57 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         </span>
 
         <button onClick={handleDone} className="jux-tool-done" title="Finish editing">Done</button>
+
+        {/* SECTIONS — in the empty rail space below Done: reorder, show/hide.
+            Writes go through the same cfg pipeline (localStorage + backend +
+            builder sync), so the template and builder stay in step. */}
+        <div className="jux-sections">
+          <span className="jux-sections-title">SECTIONS</span>
+          <div className="jux-sections-list">
+            {(getSections ? getSections() : []).map((s, i, arr) => (
+              <div key={s.id || i} className="jux-section-row">
+                <button
+                  onClick={() => {
+                    const cfg = ensureCfg();
+                    const secs = (cfg.sections || []).map((x, k) => (k === i ? { ...x, enabled: !x.enabled } : x));
+                    writeCfg(keys, { ...cfg, sections: secs }, subdomain);
+                    // visual flip immediately
+                    const wrap = document.querySelector(`[data-sid="${s.id}"]`);
+                    if (wrap) wrap.style.display = secs[i].enabled ? '' : 'none';
+                  }}
+                  className={'jux-section-name ' + (s.enabled === false ? 'jux-section-off' : '')}
+                  title={s.enabled === false ? 'Show this section' : 'Hide this section'}
+                >
+                  {s.name || s.type}
+                </button>
+                <span className="jux-section-arrows">
+                  <button
+                    onClick={() => {
+                      if (i === 0) return;
+                      const cfg = ensureCfg();
+                      const secs = [...(cfg.sections || [])];
+                      [secs[i - 1], secs[i]] = [secs[i], secs[i - 1]];
+                      writeCfg(keys, { ...cfg, sections: secs }, subdomain);
+                    }}
+                    disabled={i === 0}
+                    title="Move up"
+                  >▲</button>
+                  <button
+                    onClick={() => {
+                      if (i === arr.length - 1) return;
+                      const cfg = ensureCfg();
+                      const secs = [...(cfg.sections || [])];
+                      [secs[i + 1], secs[i]] = [secs[i], secs[i + 1]];
+                      writeCfg(keys, { ...cfg, sections: secs }, subdomain);
+                    }}
+                    disabled={i === arr.length - 1}
+                    title="Move down"
+                  >▼</button>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {imgPick && (
