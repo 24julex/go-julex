@@ -432,8 +432,11 @@ const presetToMarketplaceEntry = (preset, index) => {
 // afterwards in the Theme Builder.
 export const buildThemeSectionsForApply = (presetId, store) => {
   const meta = THEME_META[presetId] || {};
-  const brand = meta.brandName || (store?.name || 'Our Store');
-  const tagline = meta.tagline || 'Direct from our studio — 0% platform commission';
+  // The MERCHANT'S store identity wins over the theme's demo brand — a shop
+  // called "Bee's Sweets" must never turn into "Frosted Pearl Fine Jewelry"
+  // just because they switched templates.
+  const brand = (store?.name) || meta.brandName || 'Our Store';
+  const tagline = (store?.categoryLabel) || meta.tagline || 'Direct from our studio — 0% platform commission';
   const aesthetic = meta.aesthetic || 'Pure D2C Craftsmanship';
   const hero = meta.heroImage || meta.thumbnail || '/theme-images/fashion-2.jpg';
   const banner = meta.bannerImage || meta.thumbnail || hero;
@@ -557,3 +560,78 @@ export const MASTER_THEME_CATALOG = HARMONIOUS_THEME_PRESETS.map((p, index) => {
     }
   };
 });
+
+// ------------------------------------------------------------
+// Carry a merchant's OWN content across a template switch: their
+// shop name, hero copy, story, announcement and any imagery they
+// uploaded themselves survives the change; only the LOOK changes.
+// ------------------------------------------------------------
+const MERCHANT_UPLOADED = (url) => typeof url === 'string' && (url.startsWith('/api/uploads/') || url.startsWith('data:'));
+
+// Values that are the registry's DEMO copy (not the merchant's own words)
+// must never survive a template switch.
+const DEMO_TEXTS = new Set([
+  ...Object.values(THEME_META).map(m => m.brandName).filter(Boolean),
+  ...Object.values(THEME_META).map(m => m.tagline).filter(Boolean),
+  ...Object.values(THEME_META).map(m => m.aesthetic).filter(Boolean)
+]);
+// Also catches generated demo forms like "About <demo brand>".
+const ownText = (t) => {
+  if (!t) return null;
+  const s = String(t).trim();
+  if (DEMO_TEXTS.has(s)) return null;
+  if (/^About\s+/i.test(s) && DEMO_TEXTS.has(s.replace(/^About\s+/i, '').trim())) return null;
+  return t;
+};
+
+export const carryMerchantContent = (newSections, prevSections) => {
+  if (!Array.isArray(prevSections) || prevSections.length === 0 || !Array.isArray(newSections)) return newSections;
+  const find = (secs, type) => secs.find(s => s && s.type === type && s.data);
+  const prev = {
+    header: find(prevSections, 'header'),
+    hero: find(prevSections, 'hero'),
+    story: find(prevSections, 'story'),
+    announcement: find(prevSections, 'announcement'),
+    footer: find(prevSections, 'footer'),
+    product_grid: find(prevSections, 'product_grid')
+  };
+  return newSections.map(sec => {
+    if (!sec || !sec.data) return sec;
+    if (sec.type === 'header' && prev.header) {
+      return { ...sec, data: { ...sec.data, logoText: ownText(prev.header.data.logoText) || sec.data.logoText, tagline: ownText(prev.header.data.tagline) || sec.data.tagline } };
+    }
+    if (sec.type === 'hero' && prev.hero) {
+      const h = prev.hero.data;
+      return { ...sec, data: {
+        ...sec.data,
+        headline: ownText(h.headline) || sec.data.headline,
+        subtext: ownText(h.subtext) || sec.data.subtext,
+        badgeText: ownText(h.badgeText) || sec.data.badgeText,
+        ctaText: ownText(h.ctaText) || sec.data.ctaText,
+        // merchant's own hero picture survives; theme demo art does not override it
+        ...(MERCHANT_UPLOADED(h.imageUrl) ? { imageUrl: h.imageUrl } : {}),
+        float1: h.float1 || sec.data.float1, float2: h.float2 || sec.data.float2,
+        float3: h.float3 || sec.data.float3, float4: h.float4 || sec.data.float4
+      } };
+    }
+    if (sec.type === 'story' && prev.story) {
+      const st = prev.story.data;
+      return { ...sec, data: {
+        ...sec.data,
+        title: ownText(st.title) || sec.data.title,
+        text: ownText(st.text) || sec.data.text,
+        ...(MERCHANT_UPLOADED(st.imageUrl) ? { imageUrl: st.imageUrl } : {})
+      } };
+    }
+    if (sec.type === 'announcement' && prev.announcement) {
+      return { ...sec, data: { ...sec.data, text: ownText(prev.announcement.data.text) || sec.data.text, linkText: prev.announcement.data.linkText || sec.data.linkText } };
+    }
+    if (sec.type === 'footer' && prev.footer) {
+      return { ...sec, data: { ...sec.data, logoText: ownText(prev.footer.data.logoText) || sec.data.logoText } };
+    }
+    if ((sec.type === 'product_grid') && prev.product_grid) {
+      return { ...sec, data: { ...sec.data, title: ownText(prev.product_grid.data.title) || sec.data.title } };
+    }
+    return sec;
+  });
+};

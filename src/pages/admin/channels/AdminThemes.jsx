@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useMerchantAdmin } from '../../../context/MerchantAdminContext';
 import { HARMONIOUS_THEME_PRESETS } from './AdminThemeBuilder';
-import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, buildThemeSectionsForApply } from '../../../data/themeRegistry';
+import { THEME_MARKETPLACE as THEME_MARKETPLACE_12, buildThemeSectionsForApply, carryMerchantContent } from '../../../data/themeRegistry';
 import { ThemePreviewModal } from '../../../components/common/ThemePreviewModal';
 import { api } from '../../../services/api';
 
@@ -152,9 +152,13 @@ export const AdminThemes = () => {
         ...(ov.name ? { name: ov.name } : {}),
         ...(ov.tagline ? { desc: ov.tagline } : {})
       },
-      // Install the SAME sections the live preview renders, so the published
-      // store is identical to the preview (brand copy, imagery, order).
-      sections: buildThemeSectionsForApply(theme.presetId, currentStore),
+      // Install the SAME sections the live preview renders — carrying the
+      // merchant's OWN shop name, hero copy and uploads from their previous
+      // template, so switching themes changes the LOOK, never their content.
+      sections: carryMerchantContent(
+        buildThemeSectionsForApply(theme.presetId, currentStore),
+        (currentThemeObj && currentThemeObj.sections) || []
+      ),
       updatedAt: new Date().toISOString()
     };
 

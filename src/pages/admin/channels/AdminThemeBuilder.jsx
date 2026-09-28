@@ -968,8 +968,8 @@ export const AdminThemeBuilder = () => {
           } catch (e) {}
           setBootstrapped(true);
           setPreviewTick((n) => n + 1);
-          import('../../../data/themeRegistry').then(({ buildThemeSectionsForApply }) => {
-            const real = buildThemeSectionsForApply(preset.id, currentStore);
+          import('../../../data/themeRegistry').then(({ buildThemeSectionsForApply, carryMerchantContent }) => {
+            const real = carryMerchantContent(buildThemeSectionsForApply(preset.id, currentStore), (savedTheme && savedTheme.sections) || []);
             if (Array.isArray(real) && real.length > 0) setSections(real);
           }).catch(() => {});
           return;
@@ -1077,8 +1077,8 @@ export const AdminThemeBuilder = () => {
     // content Apply Theme installs) and clear customisations belonging to
     // the previous theme, so sidebar + preview + publish all switch together.
     try {
-      const { buildThemeSectionsForApply } = await import('../../../data/themeRegistry');
-      const presetSections = buildThemeSectionsForApply(preset.id, currentStore);
+      const { buildThemeSectionsForApply, carryMerchantContent } = await import('../../../data/themeRegistry');
+      const presetSections = carryMerchantContent(buildThemeSectionsForApply(preset.id, currentStore), sections);
       if (Array.isArray(presetSections) && presetSections.length > 0) {
         setSections(presetSections);
         extrasRef.current = { inlineStyles: [], floating: [], imgStyles: [] };
