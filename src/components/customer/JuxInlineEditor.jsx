@@ -481,7 +481,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     const cfg = readCfg(keys);
     if (cfg) renderFloating(cfg);
     // keep the template below the fixed top toolbar
-    document.body.style.paddingLeft = '66px'; // rail gutter — tools never cover the template
+    document.body.style.paddingLeft = '356px'; // rail gutter (336px panel) — tools never cover the template
     return () => { document.body.style.paddingLeft = ''; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
