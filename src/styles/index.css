@@ -636,8 +636,14 @@ html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
 .jx-selected { outline: 2px solid #A87A00 !important; outline-offset: 2px; border-radius: 2px; }
 .jux-toolbar .jx-selected { outline: none; }
 .jx-resize-handle {
-  position: fixed; width: 14px; height: 14px; background: #A87A00; border: 2px solid #fff;
-  border-radius: 50%; cursor: nwse-resize; z-index: 10001; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  position: fixed; width: 20px; height: 20px; background: #A87A00; border: 3px solid #fff;
+  border-radius: 50%; cursor: nwse-resize; z-index: 10001; box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+}
+.jx-sel-chip {
+  position: fixed; z-index: 10001; pointer-events: none;
+  background: #111; color: #fff; font: 600 11px 'Work Sans', sans-serif;
+  padding: 4px 10px; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  max-width: 92vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .jux-tool-select {

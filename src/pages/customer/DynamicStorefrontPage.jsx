@@ -1601,19 +1601,39 @@ export const DynamicStorefrontPage = () => {
 
           // ---- 5. Best sellers strip ----
           if (section.type === 'video_reels') {
+            const botanIsVideo = (s) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(String(s)) || String(s).startsWith('data:video/');
+            const botanReels = [section.data.reel1Img, section.data.reel2Img, section.data.reel3Img].filter(Boolean)
+              .concat(Array.isArray(section.data.reels) ? section.data.reels.map(r => r && r.src).filter(Boolean) : []);
+            const botanCells = [
+              ...botanReels.slice(0, 4).map((src) => ({ kind: botanIsVideo(src) ? 'video' : 'photo', src })),
+              ...botanItems.slice(0, 4).map((p) => ({ kind: 'product', p }))
+            ].slice(0, 4);
             return (
               <section key={section.id} className="py-16 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto" style={{ backgroundColor: BOTAN.bg }}>
                 <span className="text-xs uppercase tracking-[0.3em] font-semibold block mb-3" style={{ color: 'rgba(40,70,39,0.7)' }}>{section.data.subtitle || 'Most Loved'}</span>
                 <h2 className="text-3xl sm:text-5xl font-normal tracking-tight mb-12" style={botanSerif}>{section.data.title || 'Best Sellers'}</h2>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                  {botanItems.slice(0, 4).map((p) => (
-                    <article key={p.id} className="group cursor-pointer" onClick={() => handleQuickAdd(p)}>
+                  {botanCells.map((cell, i) => cell.kind === 'product' ? (
+                    <article key={cell.p.id || 'prod' + i} className="group cursor-pointer" onClick={() => handleQuickAdd(cell.p)}>
                       <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
-                        <img src={(p.images && p.images[0]) || p.image || p.imageUrl} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <img src={(cell.p.images && cell.p.images[0]) || cell.p.image || cell.p.imageUrl} alt={cell.p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                       </div>
-                      <h3 className="text-lg group-hover:underline leading-tight" style={botanSerif}>{p.name}</h3>
-                      <p className="text-xs font-semibold mt-0.5" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }}>₹{Number(p.sellingPriceINR || p.price || 0).toLocaleString('en-IN')}</p>
+                      <h3 className="text-lg group-hover:underline leading-tight" style={botanSerif}>{cell.p.name}</h3>
+                      <p className="text-xs font-semibold mt-0.5" style={{ fontFamily: BOTAN_SANS, color: BOTAN.olive }}>₹{Number(cell.p.sellingPriceINR || cell.p.price || 0).toLocaleString('en-IN')}</p>
                     </article>
+                  ) : (
+                    <div key={'reel' + i} className="group cursor-pointer" onClick={() => handleQuickAdd(botanItems[i] || botanItems[0])}>
+                      <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: 'rgba(215,207,190,0.4)' }}>
+                        {cell.kind === 'video' ? (
+                          <video src={cell.src} className="w-full h-full object-cover" autoPlay muted loop playsInline controls={isJulexEditMode} />
+                        ) : (
+                          <img src={cell.src} alt="Atelier reel" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        )}
+                        <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[9px] tracking-wider uppercase backdrop-blur-sm" style={{ backgroundColor: 'rgba(226,219,210,0.9)', color: BOTAN.olive }}>Reel</span>
+                      </div>
+                      <h3 className="text-lg leading-tight" style={botanSerif}>{section.data['reel' + (i + 1) + 'Caption'] || 'From the studio'}</h3>
+                      <p className="text-xs font-semibold mt-0.5" style={{ fontFamily: BOTAN_SANS, color: 'rgba(40,70,39,0.7)' }}>Watch</p>
+                    </div>
                   ))}
                 </div>
               </section>

@@ -1195,19 +1195,43 @@ export const AdminThemeBuilder = () => {
     showToast(`Removed "${toRemove?.name}" from layout`, 'info');
   };
 
-  // File Upload Helper (Local Device -> FileReader Data URL)
+  // File Upload Helper (Local Device -> server storage -> public URL).
+  // Videos (<=60 MB) and images upload to /api/uploads so theme configs stay
+  // small; falls back to a data URL only if the API call fails.
   const handleFileUpload = (e, callback) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (uploadEvent) => {
-        if (uploadEvent.target?.result) {
-          callback(uploadEvent.target.result);
-          showToast('Media uploaded successfully from your device!', 'success');
-        }
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    const isVideo = file.type?.startsWith('video/');
+    if (isVideo && file.size > 60 * 1024 * 1024) {
+      showToast('Video must be smaller than 60 MB.', 'error');
+      return;
     }
+    if (!isVideo && file.size > 5 * 1024 * 1024) {
+      showToast('Image must be smaller than 5 MB.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (uploadEvent) => {
+      const dataUrl = uploadEvent.target?.result;
+      if (!dataUrl) return;
+      try {
+        const res = await api.upload.file({ dataUrl });
+        if (res?.success && res.url) {
+          callback(res.url);
+          showToast(isVideo ? 'Video uploaded and stored!' : 'Media uploaded successfully!', 'success');
+          return;
+        }
+        throw new Error(res?.message);
+      } catch (err) {
+        if (!isVideo) {
+          callback(dataUrl);
+          showToast('Media attached (stored inline).', 'success');
+        } else {
+          showToast(err?.message || 'Video upload failed — try again.', 'error');
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   };
   const isVideoFile = (f) => f && f.type && f.type.startsWith('video/');
 

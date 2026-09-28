@@ -294,6 +294,11 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
 
   const clearSelectionUi = () => {
     document.querySelectorAll('.jx-selected').forEach((n) => n.classList.remove('jx-selected'));
+    document.querySelectorAll('.jx-sel-chip').forEach((n) => {
+      if (n.__jxRo) n.__jxRo.disconnect();
+      if (n.__jxScroll) window.removeEventListener('scroll', n.__jxScroll, true);
+      n.remove();
+    });
     document.querySelectorAll('.jx-resize-handle').forEach((n) => {
       if (n.__jxRo) n.__jxRo.disconnect();
       if (n.__jxScroll) window.removeEventListener('scroll', n.__jxScroll, true);
@@ -305,6 +310,22 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     clearSelectionUi();
     if (!el) return;
     el.classList.add('jx-selected');
+    // Floating label chip so the merchant always sees WHAT is selected
+    const chip = document.createElement('div');
+    chip.className = 'jx-sel-chip';
+    chip.textContent = isImage ? '🖼️ Image — drag to move · corner to resize · toolbar to Replace' : '✏️ Text — double-click to edit · drag to move';
+    const placeChip = () => {
+      const r = el.getBoundingClientRect();
+      chip.style.left = `${Math.max(6, r.left)}px`;
+      chip.style.top = `${Math.max(52, r.top - 26)}px`;
+    };
+    placeChip();
+    document.body.appendChild(chip);
+    const ro = new ResizeObserver(placeChip);
+    ro.observe(el);
+    chip.__jxRo = ro;
+    window.addEventListener('scroll', placeChip, true);
+    chip.__jxScroll = placeChip;
     if (isImage) {
       const handle = document.createElement('div');
       handle.className = 'jx-resize-handle';
@@ -704,6 +725,22 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         >
           ✥ Move
         </button>
+        <button
+          onClick={() => {
+            const cur = selRef.current;
+            if (!cur) return;
+            if (cur.kind === 'image') saveImgStyle(cur.sid, cur.field, { dx: 0, dy: 0 });
+            else if (cur.kind === 'text') saveStyle(cur.sid, cur.field, { dx: 0, dy: 0 });
+            if (cur.el) { cur.el.style.transform = ''; cur.el.style.position = ''; }
+            clearSelectionUi();
+            setSel(null);
+          }}
+          disabled={!sel}
+          className="jux-tool-btn"
+          title="Reset this element back to its template position"
+        >
+          ⟲ Reset
+        </button>
 
         <select
           disabled={!isText}
@@ -761,7 +798,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
 
         <span className="jux-tool-hint">
           {!sel
-            ? 'Click any text or image in the template to select it · double-click text to edit'
+            ? 'CLICK any text/image to select it · DOUBLE-CLICK text to edit words · DRAG to move anywhere · images: corner handle resizes, toolbar Replace swaps'
             : (isImage ? 'Image selected — Move / Replace / drag the corner handle to resize' : 'Text selected — style it from the toolbar · double-click to edit')}
         </span>
 
@@ -772,16 +809,30 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         <div className="jux-imgpicker" style={{ left: Math.max(8, (window.innerWidth || 1200) / 2 - 130), top: 90 }}>
           <p className="jux-imgpicker-title">🖼️ {imgPick.sid?.startsWith?.('jxf_') ? 'Set Image' : 'Replace Image'}</p>
           <label className="jux-imgpicker-btn">
-            Upload from device
+            Upload photo or video
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/mp4,video/webm"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files && e.target.files[0];
                 if (!f) return;
+                const isVid = f.type?.startsWith('video/');
+                if (isVid && f.size > 60 * 1024 * 1024) { window.alert('Video must be smaller than 60 MB.'); return; }
                 const rd = new FileReader();
-                rd.onload = () => replaceImage(rd.result);
+                rd.onload = async () => {
+                  const dataUrl = rd.result;
+                  // Try server storage first (small config, works for videos);
+                  // inline data URL only as a fallback for images.
+                  try {
+                    const res = await api.upload.file({ dataUrl });
+                    if (res?.success && res.url) { replaceImage(res.url); return; }
+                    throw new Error(res?.message);
+                  } catch (err) {
+                    if (!isVid) replaceImage(dataUrl);
+                    else window.alert(err?.message || 'Video upload failed — try again.');
+                  }
+                };
                 rd.readAsDataURL(f);
               }}
             />

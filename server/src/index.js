@@ -34,8 +34,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '8mb' }));
-app.use(express.urlencoded({ limit: '8mb', extended: true }));
+// 85 MB JSON body so base64-encoded theme/reel videos (≤60 MB raw) upload
+// in one request; everything else stays effectively unlimited-safe.
+app.use(express.json({ limit: '85mb' }));
+app.use(express.urlencoded({ limit: '85mb', extended: true }));
 app.use(morgan('dev'));
 
 // API Health Check
