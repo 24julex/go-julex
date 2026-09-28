@@ -869,7 +869,7 @@ export const AdminThemeBuilder = () => {
   const initialPreset = HARMONIOUS_THEME_PRESETS.find(p => p.id === initialPresetId) || HARMONIOUS_THEME_PRESETS[0];
 
   // Viewport State: 'mobile' | 'desktop' | 'full'
-  const [viewport, setViewport] = useState('desktop');
+  const [viewport, setViewport] = useState('full');
   const [previewTick, setPreviewTick] = useState(0);
 
   // Sidebar Tab: 'blocks' | 'colors' | 'presets'
@@ -2967,7 +2967,7 @@ export const AdminThemeBuilder = () => {
         {/* CENTER LIVE STOREFRONT CANVAS — the REAL storefront, identical to live preview.
             Drafts auto-save to the store config on every edit; the iframe reloads
             (debounced) so merchants always see exactly what is published. */}
-        <main className="relative flex-1 bg-white overflow-y-auto p-4 sm:p-6 flex items-start justify-center">
+        <main className={`relative flex-1 bg-white overflow-y-auto flex items-start justify-center ${viewport === 'full' ? 'p-0' : 'p-4 sm:p-6'}`}>
           <div
             className={`relative transition-all duration-300 rounded-3xl overflow-hidden border shadow-xl bg-white ${
               styles.cardBorder || 'border-[#FBCBCB]'
@@ -2976,7 +2976,7 @@ export const AdminThemeBuilder = () => {
                 ? 'w-[380px] max-w-full'
                 : viewport === 'desktop'
                 ? 'w-[920px] max-w-full'
-                : 'w-full'
+                : 'w-full !max-w-none rounded-none border-0 shadow-none'
             }`}
           >
             <div className="flex items-center justify-between px-4 py-2 border-b border-[#FBCBCB] bg-[#FFF9F5]">
