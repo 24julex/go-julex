@@ -393,27 +393,29 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     markSelected(spanNode, false);
   };
 
+  // ART-DIRECTED FRAMES: when an image sits inside a decorative frame
+  // (polaroid card, bordered tile…) the merchant moves/resizes the WHOLE
+  // card — dragging the inner <img> only slides it under the clipped frame.
+  // Climb to the nearest clipping ancestor.
+  const frameTarget = (img) => {
+    let target = img;
+    let frame = img.parentElement;
+    while (frame && frame !== document.body && !frame.classList.contains('jx-edit-wrap')) {
+      const cs = getComputedStyle(frame);
+      const clips = cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden';
+      if (clips && frame.tagName === 'DIV') return frame;
+      frame = frame.parentElement;
+    }
+    return target;
+  };
+
   const selectImage = (img, sec, sid) => {
     // A per-image data-jx-field wins (e.g. hero float1..float4) so EACH image
     // in a section is individually replaceable; else the section's image field.
     const field = (img && img.dataset && img.dataset.jxField) || resolveImageField(sec);
     const cfg = readCfg(keys) || ensureCfg();
     const st = ((cfg.imgStyles || []).find((x) => x.sid === sid && x.field === field)) || {};
-    // ART-DIRECTED FRAMES: when the image sits inside a decorative frame
-    // (polaroid card, bordered tile…) the MERCHANT expects to move and resize
-    // the WHOLE card — dragging the inner <img> only slides it under the
-    // clipped frame. Climb to the nearest clipping ancestor and select that.
-    let target = img;
-    let frame = img.parentElement;
-    while (frame && frame !== document.body && !frame.classList.contains('jx-edit-wrap')) {
-      const cs = getComputedStyle(frame);
-      const clips = cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden';
-      if (clips && frame.tagName === 'DIV') {
-        target = frame; // the decorative frame — move/resize THIS
-        break;
-      }
-      frame = frame.parentElement;
-    }
+    const target = frameTarget(img);
     finishTextEdit(false);
     setSel({
       kind: 'image', el: target, sid, field,
@@ -598,6 +600,29 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       // ANY selected text/image box drags DIRECTLY — no Move toggle needed.
       // (While text-edit mode is active, keep the caret working instead.)
       const editingNow = e.target.closest?.('.jx-editing');
+      // Images inside the template: the browser's NATIVE <img> drag must
+      // NEVER hijack the gesture in edit mode.
+      if (e.target.closest?.('img')) e.preventDefault();
+      // PRESS-AND-DRAG on an unselected image selects it on the spot, so the
+      // very first move gesture works without a prior click.
+      if ((!cur || !cur.el || !cur.el.contains(e.target)) && !editingNow) {
+        const wrap = e.target.closest?.('.jx-edit-wrap');
+        const img = e.target.closest?.('img');
+        if (wrap && img) {
+          const sid2 = wrap.dataset.sid;
+          const cfg2 = readCfg(keys) || ensureCfg();
+          const sec2 = (cfg2.sections || []).find((s) => s.id === sid2) || (getSections ? getSections().find((s) => s.id === sid2) : null);
+          if (sec2) {
+            const target2 = frameTarget(img);
+            const field2 = (img.dataset && img.dataset.jxField) || resolveImageField(sec2);
+            const next = { kind: 'image', el: target2, sid: sid2, field: field2, w: Math.round(target2.getBoundingClientRect().width), move: false };
+            selRef.current = next; // synchronous mirror — the drag below reads it immediately
+            setSel(next);
+            markSelected(target2, true);
+            cur = next;
+          }
+        }
+      }
       if (!cur || !cur.el || !cur.el.contains(e.target) || editingNow) return;
       e.preventDefault(); e.stopPropagation();
       if (cur.kind === 'float_text' || cur.kind === 'float_image') {
