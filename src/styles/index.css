@@ -639,6 +639,8 @@ html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
   position: fixed; width: 20px; height: 20px; background: #A87A00; border: 3px solid #fff;
   border-radius: 50%; cursor: nwse-resize; z-index: 10001; box-shadow: 0 2px 10px rgba(0,0,0,0.45);
 }
+.jx-rh-nw, .jx-rh-se { cursor: nwse-resize; }
+.jx-rh-ne, .jx-rh-sw { cursor: nesw-resize; }
 .jx-sel-chip {
   position: fixed; z-index: 10001; pointer-events: none;
   background: #111; color: #fff; font: 600 11px 'Work Sans', sans-serif;

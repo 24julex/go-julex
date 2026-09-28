@@ -134,10 +134,19 @@ const applyImageStyles = (cfg) => {
     const src = sec?.data?.[st.field];
     if (!src) return;
     const img = [...wrap.querySelectorAll('img')].find((i) => i.src === src || i.getAttribute('src') === src);
-    if (img && st.w) { img.style.width = `${st.w}px`; img.style.height = 'auto'; }
-    if (img && (st.dx || st.dy)) {
-      img.style.position = 'relative';
-      img.style.transform = `translate(${st.dx || 0}px, ${st.dy || 0}px)`;
+    if (!img) return;
+    // The merchant may have resized the FRAME (any ancestor clipping box):
+    // style the frame, not the inner img, so free w/h and fit apply to the
+    // visible box exactly as in the editor.
+    const box = (img.parentElement && getComputedStyle(img.parentElement).overflow === 'hidden') ? img.parentElement : img;
+    if (st.w) box.style.width = `${st.w}px`;
+    if (st.h) { box.style.height = `${st.h}px`; box.style.aspectRatio = 'auto'; }
+    if (st.ml) box.style.marginLeft = `${st.ml}px`;
+    if (st.mt) box.style.marginTop = `${st.mt}px`;
+    if (st.fit) img.style.objectFit = st.fit === 'contain' ? 'contain' : 'cover';
+    if (st.dx || st.dy) {
+      box.style.position = 'relative';
+      box.style.transform = `translate(${st.dx || 0}px, ${st.dy || 0}px)`;
     }
   });
 };
@@ -327,21 +336,31 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     window.addEventListener('scroll', placeChip, true);
     chip.__jxScroll = placeChip;
     if (isImage) {
-      const handle = document.createElement('div');
-      handle.className = 'jx-resize-handle';
-      handle.title = 'Drag to resize';
-      const positionHandle = () => {
-        const r = el.getBoundingClientRect();
-        handle.style.left = `${r.right - 7}px`;
-        handle.style.top = `${r.bottom - 7}px`;
-      };
-      positionHandle();
-      handle.__jxTarget = el;
-      handle.__jxRo = new ResizeObserver(positionHandle);
-      handle.__jxRo.observe(el);
-      handle.__jxScroll = positionHandle;
-      window.addEventListener('scroll', positionHandle, true);
-      document.body.appendChild(handle);
+      // FOUR corner handles — free resize from every direction
+      const corners = [
+        { dir: 'nw', cx: (r) => r.left, cy: (r) => r.top },
+        { dir: 'ne', cx: (r) => r.right, cy: (r) => r.top },
+        { dir: 'sw', cx: (r) => r.left, cy: (r) => r.bottom },
+        { dir: 'se', cx: (r) => r.right, cy: (r) => r.bottom }
+      ];
+      corners.forEach(({ dir, cx, cy }) => {
+        const handle = document.createElement('div');
+        handle.className = 'jx-resize-handle jx-rh-' + dir;
+        handle.title = 'Drag to resize';
+        handle.dataset.jxDir = dir;
+        const positionHandle = () => {
+          const r = el.getBoundingClientRect();
+          handle.style.left = `${cx(r) - 10}px`;
+          handle.style.top = `${cy(r) - 10}px`;
+        };
+        positionHandle();
+        handle.__jxTarget = el;
+        handle.__jxRo = new ResizeObserver(positionHandle);
+        handle.__jxRo.observe(el);
+        handle.__jxScroll = positionHandle;
+        window.addEventListener('scroll', positionHandle, true);
+        document.body.appendChild(handle);
+      });
     }
   };
 
@@ -564,10 +583,17 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         const img = e.target.__jxTarget;
         const cur = selRef.current;
         if (!img || !cur) return;
+        const r0 = img.getBoundingClientRect();
+        const cs0 = getComputedStyle(img);
         dragRef.current = {
           mode: 'resize',
-          startW: img.getBoundingClientRect().width,
+          dir: e.target.dataset.jxDir || 'se',
+          startW: r0.width,
+          startH: r0.height,
           startX: e.clientX,
+          startY: e.clientY,
+          startMl: parseFloat(cs0.marginLeft) || 0,
+          startMt: parseFloat(cs0.marginTop) || 0,
           img,
           isFloat: cur.kind === 'float_image',
           sid: cur.sid, field: cur.field, floatId: cur.floatId,
@@ -655,10 +681,17 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       const d = dragRef.current;
       if (!d) return;
       if (d.mode === 'resize') {
-        const delta = e.clientX - d.startX;
-        const w = Math.max(40, Math.round(d.startW + delta));
+        const dx = e.clientX - d.startX;
+        const dy = e.clientY - d.startY;
+        const dir = d.dir || 'se';
+        const w = Math.max(40, Math.round(d.startW + (dir.includes('e') ? dx : -dx)));
+        const h = Math.max(40, Math.round(d.startH + (dir.includes('s') ? dy : -dy)));
         d.img.style.width = `${w}px`;
-        d.img.style.height = 'auto';
+        d.img.style.height = `${h}px`;
+        d.img.style.aspectRatio = 'auto';
+        // keep the OPPOSITE corner anchored for n/w-side handles
+        if (dir.includes('n')) d.img.style.marginTop = `${d.startMt + dy}px`;
+        if (dir.includes('w')) d.img.style.marginLeft = `${d.startMl + dx}px`;
       } else if (d.mode === 'float') {
         d.node.style.left = `${d.origLeft + (e.clientX - d.startX)}px`;
         d.node.style.top = `${d.origTop + (e.clientY - d.startY)}px`;
@@ -676,9 +709,13 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       dragRef.current = null;
       if (!d) return;
       if (d.mode === 'resize') {
-        const w = Math.round(d.img.getBoundingClientRect().width);
-        if (d.isFloat) saveFloating(d.floatId, { w });
-        else saveImgStyle(d.sid, d.field, { w });
+        const r = d.img.getBoundingClientRect();
+        const w = Math.round(r.width);
+        const h = Math.round(r.height);
+        const ml = Math.round(parseFloat(d.img.style.marginLeft) || 0);
+        const mt = Math.round(parseFloat(d.img.style.marginTop) || 0);
+        if (d.isFloat) saveFloating(d.floatId, { w, h });
+        else saveImgStyle(d.sid, d.field, { w, h, ml, mt });
         const cur = selRef.current;
         if (cur) setSel({ ...cur, w });
       } else if (d.mode === 'float') {
@@ -832,6 +869,20 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
           <>
             <span className="jux-tool-sep" />
             <button onClick={() => setImgPick({})} className="jux-tool-btn" title="Replace this image">⟳ Replace</button>
+            <button
+              onClick={() => {
+                const cur = selRef.current;
+                if (!cur || !cur.el) return;
+                const inner = cur.el.querySelector('img') || cur.el;
+                const nowContain = inner.style.objectFit === 'contain';
+                inner.style.objectFit = nowContain ? 'cover' : 'contain';
+                if (!cur.floatId) saveImgStyle(cur.sid, cur.field, { fit: nowContain ? 'cover' : 'contain' });
+              }}
+              className="jux-tool-btn"
+              title="Cover = fill the box and crop the outsides · Full = show the ENTIRE image inside the box"
+            >
+              ⛶ {(() => { const c = selRef.current; const i = c && c.el && c.el.querySelector('img'); return i && i.style.objectFit === 'contain' ? 'Full ✓' : 'Cover'; })()}
+            </button>
             <button onClick={deleteFloat} disabled={!sel.floatId} className="jux-tool-btn" title="Delete this box">🗑 Delete</button>
           </>
         )}
