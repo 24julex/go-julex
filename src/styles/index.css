@@ -620,14 +620,16 @@ html.dark:not(.jx-storefront) .julex-landing-bg { background-color: #0A0A0A; }
 }
 /* ONE COMMON TOP TOOLBAR — spans the top of the customizer preview */
 .jux-toolbar.jux-topbar {
-  top: 0; left: 0; right: 0; border-radius: 0;
-  flex-wrap: wrap; padding: 8px 12px; gap: 6px;
-  padding-top: max(8px, env(safe-area-inset-top));
+  /* LEFT RAIL: vertical tools alongside the template (was a top bar that
+     covered the template's own header). */
+  top: 50%; left: 10px; right: auto; transform: translateY(-50%);
+  flex-direction: column; flex-wrap: nowrap; padding: 10px 8px; gap: 8px;
+  max-height: 92vh; overflow-y: auto; border-radius: 16px; width: auto;
 }
 .jux-tool-btn:disabled, .jux-tool-select:disabled { opacity: 0.35; cursor: not-allowed; }
 .jux-tool-disabled { opacity: 0.45; }
-.jux-tool-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.25); margin: 0 4px; }
-.jux-tool-hint { color: rgba(255,255,255,0.75); font: 500 10.5px 'Work Sans', sans-serif; margin-left: auto; padding-right: 8px; max-width: 300px; }
+.jux-tool-sep { width: 22px; height: 1px; background: rgba(255,255,255,0.25); margin: 4px 0; }
+.jux-tool-hint { color: rgba(255,255,255,0.75); font: 500 10px 'Work Sans', sans-serif; max-width: 130px; margin: 4px 0 0; }
 .jux-tool-swatches { display: inline-flex; gap: 3px; align-items: center; margin: 0 2px; }
 .jux-swatch { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); cursor: pointer; padding: 0; }
 .jux-swatch:hover { transform: scale(1.2); }

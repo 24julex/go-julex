@@ -874,6 +874,7 @@ export const AdminThemeBuilder = () => {
 
   // Sidebar Tab: 'blocks' | 'colors' | 'presets'
   const [activeTab, setActiveTab] = useState('blocks');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Currently Expanded Block in Accordion
   const [expandedSectionId, setExpandedSectionId] = useState('sec_hero');
@@ -1422,8 +1423,26 @@ export const AdminThemeBuilder = () => {
 
       {/* 2. Main Workspace: Left Controls Sidebar & Center Live Canvas */}
       <div className="flex-1 flex overflow-hidden">
-        {/* LEFT CONTROLS SIDEBAR */}
+        {/* LEFT CONTROLS SIDEBAR — collapsed by default: editing happens IN
+            the template (inline editor), so the forms panel is opt-in. */}
+        {!sidebarOpen ? (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="w-9 border-r border-[#FBCBCB] bg-white/80 backdrop-blur-md flex flex-col items-center py-3 gap-3 shrink-0 cursor-pointer"
+            title="Open controls (sections, colors, presets)"
+          >
+            <Sliders className="w-4 h-4 text-[#8A6200]" />
+            <span className="text-[9px] font-bold text-[#8A6200]" style={{ writingMode: 'vertical-rl' }}>CONTROLS</span>
+          </button>
+        ) : (
         <aside className="w-84 sm:w-96 border-r border-[#FBCBCB] bg-white/80 backdrop-blur-md flex flex-col shrink-0 overflow-hidden text-xs">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="px-3 py-1.5 text-left text-[10px] font-bold text-[#881337] hover:bg-[#FFF0F0] border-b border-[#FBCBCB] cursor-pointer"
+            title="Hide the controls panel — edit directly in the template"
+          >
+            ← Hide controls (edit in template)
+          </button>
           {/* Navigation Tabs */}
           <div className="grid grid-cols-3 border-b border-[#FBCBCB] bg-white p-1.5 gap-1">
             <button
@@ -2943,13 +2962,14 @@ export const AdminThemeBuilder = () => {
             </div>
           )}
         </aside>
+        )}
 
         {/* CENTER LIVE STOREFRONT CANVAS — the REAL storefront, identical to live preview.
             Drafts auto-save to the store config on every edit; the iframe reloads
             (debounced) so merchants always see exactly what is published. */}
-        <main className="flex-1 bg-white overflow-y-auto p-4 sm:p-6 flex items-start justify-center">
+        <main className="relative flex-1 bg-white overflow-y-auto p-4 sm:p-6 flex items-start justify-center">
           <div
-            className={`transition-all duration-300 rounded-3xl overflow-hidden border shadow-xl bg-white ${
+            className={`relative transition-all duration-300 rounded-3xl overflow-hidden border shadow-xl bg-white ${
               styles.cardBorder || 'border-[#FBCBCB]'
             } ${
               viewport === 'mobile'
@@ -2969,6 +2989,38 @@ export const AdminThemeBuilder = () => {
               >
                 <RefreshCw className="w-3 h-3" /> Refresh
               </button>
+            </div>
+            {/* SECTIONS DOCK — bottom-left over the template: reorder,
+                show/hide, jump. Editing itself happens inline in the preview. */}
+            <div className="absolute bottom-3 left-3 z-20 max-w-[70%] flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-white/92 backdrop-blur border border-[#FBCBCB] shadow-lg">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8A6200] mr-1">Sections</span>
+              {sections.map((s, i) => (
+                <span key={s.id || i} className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => {
+                      const updated = [...sections];
+                      updated[i] = { ...updated[i], enabled: !updated[i].enabled };
+                      setSections(updated);
+                    }}
+                    className={`px-2 py-1 rounded-lg text-[9px] font-bold border cursor-pointer transition ${s.enabled ? 'bg-[#FFF5F5] border-[#FBCBCB] text-[#0F172A]' : 'bg-stone-100 border-stone-200 text-stone-400 line-through'}`}
+                    title={s.enabled ? 'Hide this section' : 'Show this section'}
+                  >
+                    {s.name || s.type}
+                  </button>
+                  <button
+                    onClick={() => { if (i === 0) return; const u = [...sections]; [u[i-1], u[i]] = [u[i], u[i-1]]; setSections(u); }}
+                    disabled={i === 0}
+                    className="w-4 h-4 flex items-center justify-center text-[8px] text-stone-500 hover:text-[#8A6200] disabled:opacity-30 cursor-pointer"
+                    title="Move up"
+                  >▲</button>
+                  <button
+                    onClick={() => { if (i === sections.length - 1) return; const u = [...sections]; [u[i+1], u[i]] = [u[i], u[i+1]]; setSections(u); }}
+                    disabled={i === sections.length - 1}
+                    className="w-4 h-4 flex items-center justify-center text-[8px] text-stone-500 hover:text-[#8A6200] disabled:opacity-30 cursor-pointer"
+                    title="Move down"
+                  >▼</button>
+                </span>
+              ))}
             </div>
             <iframe
               key={previewTick}

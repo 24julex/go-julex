@@ -384,7 +384,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     if (!field) return;
     const saved = findStoredStyle(keys, sid, field) || {};
     const cs = getComputedStyle(el);
-    finishTextEdit(false);
+    finishTextEdit(true);
     setSel({
       kind: 'text', el, sid, type: sec.type, field,
       font: saved.font || (cs.fontFamily || '').split(',')[0].replace(/['"]/g, '').trim(),
@@ -399,7 +399,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
 
   const selectFloatText = (spanNode, f) => {
     const cs = getComputedStyle(spanNode);
-    finishTextEdit(false);
+    finishTextEdit(true);
     setSel({
       kind: 'float_text', el: spanNode, sid: f.id, field: 'text', floatId: f.id,
       font: f.font || (cs.fontFamily || '').split(',')[0].replace(/['"]/g, '').trim(),
@@ -435,7 +435,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     const cfg = readCfg(keys) || ensureCfg();
     const st = ((cfg.imgStyles || []).find((x) => x.sid === sid && x.field === field)) || {};
     const target = frameTarget(img);
-    finishTextEdit(false);
+    finishTextEdit(true);
     setSel({
       kind: 'image', el: target, sid, field,
       w: st.w || Math.round(target.getBoundingClientRect().width),
@@ -445,7 +445,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
   };
 
   const selectFloatImage = (imgNode, f) => {
-    finishTextEdit(false);
+    finishTextEdit(true);
     setSel({
       kind: 'float_image', el: imgNode, sid: f.id, field: 'src', floatId: f.id,
       w: f.w || Math.round(imgNode.getBoundingClientRect().width),
@@ -454,12 +454,35 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     markSelected(imgNode, true);
   };
 
+  // AUTOSAVE while typing: every keystroke in an inline text edit saves
+  // (debounced) — no Done press ever required.
+  useEffect(() => {
+    let t = null;
+    const onInput = (e) => {
+      const el = e.target;
+      if (!el || el.getAttribute !== undefined && el.getAttribute && el.getAttribute('contenteditable') !== 'true') return;
+      const cur = selRef.current;
+      if (!cur || !cur.el || cur.el !== el) return;
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const text = norm(el.textContent);
+        if (text) {
+          if (cur.floatId) saveFloating(cur.floatId, { text });
+          else saveField(cur.sid, cur.field, text);
+        }
+      }, 500);
+    };
+    document.addEventListener('input', onInput);
+    return () => { clearTimeout(t); document.removeEventListener('input', onInput); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const cfg = readCfg(keys);
     if (cfg) renderFloating(cfg);
     // keep the template below the fixed top toolbar
-    document.body.style.paddingTop = '54px';
-    return () => { document.body.style.paddingTop = ''; };
+    document.body.style.paddingLeft = '0px';
+    return () => { document.body.style.paddingLeft = ''; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
