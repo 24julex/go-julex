@@ -425,13 +425,20 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     if (Array.isArray(d.reels)) d.reels.forEach((r) => { if (r && r.src) urls.push(r.src); });
     return urls.filter(Boolean);
   };
+  // CLASSIFY BY SECTION TYPE — immune to draft-stream state drift:
+  //   • product_grid / products  → EVERY image is a product photo (protected)
+  //   • video_reels              → merchant reel media editable, product fills protected
+  //   • hero / story / promo / header / footer → ALWAYS theme imagery (editable)
   const isProductImage = (img, sec) => {
-    if (!img) return false;
-    if (img.closest && img.closest('article')) return true;
-    if (!sec) return false;
-    const attr = (img.getAttribute && img.getAttribute('src')) || '';
-    const abs = img.src || '';
-    return !themeMediaSrcs(sec).some((u) => u === attr || abs === u || abs.endsWith(u));
+    if (!img || !sec) return false;
+    const type = sec.type;
+    if (type === 'product_grid' || type === 'products') return true;
+    if (type === 'video_reels') {
+      const attr = (img.getAttribute && img.getAttribute('src')) || '';
+      const abs = img.src || '';
+      return !themeMediaSrcs(sec).some((u) => u === attr || abs === u || abs.endsWith(u));
+    }
+    return false;
   };
 
   const flashHint = (msg) => {
