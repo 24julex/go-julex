@@ -414,9 +414,25 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
   };
 
   // PRODUCT IMAGES live in the store's catalog (Products section) — they are
-  // NEVER replaceable/movable/deletable from the theme customizer. Detect a
-  // product card (every layout renders products inside <article> cards).
-  const isProductImage = (img) => Boolean(img && img.closest && img.closest('article'));
+  // NEVER replaceable/movable/deletable from the theme customizer. An image
+  // is THEME media iff its src matches a known theme-media field of its
+  // section (hero/promo/story imagery, hero floats, reels). Everything else
+  // in the grid is a product photo — no matter what markup the layout uses.
+  const themeMediaSrcs = (sec) => {
+    const d = (sec && sec.data) || {};
+    const urls = [d.imageUrl, d.image, d.heroImage, d.bannerImage, d.storyImage, d.url,
+      d.float1, d.float2, d.float3, d.float4, d.reel1Img, d.reel2Img, d.reel3Img];
+    if (Array.isArray(d.reels)) d.reels.forEach((r) => { if (r && r.src) urls.push(r.src); });
+    return urls.filter(Boolean);
+  };
+  const isProductImage = (img, sec) => {
+    if (!img) return false;
+    if (img.closest && img.closest('article')) return true;
+    if (!sec) return false;
+    const attr = (img.getAttribute && img.getAttribute('src')) || '';
+    const abs = img.src || '';
+    return !themeMediaSrcs(sec).some((u) => u === attr || abs === u || abs.endsWith(u));
+  };
 
   const flashHint = (msg) => {
     document.querySelectorAll('.jx-flash').forEach((n) => n.remove());
@@ -444,7 +460,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
   };
 
   const selectImage = (img, sec, sid) => {
-    if (isProductImage(img)) { flashHint('Product images are managed in your Products catalog — only theme imagery is editable here.'); return; }
+    if (isProductImage(img, sec)) { flashHint('Product images are managed in your Products catalog — only theme imagery is editable here.'); return; }
     // A per-image data-jx-field wins (e.g. hero float1..float4) so EACH image
     // in a section is individually replaceable; else the section's image field.
     const field = (img && img.dataset && img.dataset.jxField) || resolveImageField(sec);
@@ -469,6 +485,26 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     });
     markSelected(imgNode, true);
   };
+
+  // DRAFT SYNC: the builder streams its CURRENT sections/styles into this
+  // page. Mirror them into the local cfg (preserving editor-only state like
+  // imgStyles/floating) so classification and saves never act on a stale draft.
+  useEffect(() => {
+    const onDraft = (e) => {
+      const d = e.data;
+      if (!d || d.type !== 'julex-draft-theme' || !Array.isArray(d.sections)) return;
+      try {
+        const cfg = readCfg(keys) || {};
+        cfg.sections = d.sections;
+        if (d.styles && Object.keys(d.styles).length > 0) cfg.styles = d.styles;
+        cfg.updatedAt = new Date().toISOString();
+        keys.forEach((k) => { try { localStorage.setItem(k, JSON.stringify(cfg)); } catch (err) {} });
+      } catch (err) {}
+    };
+    window.addEventListener('message', onDraft);
+    return () => window.removeEventListener('message', onDraft);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // AUTOSAVE while typing: every keystroke in an inline text edit saves
   // (debounced) — no Done press ever required.
@@ -539,12 +575,12 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       }
       const sid = wrap.dataset.sid;
       const cfg = readCfg(keys) || ensureCfg();
-      const sec = (cfg.sections || []).find((s) => s.id === sid) || (getSections ? getSections().find((s) => s.id === sid) : null);
+      const sec = (getSections ? getSections().find((s) => s.id === sid) : null) || (cfg.sections || []).find((s) => s.id === sid);
       if (!sec) return;
       e.preventDefault(); e.stopPropagation();
       const img = e.target.closest('img');
       if (img) {
-        if (isProductImage(img)) { flashHint('Product images are managed in your Products catalog — only theme imagery is editable here.'); return; }
+        if (isProductImage(img, sec)) { flashHint('Product images are managed in your Products catalog — only theme imagery is editable here.'); return; }
         selectImage(img, sec, sid); return;
       }
       let el = e.target;
@@ -603,7 +639,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       if (!wrap) return;
       const sid = wrap.dataset.sid;
       const cfg = readCfg(keys) || ensureCfg();
-      const sec = (cfg.sections || []).find((s) => s.id === sid) || (getSections ? getSections().find((s) => s.id === sid) : null);
+      const sec = (getSections ? getSections().find((s) => s.id === sid) : null) || (cfg.sections || []).find((s) => s.id === sid);
       if (!sec) return;
       e.preventDefault(); e.stopPropagation();
       let el = e.target;
@@ -676,11 +712,11 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       if ((!cur || !cur.el || !cur.el.contains(e.target)) && !editingNow) {
         const wrap = e.target.closest?.('.jx-edit-wrap');
         const img = e.target.closest?.('img');
-        if (img && isProductImage(img)) { e.preventDefault(); return; }
         if (wrap && img) {
           const sid2 = wrap.dataset.sid;
           const cfg2 = readCfg(keys) || ensureCfg();
-          const sec2 = (cfg2.sections || []).find((s) => s.id === sid2) || (getSections ? getSections().find((s) => s.id === sid2) : null);
+          const sec2 = (getSections ? getSections().find((s) => s.id === sid2) : null) || (cfg2.sections || []).find((s) => s.id === sid2);
+          if (img && isProductImage(img, sec2)) { e.preventDefault(); return; }
           if (sec2) {
             const target2 = frameTarget(img);
             const field2 = (img.dataset && img.dataset.jxField) || resolveImageField(sec2);
