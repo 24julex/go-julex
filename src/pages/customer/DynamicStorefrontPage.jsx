@@ -1104,11 +1104,17 @@ export const DynamicStorefrontPage = () => {
             if (V === 'gallery_wall') return (
               <section key={section.id} className="relative" style={{ backgroundColor: vInk }}>
                 <img src={vImg} alt="" className="w-full h-[52vh] object-cover opacity-80" />
-                <div className="absolute bottom-0 inset-x-0 p-6 sm:p-10" style={{ backgroundColor: vInk + 'e6' }}>
-                  <p className="text-[10px] tracking-[0.4em] uppercase mb-2" style={{ color: vAccent }}>{section.data.badgeText}</p>
-                  <h2 className="text-3xl sm:text-4xl text-white" style={{ fontFamily: vFont }}>{section.data.headline}</h2>
-                  <p className="text-xs text-white/70 mt-2 max-w-xl">{section.data.subtext}</p>
-                  <a href="#products" className="inline-block mt-4 text-[11px] tracking-[0.3em] uppercase text-white border-b" style={{ borderColor: vAccent }}>{section.data.ctaText}</a>
+                {/* Slim letterbox — the IMAGE is the hero; the caption hugs the
+                    bottom like the reference design instead of covering 2/3. */}
+                <div className="absolute bottom-0 inset-x-0 px-5 py-3 sm:px-7 sm:py-4" style={{ backgroundColor: vInk + 'f2' }}>
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <h2 className="text-lg sm:text-2xl text-white leading-tight" style={{ fontFamily: vFont }}>{section.data.headline}</h2>
+                    <p className="text-[9px] tracking-[0.3em] uppercase truncate" style={{ color: vAccent }}>{section.data.badgeText}</p>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3 mt-0.5">
+                    <p className="text-[10px] text-white/70 truncate max-w-lg">{section.data.subtext}</p>
+                    <a href="#products" className="text-[10px] tracking-[0.25em] uppercase text-white border-b shrink-0" style={{ borderColor: vAccent }}>{section.data.ctaText}</a>
+                  </div>
                 </div>
               </section>
             );
