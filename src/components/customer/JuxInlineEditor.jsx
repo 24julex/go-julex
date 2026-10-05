@@ -139,6 +139,7 @@ const applyImageStyles = (cfg) => {
     // style the frame, not the inner img, so free w/h and fit apply to the
     // visible box exactly as in the editor.
     const box = (img.parentElement && getComputedStyle(img.parentElement).overflow === 'hidden') ? img.parentElement : img;
+    if (st.hidden) { box.style.display = 'none'; return; }
     if (st.w) box.style.width = `${st.w}px`;
     if (st.h) { box.style.height = `${st.h}px`; box.style.aspectRatio = 'auto'; }
     if (st.ml) box.style.marginLeft = `${st.ml}px`;
@@ -412,6 +413,20 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     markSelected(spanNode, false);
   };
 
+  // PRODUCT IMAGES live in the store's catalog (Products section) — they are
+  // NEVER replaceable/movable/deletable from the theme customizer. Detect a
+  // product card (every layout renders products inside <article> cards).
+  const isProductImage = (img) => Boolean(img && img.closest && img.closest('article'));
+
+  const flashHint = (msg) => {
+    document.querySelectorAll('.jx-flash').forEach((n) => n.remove());
+    const el = document.createElement('div');
+    el.className = 'jx-flash';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  };
+
   // ART-DIRECTED FRAMES: when an image sits inside a decorative frame
   // (polaroid card, bordered tile…) the merchant moves/resizes the WHOLE
   // card — dragging the inner <img> only slides it under the clipped frame.
@@ -429,6 +444,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
   };
 
   const selectImage = (img, sec, sid) => {
+    if (isProductImage(img)) { flashHint('Product images are managed in your Products catalog — only theme imagery is editable here.'); return; }
     // A per-image data-jx-field wins (e.g. hero float1..float4) so EACH image
     // in a section is individually replaceable; else the section's image field.
     const field = (img && img.dataset && img.dataset.jxField) || resolveImageField(sec);
@@ -527,7 +543,10 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       if (!sec) return;
       e.preventDefault(); e.stopPropagation();
       const img = e.target.closest('img');
-      if (img) { selectImage(img, sec, sid); return; }
+      if (img) {
+        if (isProductImage(img)) { flashHint('Product images are managed in your Products catalog — only theme imagery is editable here.'); return; }
+        selectImage(img, sec, sid); return;
+      }
       let el = e.target;
       while (el && el.children.length > 0) {
         const withText = [...el.children].find((c) => norm(c.textContent).length > 0 && !c.querySelector('img'));
@@ -657,6 +676,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
       if ((!cur || !cur.el || !cur.el.contains(e.target)) && !editingNow) {
         const wrap = e.target.closest?.('.jx-edit-wrap');
         const img = e.target.closest?.('img');
+        if (img && isProductImage(img)) { e.preventDefault(); return; }
         if (wrap && img) {
           const sid2 = wrap.dataset.sid;
           const cfg2 = readCfg(keys) || ensureCfg();
@@ -690,7 +710,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
           ? ((readCfg(keys) || {}).imgStyles || []).find((x) => x.sid === cur.sid && x.field === cur.field) || {}
           : findStoredStyle(keys, cur.sid, cur.field) || {};
         dragRef.current = {
-          mode: 'section',
+          mode: 'section', moved: false,
           startX: e.clientX, startY: e.clientY,
           origDx: st.dx || 0, origDy: st.dy || 0,
           el: cur.el,
@@ -707,20 +727,33 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         const dx = e.clientX - d.startX;
         const dy = e.clientY - d.startY;
         const dir = d.dir || 'se';
-        const w = Math.max(40, Math.round(d.startW + (dir.includes('e') ? dx : -dx)));
-        const h = Math.max(40, Math.round(d.startH + (dir.includes('s') ? dy : -dy)));
+        const w = Math.max(60, Math.round(d.startW + (dir.includes('e') ? dx : -dx)));
+        const h = Math.max(60, Math.round(d.startH + (dir.includes('s') ? dy : -dy)));
         d.img.style.width = `${w}px`;
         d.img.style.height = `${h}px`;
         d.img.style.aspectRatio = 'auto';
         // keep the OPPOSITE corner anchored for n/w-side handles
         if (dir.includes('n')) d.img.style.marginTop = `${d.startMt + dy}px`;
         if (dir.includes('w')) d.img.style.marginLeft = `${d.startMl + dx}px`;
+        // live size badge
+        let badge = document.querySelector('.jx-size-badge');
+        if (!badge) { badge = document.createElement('div'); badge.className = 'jx-size-badge'; document.body.appendChild(badge); }
+        const r = d.img.getBoundingClientRect();
+        badge.textContent = `${w} × ${h}`;
+        badge.style.left = `${Math.round(r.left + r.width / 2 - 30)}px`;
+        badge.style.top = `${Math.max(6, Math.round(r.top - 26))}px`;
       } else if (d.mode === 'float') {
         d.node.style.left = `${d.origLeft + (e.clientX - d.startX)}px`;
         d.node.style.top = `${d.origTop + (e.clientY - d.startY)}px`;
       } else if (d.mode === 'section') {
-        const dx = d.origDx + (e.clientX - d.startX);
-        const dy = d.origDy + (e.clientY - d.startY);
+        const rdx = e.clientX - d.startX;
+        const rdy = e.clientY - d.startY;
+        // Engage only after a deliberate 4px drag — a plain click never
+        // nudges the element or fires a save.
+        if (!d.moved && Math.hypot(rdx, rdy) < 4) return;
+        d.moved = true;
+        const dx = d.origDx + rdx;
+        const dy = d.origDy + rdy;
         d.el.style.position = 'relative';
         d.el.style.transform = `translate(${dx}px, ${dy}px)`;
         d.el.style.zIndex = '5';
@@ -730,6 +763,7 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
     const onMouseUp = () => {
       const d = dragRef.current;
       dragRef.current = null;
+      document.querySelectorAll('.jx-size-badge').forEach((n) => n.remove());
       if (!d) return;
       if (d.mode === 'resize') {
         const r = d.img.getBoundingClientRect();
@@ -747,6 +781,8 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
         const vw = window.innerWidth || 1;
         saveFloating(d.id, { x: Math.max(0, Math.min(88, (left / vw) * 100)), y: Math.max(0, top) });
       } else if (d.mode === 'section') {
+        // A click that never crossed the drag threshold changes nothing.
+        if (!d.moved) return;
         const m = /translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/.exec(d.el.style.transform || '');
         const patch = { dx: m ? Number(m[1]) : 0, dy: m ? Number(m[2]) : 0 };
         if (d.isImage) saveImgStyle(d.sid, d.field, patch);
@@ -829,9 +865,9 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
           onClick={() => {
             const cur = selRef.current;
             if (!cur) return;
-            if (cur.kind === 'image') saveImgStyle(cur.sid, cur.field, { dx: 0, dy: 0 });
+            if (cur.kind === 'image') saveImgStyle(cur.sid, cur.field, { dx: 0, dy: 0, hidden: false });
             else if (cur.kind === 'text') saveStyle(cur.sid, cur.field, { dx: 0, dy: 0 });
-            if (cur.el) { cur.el.style.transform = ''; cur.el.style.position = ''; }
+            if (cur.el) { cur.el.style.transform = ''; cur.el.style.position = ''; cur.el.style.display = ''; }
             clearSelectionUi();
             setSel(null);
           }}
@@ -906,7 +942,26 @@ export const JuxInlineEditor = ({ storeId, subdomain, getSections, getStyles }) 
             >
               ⛶ {(() => { const c = selRef.current; const i = c && c.el && c.el.querySelector('img'); return i && i.style.objectFit === 'contain' ? 'Full ✓' : 'Cover'; })()}
             </button>
-            <button onClick={deleteFloat} disabled={!sel.floatId} className="jux-tool-btn" title="Delete this box">🗑 Delete</button>
+            <button
+              onClick={deleteFloat}
+              disabled={!sel.floatId}
+              className="jux-tool-btn"
+              title="Delete this added box"
+            >🗑 Delete</button>
+            {!sel.floatId && (
+              <button
+                onClick={() => {
+                  const cur = selRef.current;
+                  if (!cur || !cur.el) return;
+                  saveImgStyle(cur.sid, cur.field, { hidden: true });
+                  cur.el.style.display = 'none';
+                  clearSelectionUi();
+                  setSel(null);
+                }}
+                className="jux-tool-btn"
+                title="Remove this theme image (⟲ Reset brings it back)"
+              >✕ Remove img</button>
+            )}
           </>
         )}
 
