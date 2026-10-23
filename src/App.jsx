@@ -13,6 +13,7 @@ import { WishlistPage } from './pages/customer/WishlistPage';
 import { MerchantPlansPage } from './pages/customer/MerchantPlansPage';
 import { DynamicStorefrontPage } from './pages/customer/DynamicStorefrontPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { PlatformLandingPage } from './pages/PlatformLandingPage';
 import { StoreOnboardingPage } from './pages/customer/StoreOnboardingPage';
 import { AdminBilling } from './pages/admin/AdminBilling';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -106,7 +107,7 @@ export const App = () => {
           <Route path="/store/:subdomain/checkout" element={<ErrorBoundary><CheckoutPage /></ErrorBoundary>} />
 
           {/* Customer / D2C Platform Routes */}
-          <Route path="/" element={<AdminLoginPage />} />
+          <Route path="/" element={<PlatformLandingPage />} />
           {/* go.julex.shop is a merchants-only platform — there is NO platform
               product catalog. /catalog renders ONLY on a store subdomain
               (that store's own catalog); anywhere else it goes home. */}

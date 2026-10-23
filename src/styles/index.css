@@ -778,3 +778,49 @@ html[data-jx-mode="dark"] .border-black\/5 { border-color: rgba(255,255,255,0.12
 .jux-topbar .jux-sections { order: 50; }
 .jux-topbar .jux-tool-done { order: 40; margin-top: 8px; }
 .jux-topbar .jux-tool-hint { order: 45; }
+
+
+/* ============================================================
+   PLATFORM LANDING — Luminous Amber glassmorphism (from the
+   attached redesign). Scoped to .lp-* to avoid clashing with
+   the storefront themes.
+   ============================================================ */
+.lp-glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 45px -15px rgba(216, 137, 20, 0.14), 0 0 0 1px rgba(235, 175, 75, 0.22), inset 0 1px 2px rgba(255, 255, 255, 0.95);
+}
+.lp-glass-card-popular {
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.94) 0%, rgba(255, 245, 226, 0.88) 100%);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 2px solid rgba(232, 160, 43, 0.7);
+  box-shadow: 0 32px 64px -12px rgba(216, 137, 20, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.95), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+}
+.lp-glass-pill {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+}
+.lp-gold-btn {
+  background: linear-gradient(180deg, #F7BA35 0%, #E29315 50%, #C77502 100%);
+  box-shadow: 0 8px 24px rgba(216, 137, 20, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  transition: all 0.25s ease;
+}
+.lp-gold-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(216, 137, 20, 0.48), inset 0 1px 1px rgba(255, 255, 255, 0.8); }
+.lp-float-chip {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 16px 32px -8px rgba(184, 115, 9, 0.25), 0 4px 12px rgba(0, 0, 0, 0.08);
+  animation: lpFloat 4s ease-in-out infinite alternate;
+}
+.lp-float-chip-rev { animation: lpFloatRev 4.5s ease-in-out infinite alternate; }
+@keyframes lpFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
+@keyframes lpFloatRev { 0% { transform: translateY(0px); } 100% { transform: translateY(8px); } }
+.lp-store-btn { transition: all 0.2s ease; }
+.lp-store-btn-active {
+  background: linear-gradient(90deg, #D88914, #B87309); color: #fff;
+  box-shadow: 0 4px 12px rgba(216,137,20,.35); outline: 2px solid rgba(216,137,20,.35);
+}
+.lp-mat { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; font-variation-settings: 'FILL' 1; }
