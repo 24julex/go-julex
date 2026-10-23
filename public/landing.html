@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gojulex — Simple, Affordable &amp; Transparent Pricing</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Outfit:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: "#D88914",
+              amber: "#B87309",
+              light: "#FFF9ED",
+              cream: "#FDF3E1",
+              soft: "#FAF0DD",
+              accent: "#F5A623",
+              dark: "#1F1608",
+              brown: "#3C2607"
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            script: ['Caveat', 'cursive']
+          },
+          boxShadow: {
+            'glass': '0 20px 40px -15px rgba(216, 137, 20, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.95)',
+            'glass-gold': '0 25px 50px -12px rgba(216, 137, 20, 0.28), 0 0 0 1.5px rgba(245, 166, 35, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.8)',
+            'floating-device': '0 30px 70px -15px rgba(216, 137, 20, 0.28), 0 15px 35px -5px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.95)',
+            'floating-badge': '0 12px 28px -6px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.95)'
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    /* Filled Glassmorphism custom styling */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 20px 45px -15px rgba(216, 137, 20, 0.14), 0 0 0 1px rgba(235, 175, 75, 0.22), inset 0 1px 2px rgba(255, 255, 255, 0.95);
+    }
+    .glass-card-popular {
+      background: linear-gradient(180deg, rgba(255, 252, 243, 0.94) 0%, rgba(255, 245, 226, 0.88) 100%);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 2px solid rgba(232, 160, 43, 0.7);
+      box-shadow: 0 32px 64px -12px rgba(216, 137, 20, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.95), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+    }
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+    }
+    .gold-gradient-btn {
+      background: linear-gradient(180deg, #F7BA35 0%, #E29315 50%, #C77502 100%);
+      box-shadow: 0 8px 24px rgba(216, 137, 20, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+      transition: all 0.25s ease;
+    }
+    .gold-gradient-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(216, 137, 20, 0.48), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    }
+    .floating-chip {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 16px 32px -8px rgba(184, 115, 9, 0.25), 0 4px 12px rgba(0, 0, 0, 0.08);
+      animation: floatBadge 4s ease-in-out infinite alternate;
+    }
+    .floating-chip-reverse {
+      animation: floatBadgeReverse 4.5s ease-in-out infinite alternate;
+    }
+    @keyframes floatBadge {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-8px); }
+    }
+    @keyframes floatBadgeReverse {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(8px); }
+    }
+  </style>
+<meta content="web_standard" name="shell-type"/></head>
+<body class="bg-gradient-to-b from-[#FFF9ED] via-[#FDF3E1] to-[#FAF0DD] text-[#2C2112] font-sans antialiased selection:bg-[#F5A623]/30 min-h-screen relative overflow-x-hidden">
+<!-- Background Radiant Glowing Orbs (Atmosphere) -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-32 -left-32 w-[650px] h-[650px] rounded-full bg-gradient-to-br from-[#FFE3A8]/60 via-[#FDD383]/40 to-transparent blur-3xl"></div>
+<div class="absolute top-[28%] -right-40 w-[700px] h-[700px] rounded-full bg-gradient-to-bl from-[#F6BA47]/30 via-[#FFE8B8]/40 to-transparent blur-3xl"></div>
+<div class="absolute top-[65%] left-[10%] w-[580px] h-[580px] rounded-full bg-gradient-to-tr from-[#FFDFA3]/40 via-[#FDF0D0]/50 to-transparent blur-3xl"></div>
+<div class="absolute -bottom-40 right-[15%] w-[750px] h-[750px] rounded-full bg-gradient-to-t from-[#F8C663]/30 via-[#FFF1D6]/40 to-transparent blur-3xl"></div>
+</div>
+<!-- Top Floating Header -->
+<header class="fixed top-0 left-0 right-0 w-full z-50 px-4 sm:px-8 py-3.5 transition-all">
+<div class="max-w-7xl mx-auto glass-card rounded-2xl px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
+<!-- Brand Logo & Slogan Pill -->
+<div class="flex items-center gap-3 md:gap-4 flex-shrink-0">
+<a class="flex items-center gap-2 group" href="#">
+<img alt="Gojulex Logo" class="h-9 sm:h-11 w-auto object-contain transition-transform group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1UgfzHwKeGwt1JLDfuy5vzER5eDr3N2yIDnjkxNcxxtw7zB6PEoGznnCjV_XEIT0A38n86WKXQjxZN5OTUFK6yCYMetHhkGsHinj09TM8FeZF4M8nFaZOufclHfAUgfTJalRQhuaacuwL2d0fM7Ti5WPrjRclaDkwv50eSAJLFYQxPzIw_VF8VyZbBq66M-re7sJPU7B6LDVbiUB_pqY0NXbt0A6SOaF0Kh0wq-YxBW3UpSZT01Gwsh8LSm"/>
+</a>
+<div class="hidden xl:flex flex-col border-l border-brand-amber/20 pl-3">
+<span class="text-[10px] tracking-wider uppercase font-bold text-brand-amber">Bigger Ideas • Brighter Businesses Together</span>
+<span class="text-[11px] font-semibold text-brand-brown/80">For Growing Brands &amp; Modern Store Owners</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden lg:flex items-center gap-6 xl:gap-8">
+<a class="font-semibold text-sm text-[#4E391A] hover:text-brand-amber transition-colors flex items-center gap-1" href="#pricing-plans">
+<span>Transparent Pricing</span>
+<span class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-brand-gold/15 text-brand-amber">0% Fee</span>
+</a>
+<a class="font-semibold text-sm text-[#4E391A] hover:text-brand-amber transition-colors" href="#simulation-stage">Store Showcase</a>
+<a class="font-semibold text-sm text-[#4E391A] hover:text-brand-amber transition-colors" href="#template-studio">Platform Features</a>
+<a class="font-semibold text-sm text-[#4E391A] hover:text-brand-amber transition-colors" href="#dns-guide">Custom Domains</a>
+<a class="font-semibold text-sm text-green-700 hover:text-green-800 transition-colors flex items-center gap-1.5 bg-green-50/80 px-2.5 py-1 rounded-full border border-green-200" href="https://wa.me/919940415353" target="_blank">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span>WhatsApp Help</span>
+</a>
+</nav>
+<!-- CTA Cluster -->
+<div class="flex items-center gap-3">
+<a class="gold-gradient-btn text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap shadow-md" href="/admin/login">
+<span>Start Store Today</span>
+<span class="material-symbols-outlined text-[17px]">arrow_forward</span>
+</a>
+<a class="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-brand-cream border border-brand-gold/30 text-brand-brown hover:bg-brand-gold/20 transition-colors" href="tel:9940415353" title="Call Us Directly">
+<span class="material-symbols-outlined text-[18px]">call</span>
+</a>
+</div>
+</div>
+</header>
+<!-- Main Hero Section -->
+<main class="relative z-10 pt-28 sm:pt-32 pb-16">
+<div class="flex flex-col w-full">
+<!-- Interactive Ambient Header & Domain Configurator -->
+<section class="relative px-4 sm:px-8 py-6 sm:py-10 max-w-7xl mx-auto w-full">
+<!-- Live Simulator Breadcrumb -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+<div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/80 border border-brand-gold/30 shadow-sm backdrop-blur-md">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 -ml-5"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-brand-brown">
+  LIVE STOREFRONT SIMULATOR • MULTI-CLIENT SLIDER
+</span>
+<span class="text-amber-300">|</span>
+<span class="text-xs font-bold text-emerald-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">verified</span>
+  0% Commission Guaranteed
+</span>
+</div>
+<!-- Quick Telemetry Badge -->
+<div class="hidden md:flex items-center gap-3 text-xs font-semibold text-[#4E391A] bg-white/80 px-4 py-1.5 rounded-full shadow-sm border border-amber-200/60 backdrop-blur-md">
+<span class="flex items-center gap-1 text-emerald-700">
+<span class="material-symbols-outlined text-[16px]">speed</span> 99/100 Core Web Vitals
+</span>
+<span class="text-amber-200">|</span>
+<span class="flex items-center gap-1 text-brand-amber">
+<span class="material-symbols-outlined text-[16px]">bolt</span> Sub-200ms Global Edge
+</span>
+<span class="text-amber-200">|</span>
+<span class="flex items-center gap-1 text-brand-brown font-bold">
+<span class="material-symbols-outlined text-[16px] text-green-600">call</span> 99404 15353
+</span>
+</div>
+</div>
+<!-- Main Title & Copy -->
+<div class="max-w-4xl space-y-3 mb-8">
+<h1 class="text-3xl sm:text-5xl font-black text-[#1F1608] tracking-tight leading-tight">
+  Experience Your Brand Storefront <br class="hidden sm:inline"/>
+<span class="bg-gradient-to-r from-brand-amber via-brand-gold to-[#A56303] bg-clip-text text-transparent drop-shadow-sm">Across Every Screen in High Definition</span>
+</h1>
+<p class="text-base sm:text-lg text-[#5C4524] max-w-3xl leading-relaxed font-medium">
+  Preview how your independent boutique renders with crystal-clear contrast, lightning instant WhatsApp 1-tap ordering, auto-issued SSL, and zero commissions. Slide across distinct live store themes below:
+</p>
+</div>
+<!-- Glassmorphic Domain & Multi-Site Sliding Controller Console -->
+<div class="glass-card rounded-3xl p-4 sm:p-6 shadow-xl border border-white/95 backdrop-blur-2xl relative z-20">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+<!-- Interactive Domain Bar -->
+<div class="lg:col-span-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white/95 p-2 rounded-2xl border border-brand-gold/30 shadow-inner">
+<div class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 rounded-xl whitespace-nowrap border border-emerald-200">
+<span class="material-symbols-outlined text-[17px] text-emerald-600">lock</span>
+<span>HTTPS Secured</span>
+</div>
+<div class="flex-1 flex items-center gap-1 px-2">
+<span class="text-xs font-bold text-[#8C7654]">https://</span>
+<input class="w-full bg-transparent text-sm sm:text-base font-extrabold text-[#111827] focus:outline-none placeholder-[#A68F74] py-1 border-0 ring-0 focus:ring-0 font-sans" id="domain-input" placeholder="yourstore.com" type="text" value="www.solstice-botanicals.in"/>
+</div>
+<div class="flex items-center gap-1 px-2 text-xs font-bold text-brand-amber whitespace-nowrap">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Edge DNS Live</span>
+</div>
+</div>
+<!-- Interactive Store Slider Buttons -->
+<div class="lg:col-span-7 flex flex-wrap items-center justify-between sm:justify-end gap-2">
+<div class="flex items-center gap-1.5 text-xs font-bold uppercase text-[#735A36] tracking-wider mr-1 hidden sm:flex">
+<span class="material-symbols-outlined text-[18px] text-brand-gold">store</span>
+<span>Select Preset Store:</span>
+</div>
+<div class="flex items-center gap-1.5 flex-wrap" id="store-selector-group">
+<button class="store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-all bg-gradient-to-r from-[#D88914] to-[#B87309] text-white shadow-md flex items-center gap-1.5 ring-2 ring-brand-gold/40" onclick="switchStore('botanicals', this)">
+<span>🌿</span> Botanicals &amp; Elixirs
+</button>
+<button class="store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white hover:bg-amber-50 text-[#3B2912] border border-amber-200/80 shadow-xs flex items-center gap-1.5" onclick="switchStore('jewels', this)">
+<span>✨</span> Fine Jewelry
+</button>
+<button class="store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white hover:bg-amber-50 text-[#3B2912] border border-amber-200/80 shadow-xs flex items-center gap-1.5" onclick="switchStore('pantry', this)">
+<span>🌾</span> Vedic Pantry
+</button>
+<button class="store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white hover:bg-amber-50 text-[#3B2912] border border-amber-200/80 shadow-xs flex items-center gap-1.5" onclick="switchStore('couture', this)">
+<span>👗</span> Haute Couture
+</button>
+</div>
+</div>
+</div>
+<!-- Sub-Bar: Carousel Slider Indicator & Device Viewport Switcher -->
+<div class="mt-4 pt-4 border-t border-brand-gold/15 flex flex-wrap items-center justify-between gap-3">
+<!-- Active Store Indicator / Carousel Arrows -->
+<div class="flex items-center gap-3">
+<div class="inline-flex items-center gap-2 bg-[#FFF6E3] px-3 py-1 rounded-xl border border-brand-gold/30">
+<button aria-label="Previous Storefront" class="w-6 h-6 rounded-lg bg-white text-brand-brown hover:bg-brand-gold hover:text-white transition-colors flex items-center justify-center shadow-xs" onclick="cycleStore(-1)">
+<span class="material-symbols-outlined text-[15px]">arrow_back</span>
+</button>
+<div class="text-xs font-extrabold text-[#1F1608] flex items-center gap-1.5">
+<span class="text-brand-amber font-bold">Simulating:</span>
+<span class="text-emerald-900 font-extrabold underline decoration-brand-gold" id="current-sim-label">Solstice Botanicals</span>
+</div>
+<button aria-label="Next Storefront" class="w-6 h-6 rounded-lg bg-white text-brand-brown hover:bg-brand-gold hover:text-white transition-colors flex items-center justify-center shadow-xs" onclick="cycleStore(1)">
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</button>
+</div>
+<div class="hidden md:flex items-center gap-1 text-[11px] font-semibold text-[#735A36]">
+<span>(Click arrows or tabs to switch live storefront theme)</span>
+</div>
+</div>
+<!-- Quick Switch Toolbar: Device Viewports -->
+<div class="flex items-center gap-2">
+<span class="text-xs font-extrabold text-[#735A36] uppercase tracking-wider hidden sm:inline">Viewport:</span>
+<div class="inline-flex p-1 bg-white/90 rounded-xl border border-amber-200/70 shadow-xs">
+<button class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-[#FAF0DD] text-[#2C2112] shadow-xs flex items-center gap-1.5" id="view-dual-btn" onclick="setViewMode('dual')">
+<span class="material-symbols-outlined text-[16px] text-brand-amber">view_quilt</span> Dual Screen
+</button>
+<button class="px-3 py-1 rounded-lg text-xs font-semibold transition-all text-[#685233] hover:text-[#1F1608] flex items-center gap-1.5" id="view-desktop-btn" onclick="setViewMode('desktop')">
+<span class="material-symbols-outlined text-[16px]">laptop_mac</span> Desktop iMac
+</button>
+<button class="px-3 py-1 rounded-lg text-xs font-semibold transition-all text-[#685233] hover:text-[#1F1608] flex items-center gap-1.5" id="view-mobile-btn" onclick="setViewMode('mobile')">
+<span class="material-symbols-outlined text-[16px]">phone_iphone</span> iPhone 16 Pro
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Device Simulation Canvas Section (FLOATING GLASSMORPHIC WITH HIGH CONTRAST) -->
+<section class="relative px-4 sm:px-8 py-4 max-w-7xl mx-auto w-full">
+<!-- Dimensional Floating Badges surrounding the device stage -->
+<div class="relative">
+<!-- Top-right Floating Badge: Revenue / Fee -->
+<div class="floating-chip absolute -top-5 right-6 sm:right-12 z-30 hidden md:flex items-center gap-3 px-4 py-2.5 rounded-2xl">
+<div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold shadow-sm">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+</div>
+<div>
+<div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Direct Merchant Settlement</div>
+<div class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+<span>₹1,50,000 Sales = ₹0 Gojulex Fee</span>
+<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">100% Retained</span>
+</div>
+</div>
+</div>
+<!-- Bottom-left Floating Badge: WhatsApp Instant Checkout -->
+<div class="floating-chip floating-chip-reverse absolute -bottom-5 left-4 sm:left-12 z-30 hidden md:flex items-center gap-3 px-4 py-2.5 rounded-2xl">
+<div class="w-8 h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center font-bold shadow-sm">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</div>
+<div>
+<div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Fast 1-Tap Checkout</div>
+<div class="text-xs font-black text-slate-900">Pre-filled WhatsApp Cart • Zero Cart Drops</div>
+</div>
+</div>
+<!-- Grid for Desktop & Mobile -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start transition-all duration-300" id="simulation-stage">
+<!-- DESKTOP SIMULATOR FRAME (Ultra Floating Filled-Glass / Precision iMac Frame) -->
+<div class="lg:col-span-8 w-full transition-all duration-300" id="desktop-wrapper">
+<div class="bg-gradient-to-b from-[#1F1912] to-[#120E0A] p-3 sm:p-4 rounded-[28px] shadow-floating-device border-4 border-[#3D3222] relative overflow-hidden backdrop-blur-2xl">
+<!-- Desktop Browser Chrome Top Bar -->
+<div class="flex items-center justify-between px-3 py-2 bg-[#2D2318] rounded-2xl mb-3 text-xs text-[#E5D2BA] border border-white/5">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-[#FF5F56] inline-block shadow-xs"></span>
+<span class="w-3 h-3 rounded-full bg-[#FFBD2E] inline-block shadow-xs"></span>
+<span class="w-3 h-3 rounded-full bg-[#27C93F] inline-block shadow-xs"></span>
+<div class="hidden sm:flex items-center gap-1.5 text-[12px] text-[#A68F74] ml-2">
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">arrow_back</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">arrow_forward</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">replay</span>
+</div>
+</div>
+<!-- Dynamic Browser Address Pill -->
+<div class="flex items-center justify-center gap-2 bg-[#140F0A] px-4 py-1.5 rounded-xl text-center flex-1 max-w-md mx-3 border border-amber-900/40">
+<span class="material-symbols-outlined text-[14px] text-emerald-400">lock</span>
+<span class="font-mono text-xs font-bold text-white tracking-wide truncate" id="browser-url-desktop">https://www.solstice-botanicals.in</span>
+<span class="bg-[#D88914] text-white text-[9px] font-black px-1.5 py-0.5 rounded">0% COMM</span>
+</div>
+<!-- Browser Action Icons -->
+<div class="flex items-center gap-2 text-[#CBB499]">
+<span class="material-symbols-outlined text-[16px] hover:text-white cursor-pointer">share</span>
+<span class="material-symbols-outlined text-[16px] hover:text-white cursor-pointer">bookmark</span>
+<span class="material-symbols-outlined text-[16px] text-emerald-400">verified</span>
+</div>
+</div>
+<!-- STOREFRONT RENDERING SURFACE: HIGH CONTRAST LUMINOUS CANVAS -->
+<div class="bg-[#FFFFFF] rounded-2xl overflow-hidden shadow-2xl max-h-[620px] overflow-y-auto border border-slate-200" id="store-content-desktop">
+<!-- Store Header Bar: Clean Crisp Contrast -->
+<div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-3.5 border-b border-slate-200 flex items-center justify-between shadow-xs" id="store-desktop-header">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D88914] to-[#8C5202] flex items-center justify-center text-white font-black text-sm shadow-sm" id="store-logo-badge">
+  SB
+</div>
+<div>
+<div class="font-extrabold text-sm sm:text-base text-slate-900 leading-tight tracking-tight" id="store-title-desktop">Solstice Botanicals &amp; Wellness</div>
+<div class="text-[10px] font-bold text-[#8C5202] uppercase tracking-wider" id="store-tagline-desktop">Artisanal Fine Herbal Apothecary</div>
+</div>
+</div>
+<!-- Desktop Nav Links (High Contrast Dark Slate) -->
+<div class="hidden md:flex items-center gap-6 text-xs font-bold text-slate-700">
+<a class="text-brand-amber font-extrabold hover:text-[#8C5202] transition-colors" href="#shop">Featured</a>
+<a class="hover:text-brand-amber transition-colors" href="#collections">Collections</a>
+<a class="hover:text-brand-amber transition-colors" href="#story">Origin Story</a>
+<a class="hover:text-brand-amber transition-colors flex items-center gap-1 text-emerald-700" href="#whatsapp">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> WhatsApp VIP
+</a>
+</div>
+<!-- Cart & Instant Action Pill -->
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full text-xs font-bold text-slate-800 border border-slate-200">
+<span class="material-symbols-outlined text-[16px] text-brand-amber">shopping_bag</span>
+<span id="desktop-bag-count">2 Items</span>
+<span class="text-slate-300">|</span>
+<span class="text-emerald-700 font-extrabold" id="desktop-bag-total">₹3,450</span>
+</div>
+<button class="gold-gradient-btn text-white text-xs font-extrabold px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1">
+<span>Checkout</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- STORE HERO BANNER: CRISP, ULTRA-LEGIBLE TYPOGRAPHY WITH LUXE BACKGROUND -->
+<div class="relative p-6 sm:p-8 bg-gradient-to-r from-[#FFFBF2] via-[#FFF5E0] to-[#FEEDCE] border-b border-amber-100 overflow-hidden" id="store-banner-wrapper">
+<div class="relative z-10 max-w-lg space-y-2.5">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 text-[#8C5202] text-[11px] font-black tracking-wider uppercase border border-amber-300/80 shadow-xs">
+<span class="material-symbols-outlined text-[14px] text-amber-500">star</span>
+<span id="store-banner-pill">Seasonal Small-Batch Harvest</span>
+</div>
+<h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight drop-shadow-xs" id="store-banner-title">
+  Pure Royal Kashmiri Saffron &amp; Cold-Pressed Botanical Elixir
+</h2>
+<p class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed" id="store-banner-desc">
+  Handpicked single-estate wellness botanicals with 100% transparency. Directly packed at source with no middleman margins.
+</p>
+<div class="pt-2 flex flex-wrap items-center gap-3">
+<button class="bg-[#1F1608] text-white hover:bg-[#3D2C12] px-4 py-2 rounded-xl text-xs font-extrabold shadow-md transition-all flex items-center gap-1.5">
+<span id="store-banner-btn-text">Shop Harvest 2025</span>
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</button>
+<span class="text-xs font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg flex items-center gap-1 border border-emerald-300">
+<span class="material-symbols-outlined text-[15px] text-emerald-600">verified</span> 0% Fee Payout to Merchant
+</span>
+</div>
+</div>
+<!-- Ambient Graphic Art Illustration on Right -->
+<div class="absolute right-6 top-1/2 -translate-y-1/2 hidden sm:block w-44 h-44 opacity-95">
+<div class="w-full h-full rounded-2xl bg-white p-3 shadow-xl border border-amber-200/90 flex flex-col items-center justify-center text-center space-y-1">
+<span class="text-3xl" id="store-banner-icon">🌿</span>
+<div class="font-extrabold text-xs text-slate-900 mt-1" id="store-graphic-title">Sovereign Reserve</div>
+<div class="text-[10px] font-bold text-brand-amber">Grade AAA Certified</div>
+<div class="mt-2 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+  In Stock • Ships in 24h
+</div>
+</div>
+</div>
+</div>
+<!-- PRODUCT SHOWCASE GRID: ULTRA-CRISP HIGH-CONTRAST CARDS -->
+<div class="p-6 bg-slate-50/60">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight" id="catalog-section-title">Curated Bestsellers &amp; Bundles</h3>
+<p class="text-xs text-slate-600 font-medium">Headless edge store with 0.1s page response</p>
+</div>
+<div class="flex items-center gap-2 text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
+<span>Showing: Trending</span>
+<span class="material-symbols-outlined text-[16px] text-brand-amber">filter_list</span>
+</div>
+</div>
+<!-- 3-Column High-Contrast Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="desktop-catalog-grid">
+<!-- Product Card 1 -->
+<div class="bg-white p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-200 hover:border-amber-300 flex flex-col justify-between group">
+<div>
+<div class="relative w-full h-40 rounded-xl overflow-hidden bg-slate-100 mb-3 flex items-center justify-center">
+<img alt="Imperial Royal Choker" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" id="prod-img-1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwLZ8K3H0bYUUoqmXLkJYI38n5lN7xAwNSVY0DNQcqu6Aybc3EbjrgF3xqATMO76qG8jQCSB5mNTPvOoPB6XeaBzva6MyDKJzE9R6muvmuYX5M-WyzGkhgBqlk8-6Jv1KwFWktd_sg9uhj2KFz-ADWtKLfvbBLv-DyxHLtOZIy_QG71H6mYPTnl4dmmMJeSk7NRGOjftXcdwbcNemW-TrOC7MI2I1nxa_Zo1Zr8U7F0GAnBKZugDaTBg"/>
+<span class="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+  FREE SHIPPING
+</span>
+</div>
+<div class="text-[11px] font-extrabold uppercase text-[#8C5202] tracking-wider" id="prod-cat-1">Harvest Reserve</div>
+<div class="text-sm font-extrabold text-slate-900 truncate mt-0.5" id="prod-name-1">Golden Saffron Elixir 50ml</div>
+<p class="text-xs text-slate-600 mt-1 line-clamp-2" id="prod-desc-1">Pure Mogra saffron strands infused with sweet almond &amp; vetiver extract.</p>
+</div>
+<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100">
+<div>
+<span class="text-base font-black text-slate-900" id="prod-price-1">₹1,890</span>
+<span class="text-xs text-slate-400 line-through ml-1" id="prod-oldprice-1">₹2,400</span>
+</div>
+<button class="bg-[#D88914] hover:bg-[#B87309] text-white w-8 h-8 rounded-xl flex items-center justify-center shadow-xs transition-transform active:scale-95" title="Add to Bag">
+<span class="material-symbols-outlined text-[17px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-white p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-200 hover:border-amber-300 flex flex-col justify-between group">
+<div>
+<div class="relative w-full h-40 rounded-xl overflow-hidden bg-slate-100 mb-3 flex items-center justify-center">
+<img alt="Filigree Temple Jhumkas" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" id="prod-img-2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKuQdM7P58i5wAr8Q1uns1qYIpgxtKaB-MqaF-RwzC6D0DswmAqKf5DoAf4y_eIjlf4-rhz3sNTP6q8SbqzKompxPqqfcR4nuR2oua5cKNXvMAA90VHRK9n-sc5NJzgr-cHZIlcw0KkJBAr2rTXmAG1Pw6YHDWDSeCpWJREUrF555CfrEJLkU0DXKC0Wmeb0KiTZY5rHCz4W2NCNj-HCZnny0riYu0v1ZRac14xfDmXIj1aza7iBBqAg"/>
+<span class="absolute top-2 right-2 bg-[#D88914] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+  BESTSELLER
+</span>
+</div>
+<div class="text-[11px] font-extrabold uppercase text-[#8C5202] tracking-wider" id="prod-cat-2">Vedic Restorative</div>
+<div class="text-sm font-extrabold text-slate-900 truncate mt-0.5" id="prod-name-2">Nilgiri Herbal Face Oil</div>
+<p class="text-xs text-slate-600 mt-1 line-clamp-2" id="prod-desc-2">Wildcrafted cold-pressed botanical drops for daily skin rejuvenation.</p>
+</div>
+<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100">
+<div>
+<span class="text-base font-black text-slate-900" id="prod-price-2">₹1,560</span>
+</div>
+<button class="bg-[#D88914] hover:bg-[#B87309] text-white w-8 h-8 rounded-xl flex items-center justify-center shadow-xs transition-transform active:scale-95" title="Add to Bag">
+<span class="material-symbols-outlined text-[17px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-white p-3.5 rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-200 hover:border-amber-300 flex flex-col justify-between group">
+<div>
+<div class="relative w-full h-40 rounded-xl overflow-hidden bg-slate-100 mb-3 flex items-center justify-center">
+<img alt="Royal Keepsake" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" id="prod-img-3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnXcMSdeDoQAxNRl0IF57A2evCHAiiRKzyPD3ZdPJpjB5NFpicPFO3Hff4HKtbiSIAKDZ07G_cMenf6M-7BodSOfUXILGQ5j-bcluRDGptbp5O6GdoGchkSE6VIo7PTJaD_dsJPX1le17TmuRG_OKfFhMnOs8RB4IF5rjPuOAFb5X5EdSHRJQ_KJeEoF6DIdyT9phhJBJ5cRwAANNq-gZRICF-X5etUxzaLmKRxUeWLPGMH1MjR7OPww"/>
+<span class="absolute bottom-2 left-2 bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs">
+  Low Stock • 4 left
+</span>
+</div>
+<div class="text-[11px] font-extrabold uppercase text-[#8C5202] tracking-wider" id="prod-cat-3">Artisan Keepsake</div>
+<div class="text-sm font-extrabold text-slate-900 truncate mt-0.5" id="prod-name-3">Botanical Brass Bath Tub Set</div>
+<p class="text-xs text-slate-600 mt-1 line-clamp-2" id="prod-desc-3">Carved solid brass handcrafted vanity box for storing rare salts.</p>
+</div>
+<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100">
+<div>
+<span class="text-base font-black text-slate-900" id="prod-price-3">₹2,490</span>
+</div>
+<button class="bg-[#D88914] hover:bg-[#B87309] text-white w-8 h-8 rounded-xl flex items-center justify-center shadow-xs transition-transform active:scale-95" title="Add to Bag">
+<span class="material-symbols-outlined text-[17px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- High-Impact WhatsApp 1-Tap Ordering Trigger Banner -->
+<div class="mt-5 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-emerald-100/60 to-white border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[24px]">chat</span>
+</div>
+<div>
+<div class="text-sm font-black text-slate-900">Direct WhatsApp 1-Tap Ordering Flow</div>
+<div class="text-xs text-slate-600 font-medium">Customer clicks checkout → Pre-filled WhatsApp message opens → You receive verified payment instantly.</div>
+</div>
+</div>
+<a class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm" href="https://wa.me/919940415353" target="_blank">
+<span>Test Live WhatsApp Order</span>
+<span class="material-symbols-outlined text-[15px]">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MOBILE SMARTPHONE SIMULATOR FRAME (iPhone 16 Pro Frame with crisp contrasting inner screen) -->
+<div class="lg:col-span-4 w-full flex justify-center" id="mobile-wrapper">
+<div class="w-full max-w-[340px] sm:max-w-[370px] bg-gradient-to-b from-[#221B13] to-[#120E0A] p-3.5 rounded-[50px] shadow-floating-device border-4 border-[#453724] relative backdrop-blur-2xl">
+<!-- Dynamic Island Pill -->
+<div class="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-40 flex items-center justify-end px-3">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+</div>
+<!-- Phone Inner Screen: Bright, Vivid, High-Contrast Surface -->
+<div class="bg-white rounded-[38px] overflow-hidden pt-8 pb-3 relative min-h-[580px] max-h-[620px] flex flex-col justify-between shadow-inner border border-slate-200">
+<!-- Mobile Store Header -->
+<div class="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white/95 backdrop-blur-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-800 text-[20px]">menu</span>
+<div>
+<div class="font-black text-xs text-slate-900 leading-tight" id="mob-store-title">Solstice Botanicals</div>
+<div class="text-[9px] font-bold text-emerald-700">● 0% Commission Active</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-slate-700 text-[18px]">search</span>
+<div class="relative">
+<span class="material-symbols-outlined text-brand-gold text-[22px]">shopping_bag</span>
+<span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 text-white text-[9px] font-black flex items-center justify-center shadow-xs">2</span>
+</div>
+</div>
+</div>
+<!-- Scrollable Mobile Feed with Crisp Cards -->
+<div class="px-3 py-3 overflow-y-auto flex-1 space-y-3 bg-[#FAFAFA]">
+<!-- Mobile Announcement Banner -->
+<div class="bg-gradient-to-r from-amber-500 to-[#C77502] rounded-2xl p-3 text-white shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-white/20 uppercase tracking-wider">Mobile Web PWA</span>
+<span class="text-[9px] font-extrabold text-amber-100">Zero App Install</span>
+</div>
+<div class="text-xs font-black mt-1 leading-snug" id="mob-banner-text">1-Tap WhatsApp Checkout Enabled</div>
+<div class="text-[10px] text-amber-100 font-medium">Auto-populates delivery address &amp; items</div>
+</div>
+<!-- Mobile Product List (Punchy high-contrast items) -->
+<div class="space-y-2.5">
+<!-- Mobile Item 1 -->
+<div class="bg-white p-2.5 rounded-2xl flex items-center gap-3 shadow-xs border border-slate-200">
+<div class="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-100">
+<img alt="Product" class="w-full h-full object-cover" id="mob-prod-img-1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwLZ8K3H0bYUUoqmXLkJYI38n5lN7xAwNSVY0DNQcqu6Aybc3EbjrgF3xqATMO76qG8jQCSB5mNTPvOoPB6XeaBzva6MyDKJzE9R6muvmuYX5M-WyzGkhgBqlk8-6Jv1KwFWktd_sg9uhj2KFz-ADWtKLfvbBLv-DyxHLtOZIy_QG71H6mYPTnl4dmmMJeSk7NRGOjftXcdwbcNemW-TrOC7MI2I1nxa_Zo1Zr8U7F0GAnBKZugDaTBg"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-[10px] font-extrabold uppercase text-[#8C5202]" id="mob-prod-cat-1">Harvest Reserve</div>
+<div class="text-xs font-black text-slate-900 truncate" id="mob-prod-name-1">Golden Saffron Elixir 50ml</div>
+<div class="flex items-center justify-between mt-1">
+<span class="text-xs font-black text-emerald-800" id="mob-prod-price-1">₹1,890</span>
+<span class="text-[9px] font-bold text-slate-500">In Stock</span>
+</div>
+</div>
+<button class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-xl flex-shrink-0 shadow-xs" title="Instant Order">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+</button>
+</div>
+<!-- Mobile Item 2 -->
+<div class="bg-white p-2.5 rounded-2xl flex items-center gap-3 shadow-xs border border-slate-200">
+<div class="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-100">
+<img alt="Product" class="w-full h-full object-cover" id="mob-prod-img-2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKuQdM7P58i5wAr8Q1uns1qYIpgxtKaB-MqaF-RwzC6D0DswmAqKf5DoAf4y_eIjlf4-rhz3sNTP6q8SbqzKompxPqqfcR4nuR2oua5cKNXvMAA90VHRK9n-sc5NJzgr-cHZIlcw0KkJBAr2rTXmAG1Pw6YHDWDSeCpWJREUrF555CfrEJLkU0DXKC0Wmeb0KiTZY5rHCz4W2NCNj-HCZnny0riYu0v1ZRac14xfDmXIj1aza7iBBqAg"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-[10px] font-extrabold uppercase text-[#8C5202]" id="mob-prod-cat-2">Vedic Restorative</div>
+<div class="text-xs font-black text-slate-900 truncate" id="mob-prod-name-2">Nilgiri Herbal Face Oil</div>
+<div class="flex items-center justify-between mt-1">
+<span class="text-xs font-black text-emerald-800" id="mob-prod-price-2">₹1,560</span>
+<span class="text-[9px] font-bold text-brand-gold">Bestseller</span>
+</div>
+</div>
+<button class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-xl flex-shrink-0 shadow-xs" title="Instant Order">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+</button>
+</div>
+</div>
+<!-- Mobile Floating Cart Drawer Box: High Contrast Emerald + Gold -->
+<div class="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-400/80 shadow-md space-y-2">
+<div class="flex items-center justify-between text-xs font-extrabold text-slate-900">
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Subtotal (2 Items)</span>
+</span>
+<span class="text-emerald-700 text-sm font-black" id="mob-cart-total">₹3,450</span>
+</div>
+<button class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span>1-Tap WhatsApp Checkout</span>
+</button>
+</div>
+</div>
+<!-- Sticky Bottom Mobile App Navigation -->
+<div class="border-t border-slate-200 px-6 pt-2 pb-1 flex items-center justify-between bg-white text-slate-600">
+<div class="flex flex-col items-center text-brand-amber font-bold">
+<span class="material-symbols-outlined text-[18px]">home</span>
+<span class="text-[9px]">Home</span>
+</div>
+<div class="flex flex-col items-center hover:text-slate-900">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+<span class="text-[9px] font-semibold">Catalog</span>
+</div>
+<div class="flex flex-col items-center hover:text-slate-900">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+<span class="text-[9px] font-semibold">Bag (2)</span>
+</div>
+<div class="flex flex-col items-center text-emerald-700 font-extrabold">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+<span class="text-[9px]">WhatsApp</span>
+</div>
+</div>
+<!-- iPhone Home Bar -->
+<div class="w-24 h-1 bg-slate-300 rounded-full mx-auto mt-1.5"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Architectural Template Studio Selection -->
+<section class="relative px-4 sm:px-8 py-12 max-w-7xl mx-auto w-full" id="template-studio">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-gold/15 text-brand-brown text-xs font-extrabold uppercase tracking-wider mb-2">
+<span class="material-symbols-outlined text-[16px] text-brand-amber">palette</span> Designer Template Studio
+</div>
+<h2 class="text-2xl sm:text-3xl font-black text-[#1F1608] tracking-tight">
+  Architectural Storefront Themes
+</h2>
+<p class="text-sm text-[#5C4524] font-medium mt-1">
+  Engineered for high conversion, tactile aesthetics, and frictionless mobile checkouts. Switch anytime with zero lock-in.
+</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-[#8C7654]">All themes include:</span>
+<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold">0% Comm.</span>
+<span class="px-2.5 py-1 rounded-full bg-white text-[#3B2912] border border-amber-200 text-xs font-bold">Free Custom Domain</span>
+</div>
+</div>
+<!-- 4 Bespoke Architectural Themes -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Theme 1: Sovereign Glass (ACTIVE) -->
+<div class="glass-card-popular rounded-3xl p-5 shadow-xl flex flex-col justify-between relative group hover:-translate-y-1 transition-transform border-2 border-brand-gold" id="theme-card-sovereign">
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand-gold text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> Active Preview
+</div>
+<div class="space-y-4 pt-2">
+<!-- Thumbnail Mockup -->
+<div class="h-40 rounded-2xl bg-gradient-to-br from-[#FFF8EE] to-[#FAF0DC] p-3 flex flex-col justify-between border border-brand-gold/25 shadow-inner overflow-hidden relative">
+<div class="flex items-center justify-between">
+<span class="w-3 h-3 rounded-full bg-brand-gold"></span>
+<span class="text-[9px] font-bold text-brand-brown uppercase">Sovereign Glass</span>
+</div>
+<div class="space-y-1.5">
+<div class="w-3/4 h-3 rounded bg-amber-400/30"></div>
+<div class="w-1/2 h-2 rounded bg-amber-300/20"></div>
+<div class="grid grid-cols-3 gap-1 pt-1">
+<div class="h-10 rounded bg-white/90 shadow-xs"></div>
+<div class="h-10 rounded bg-white/90 shadow-xs"></div>
+<div class="h-10 rounded bg-white/90 shadow-xs"></div>
+</div>
+</div>
+<div class="text-right text-[10px] font-black text-emerald-700">Speed 99/100</div>
+</div>
+<div>
+<div class="text-base font-black text-slate-900">Sovereign Glass</div>
+<p class="text-xs text-slate-600 mt-1 leading-relaxed">
+  Filled glassmorphic cards, luminous amber accents, and editorial typography. Perfect for luxury wellness &amp; beauty.
+</p>
+</div>
+<div class="flex flex-wrap gap-1.5 pt-1">
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Frosted Grids</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">WhatsApp Cart</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Razorpay Direct</span>
+</div>
+</div>
+<div class="pt-5 mt-4 border-t border-brand-gold/20 flex items-center justify-between">
+<span class="text-xs font-black text-brand-brown">Current Theme</span>
+<button class="gold-gradient-btn text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+  Active Now
+</button>
+</div>
+</div>
+<!-- Theme 2: Artisan Earth -->
+<div class="glass-card rounded-3xl p-5 shadow-lg flex flex-col justify-between relative group hover:-translate-y-1 transition-transform" id="theme-card-earth">
+<div class="space-y-4">
+<div class="h-40 rounded-2xl bg-gradient-to-br from-[#F5EBE1] to-[#EBD9C7] p-3 flex flex-col justify-between border border-[#B36838]/20 shadow-inner overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="w-3 h-3 rounded-full bg-[#B36838]"></span>
+<span class="text-[9px] font-bold text-[#6B3714] uppercase">Artisan Earth</span>
+</div>
+<div class="space-y-1.5">
+<div class="w-2/3 h-3 rounded bg-[#B36838]/30"></div>
+<div class="w-1/2 h-2 rounded bg-[#B36838]/20"></div>
+<div class="grid grid-cols-2 gap-2 pt-1">
+<div class="h-10 rounded bg-[#FAF2EB] shadow-xs"></div>
+<div class="h-10 rounded bg-[#FAF2EB] shadow-xs"></div>
+</div>
+</div>
+<div class="text-right text-[10px] font-black text-emerald-700">Speed 98/100</div>
+</div>
+<div>
+<div class="text-base font-black text-slate-900">Artisan Earth</div>
+<p class="text-xs text-slate-600 mt-1 leading-relaxed">
+  Warm terracotta textures, high-density pantry cards, and subscription tags. Ideal for organic millets, teas &amp; spices.
+</p>
+</div>
+<div class="flex flex-wrap gap-1.5 pt-1">
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Organic Forms</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Subscription Flow</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Millet Bundles</span>
+</div>
+</div>
+<div class="pt-5 mt-4 border-t border-slate-200 flex items-center justify-between">
+<span class="text-xs font-bold text-slate-600">Free with Plan</span>
+<button class="bg-white hover:bg-brand-gold hover:text-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 transition-colors shadow-xs" onclick="switchStore('pantry', null)">
+  Apply Theme
+</button>
+</div>
+</div>
+<!-- Theme 3: Minimalist Luxe -->
+<div class="glass-card rounded-3xl p-5 shadow-lg flex flex-col justify-between relative group hover:-translate-y-1 transition-transform" id="theme-card-minimal">
+<div class="space-y-4">
+<div class="h-40 rounded-2xl bg-[#1C1813] p-3 flex flex-col justify-between border border-[#4F4232] shadow-inner overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="w-3 h-3 rounded-full bg-[#FFB865]"></span>
+<span class="text-[9px] font-bold text-[#FFB865] uppercase">Minimalist Luxe</span>
+</div>
+<div class="space-y-1.5">
+<div class="w-4/5 h-3 rounded bg-[#FFB865]/30"></div>
+<div class="w-1/3 h-2 rounded bg-white/20"></div>
+<div class="h-10 rounded bg-[#2B231A] shadow-xs"></div>
+</div>
+<div class="text-right text-[10px] font-black text-emerald-500">Speed 99/100</div>
+</div>
+<div>
+<div class="text-base font-black text-slate-900">Minimalist Luxe</div>
+<p class="text-xs text-slate-600 mt-1 leading-relaxed">
+  Monochrome studio backdrop with champagne gold borders and full-bleed lookbooks. Designed for high fashion &amp; perfumery.
+</p>
+</div>
+<div class="flex flex-wrap gap-1.5 pt-1">
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Editorial Scrims</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Lookbook Flow</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Curated Drops</span>
+</div>
+</div>
+<div class="pt-5 mt-4 border-t border-slate-200 flex items-center justify-between">
+<span class="text-xs font-bold text-slate-600">Free with Plan</span>
+<button class="bg-white hover:bg-brand-gold hover:text-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 transition-colors shadow-xs" onclick="switchStore('couture', null)">
+  Apply Theme
+</button>
+</div>
+</div>
+<!-- Theme 4: Quick Commerce Pro -->
+<div class="glass-card rounded-3xl p-5 shadow-lg flex flex-col justify-between relative group hover:-translate-y-1 transition-transform" id="theme-card-quick">
+<div class="space-y-4">
+<div class="h-40 rounded-2xl bg-gradient-to-br from-[#FFF5E6] to-[#FFE0B2] p-3 flex flex-col justify-between border border-brand-gold/30 shadow-inner overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="w-3 h-3 rounded-full bg-emerald-600"></span>
+<span class="text-[9px] font-bold text-emerald-800 uppercase">Quick Commerce Pro</span>
+</div>
+<div class="grid grid-cols-2 gap-1.5">
+<div class="h-11 rounded-lg bg-white/90 p-1 flex items-center gap-1 shadow-xs">
+<div class="w-5 h-5 rounded bg-brand-gold/30"></div>
+<div class="w-10 h-2 bg-slate-400 rounded"></div>
+</div>
+<div class="h-11 rounded-lg bg-white/90 p-1 flex items-center gap-1 shadow-xs">
+<div class="w-5 h-5 rounded bg-emerald-300"></div>
+<div class="w-10 h-2 bg-slate-400 rounded"></div>
+</div>
+</div>
+<div class="text-right text-[10px] font-black text-emerald-700">Speed 100/100</div>
+</div>
+<div>
+<div class="text-base font-black text-slate-900">Quick Commerce Pro</div>
+<p class="text-xs text-slate-600 mt-1 leading-relaxed">
+  Rapid sticky drawers, lightning SKU filtering, and 1-tap checkout. Engineered for high volume sellers with fast turnovers.
+</p>
+</div>
+<div class="flex flex-wrap gap-1.5 pt-1">
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Instant Drawer</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Bulk Inventory</span>
+<span class="text-[10px] font-bold bg-white px-2 py-0.5 rounded-md text-slate-700 border border-slate-200">Sub-100ms Search</span>
+</div>
+</div>
+<div class="pt-5 mt-4 border-t border-slate-200 flex items-center justify-between">
+<span class="text-xs font-bold text-slate-600">Free with Plan</span>
+<button class="bg-white hover:bg-brand-gold hover:text-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 transition-colors shadow-xs" onclick="switchStore('jewels', null)">
+  Apply Theme
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Infrastructure & 3-Step Custom Domain DNS Guide -->
+<section class="relative px-4 sm:px-8 py-8 max-w-7xl mx-auto w-full" id="dns-guide">
+<div class="glass-card rounded-3xl p-6 sm:p-10 shadow-xl border border-white/90 backdrop-blur-xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<!-- Left: Explanation & Value Prop -->
+<div class="lg:col-span-5 space-y-4">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold">
+<span class="material-symbols-outlined text-[16px]">dns</span> Instant DNS Verification
+</div>
+<h3 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+  Connect Your Custom Domain In 3 Simple Clicks
+</h3>
+<p class="text-sm text-slate-700 leading-relaxed font-medium">
+  Keep 100% of your sovereign brand identity. No clunky redirection. Automated Let's Encrypt wildcard certificates renewed automatically.
+</p>
+<!-- 3-Step Timeline -->
+<div class="space-y-3 pt-2">
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-full bg-brand-gold text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">1</div>
+<div>
+<div class="text-xs font-black text-slate-900">Enter Your Registered Domain Name</div>
+<div class="text-[11px] text-slate-600">Use any registrar: GoDaddy, Namecheap, Google, or Cloudflare.</div>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-full bg-brand-gold text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">2</div>
+<div>
+<div class="text-xs font-black text-slate-900">Add Our Single CNAME / A-Record</div>
+<div class="text-[11px] text-slate-600">Point @ or www to <code class="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px] font-bold">edge.gojulex.shop</code></div>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
+<div>
+<div class="text-xs font-black text-slate-900">Live in &lt; 2 Minutes with 256-Bit SSL</div>
+<div class="text-[11px] text-slate-600">Global edge propagation with 0% platform transaction fees forever.</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: DNS Simulation Terminal Card -->
+<div class="lg:col-span-7 bg-[#1C1813] p-5 sm:p-7 rounded-2xl shadow-xl border border-[#3E3427] text-[#EDE0D0] font-mono text-xs space-y-4">
+<div class="flex items-center justify-between pb-3 border-b border-[#3E3427]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+<span class="text-amber-300 font-bold">DNS Edge Router Console</span>
+</div>
+<span class="text-[10px] text-[#A68F74] uppercase font-bold">Status: 200 OK</span>
+</div>
+<div class="space-y-2 text-[11px] leading-relaxed">
+<div class="text-[#A68F74]">// Automatic SSL &amp; Routing Verification:</div>
+<div class="flex items-center justify-between bg-[#2B231A] p-2.5 rounded-lg border border-[#433626]">
+<span class="text-amber-200">CNAME record</span>
+<span class="text-slate-300">www.yourbrand.in</span>
+<span class="text-emerald-400">edge.gojulex.shop</span>
+<span class="text-emerald-400 font-bold">ACTIVE ✓</span>
+</div>
+<div class="flex items-center justify-between bg-[#2B231A] p-2.5 rounded-lg border border-[#433626]">
+<span class="text-amber-200">SSL Wildcard</span>
+<span class="text-slate-300">TLS 1.3 / 256-bit AES</span>
+<span class="text-amber-300">Auto-Issued</span>
+<span class="text-emerald-400 font-bold">VERIFIED ✓</span>
+</div>
+<div class="flex items-center justify-between bg-[#2B231A] p-2.5 rounded-lg border border-[#433626]">
+<span class="text-amber-200">Platform Fee</span>
+<span class="text-slate-300">Direct Merchant Razorpay</span>
+<span class="text-[#FFDD99] font-bold">0.00%</span>
+<span class="text-emerald-400 font-bold">GUARANTEED ✓</span>
+</div>
+</div>
+<!-- Interactive Test DNS Button -->
+<div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+<span class="text-[11px] text-[#A68F74] font-sans">
+  Need personal setup help? Our technical team connects it over a 5-min call.
+</span>
+<a class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-sans font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md" href="https://wa.me/919940415353" target="_blank">
+<span class="material-symbols-outlined text-[16px]">support_agent</span>
+<span>Free DNS Setup Support</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- High-Impact Launch Banner & Direct Claim Studio -->
+<section class="relative px-4 sm:px-8 py-10 max-w-7xl mx-auto w-full" id="pricing-plans">
+<div class="glass-card-popular rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden">
+<div class="relative z-10 max-w-3xl mx-auto text-center space-y-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/95 border border-brand-gold/30 shadow-sm">
+<span class="material-symbols-outlined text-brand-gold text-[18px]">verified</span>
+<span class="text-xs font-black text-[#1F1608]">Instant Setup • No Coding Required • Zero Platform Fee</span>
+</div>
+<h2 class="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">
+  Ready to Launch Your Sovereign Storefront in Minutes?
+</h2>
+<p class="text-base sm:text-lg text-slate-700 max-w-2xl mx-auto font-medium">
+  Claim your brand store handle today. Start selling with WhatsApp 1-tap ordering and keep 100% of every rupee you earn.
+</p>
+<!-- Fast Claim Form Bar -->
+<form class="max-w-xl mx-auto bg-white p-2 rounded-2xl shadow-lg border border-brand-gold/30 flex flex-col sm:flex-row gap-2" onsubmit="handleSimulatorClaim(event)">
+<div class="flex-1 flex items-center gap-2 px-3">
+<span class="font-mono text-xs font-black text-brand-brown">gojulex.shop/</span>
+<input class="w-full text-xs sm:text-sm font-extrabold text-slate-900 focus:outline-none placeholder-slate-400 py-2 border-0 ring-0 focus:ring-0 bg-transparent" id="claim-subdomain-input" placeholder="mybrandname" required="" type="text"/>
+</div>
+<button class="gold-gradient-btn text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl shadow-md whitespace-nowrap flex items-center justify-center gap-2" type="submit">
+<span>Claim &amp; Launch</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<!-- Direct WhatsApp Hotline Contact Pill -->
+<div class="pt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-700">
+<a class="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-emerald-300 text-slate-900 hover:text-emerald-700 transition-colors shadow-xs" href="https://wa.me/919940415353" target="_blank">
+<span class="material-symbols-outlined text-emerald-600 text-[20px]">chat</span>
+<span>Direct WhatsApp: <strong>99404 15353</strong></span>
+</a>
+<span class="text-amber-300">•</span>
+<span class="flex items-center gap-1.5 text-slate-800 font-semibold">
+<span class="material-symbols-outlined text-brand-gold text-[18px]">support</span> Personal 1-on-1 Onboarding Included
+</span>
+</div>
+<!-- Success Toast Notification -->
+<div class="hidden max-w-md mx-auto p-3.5 rounded-2xl bg-emerald-100 text-emerald-900 text-xs font-black shadow-xl border border-emerald-400 flex items-center gap-2" id="simulator-claim-toast">
+<span class="material-symbols-outlined text-[20px] text-emerald-600">check_circle</span>
+<span id="simulator-toast-msg">Store handle reserved! Opening setup concierge...</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Premium Glassmorphic Footer -->
+<footer class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+<div class="glass-card rounded-3xl p-6 sm:p-10 border border-white/95 shadow-xl space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+<!-- Brand Info -->
+<div class="md:col-span-5 space-y-3">
+<div class="flex items-center gap-2">
+<img alt="Gojulex Logo" class="h-10 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UgfzHwKeGwt1JLDfuy5vzER5eDr3N2yIDnjkxNcxxtw7zB6PEoGznnCjV_XEIT0A38n86WKXQjxZN5OTUFK6yCYMetHhkGsHinj09TM8FeZF4M8nFaZOufclHfAUgfTJalRQhuaacuwL2d0fM7Ti5WPrjRclaDkwv50eSAJLFYQxPzIw_VF8VyZbBq66M-re7sJPU7B6LDVbiUB_pqY0NXbt0A6SOaF0Kh0wq-YxBW3UpSZT01Gwsh8LSm"/>
+</div>
+<p class="text-xs sm:text-sm text-[#6A522E] max-w-sm leading-relaxed font-medium">
+  Bigger Ideas • Brighter Businesses Together. Next-generation multi-tenant eCommerce infrastructure for growing brands, luxury ateliers, and independent makers.
+</p>
+<div class="pt-2 flex flex-wrap gap-2 text-[11px] font-bold text-brand-amber">
+<span class="glass-pill px-2.5 py-1 rounded-full border border-amber-200">0% Platform Commission</span>
+<span class="glass-pill px-2.5 py-1 rounded-full border border-amber-200">Instant Setup</span>
+<span class="glass-pill px-2.5 py-1 rounded-full border border-amber-200">Personal Support</span>
+</div>
+</div>
+<!-- Quick Links -->
+<div class="md:col-span-3 space-y-2">
+<div class="text-xs font-black text-[#2A1D0D] uppercase tracking-wider mb-2">Transparent Plans</div>
+<ul class="text-xs space-y-1.5 font-bold text-[#66502E]">
+<li><a class="hover:text-brand-amber transition-colors" href="#pricing-plans">Starter Plan (₹999 /mo)</a></li>
+<li><a class="hover:text-brand-amber transition-colors" href="#pricing-plans">Business Plan (₹1,999 /mo)</a></li>
+<li><a class="hover:text-brand-amber transition-colors" href="#pricing-plans">Pro Enterprise (₹3,499 /mo)</a></li>
+<li><a class="hover:text-brand-amber transition-colors" href="#dns-guide">Custom Domain DNS Guide</a></li>
+</ul>
+</div>
+<!-- Direct Contact Box -->
+<div class="md:col-span-4 glass-pill p-4 rounded-2xl border border-amber-200/80 space-y-2.5">
+<div class="text-xs font-black text-brand-brown uppercase tracking-wider">Direct Assistance</div>
+<div class="flex items-center gap-2 text-sm font-black text-[#2A1E0D]">
+<span class="material-symbols-outlined text-green-600 text-[20px]">chat</span>
+<span>WhatsApp: 99404 15353</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-bold text-[#6E542D]">
+<span class="material-symbols-outlined text-brand-amber text-[18px]">mail</span>
+<span>support@gojulex.shop</span>
+</div>
+<a class="block w-full py-2 px-3 text-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-sm transition-colors" href="https://wa.me/919940415353" target="_blank">
+  Chat on WhatsApp Now
+</a>
+</div>
+</div>
+<!-- Bottom Security & Copyright Line -->
+<div class="pt-6 border-t border-brand-amber/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#7A623B] font-semibold">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[16px] text-brand-amber">lock</span>
+<span>256-Bit SSL Encrypted</span>
+</span>
+<span class="flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[16px] text-brand-amber">verified_user</span>
+<span>Multi-Tenant Partitioned</span>
+</span>
+</div>
+<div>
+  © 2025 Gojulex Technologies. All Rights Reserved.
+</div>
+</div>
+</div>
+</footer>
+<!-- Interactive JavaScript logic for Multi-Site Slider & Controls -->
+<script>
+  // Store varieties database
+  const STORE_DATA = {
+    botanicals: {
+      key: 'botanicals',
+      label: 'Solstice Botanicals',
+      domain: 'www.solstice-botanicals.in',
+      logoText: 'SB',
+      title: 'Solstice Botanicals & Wellness',
+      tagline: 'Artisanal Fine Herbal Apothecary',
+      bannerPill: 'Seasonal Small-Batch Harvest',
+      bannerTitle: 'Pure Royal Kashmiri Saffron & Cold-Pressed Botanical Elixir',
+      bannerDesc: 'Handpicked single-estate wellness botanicals with 100% transparency. Directly packed at source with no middleman margins.',
+      bannerBtn: 'Shop Harvest 2025',
+      graphicTitle: 'Sovereign Reserve',
+      bannerIcon: '🌿',
+      bagCount: '2 Items',
+      bagTotal: '₹3,450',
+      mobBanner: '1-Tap WhatsApp Checkout Enabled',
+      products: [
+        {
+          cat: 'Harvest Reserve',
+          name: 'Golden Saffron Elixir 50ml',
+          desc: 'Pure Mogra saffron strands infused with sweet almond & vetiver extract.',
+          price: '₹1,890',
+          oldPrice: '₹2,400',
+          badge: 'FREE SHIPPING',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwLZ8K3H0bYUUoqmXLkJYI38n5lN7xAwNSVY0DNQcqu6Aybc3EbjrgF3xqATMO76qG8jQCSB5mNTPvOoPB6XeaBzva6MyDKJzE9R6muvmuYX5M-WyzGkhgBqlk8-6Jv1KwFWktd_sg9uhj2KFz-ADWtKLfvbBLv-DyxHLtOZIy_QG71H6mYPTnl4dmmMJeSk7NRGOjftXcdwbcNemW-TrOC7MI2I1nxa_Zo1Zr8U7F0GAnBKZugDaTBg'
+        },
+        {
+          cat: 'Vedic Restorative',
+          name: 'Nilgiri Herbal Face Oil',
+          desc: 'Wildcrafted cold-pressed botanical drops for daily skin rejuvenation.',
+          price: '₹1,560',
+          oldPrice: '',
+          badge: 'BESTSELLER',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAKuQdM7P58i5wAr8Q1uns1qYIpgxtKaB-MqaF-RwzC6D0DswmAqKf5DoAf4y_eIjlf4-rhz3sNTP6q8SbqzKompxPqqfcR4nuR2oua5cKNXvMAA90VHRK9n-sc5NJzgr-cHZIlcw0KkJBAr2rTXmAG1Pw6YHDWDSeCpWJREUrF555CfrEJLkU0DXKC0Wmeb0KiTZY5rHCz4W2NCNj-HCZnny0riYu0v1ZRac14xfDmXIj1aza7iBBqAg'
+        },
+        {
+          cat: 'Artisan Keepsake',
+          name: 'Botanical Brass Bath Tub Set',
+          desc: 'Carved solid brass handcrafted vanity box for storing rare salts.',
+          price: '₹2,490',
+          oldPrice: '',
+          badge: 'LOW STOCK',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnXcMSdeDoQAxNRl0IF57A2evCHAiiRKzyPD3ZdPJpjB5NFpicPFO3Hff4HKtbiSIAKDZ07G_cMenf6M-7BodSOfUXILGQ5j-bcluRDGptbp5O6GdoGchkSE6VIo7PTJaD_dsJPX1le17TmuRG_OKfFhMnOs8RB4IF5rjPuOAFb5X5EdSHRJQ_KJeEoF6DIdyT9phhJBJ5cRwAANNq-gZRICF-X5etUxzaLmKRxUeWLPGMH1MjR7OPww'
+        }
+      ]
+    },
+    jewels: {
+      key: 'jewels',
+      label: 'Aura Heritage Jewels',
+      domain: 'www.auraheritage-jewels.in',
+      logoText: 'AH',
+      title: 'Aura Heritage Jewels Atelier',
+      tagline: 'Handcrafted Polki & 22k Temple Gold',
+      bannerPill: 'Bridal Atelier 2025 Release',
+      bannerTitle: 'Handcrafted Royal Polki & Emerald Temple Heritage Sets',
+      bannerDesc: 'Bespoke heirlooms meticulously crafted by generational master karigars in Jaipur & Bikaner.',
+      bannerBtn: 'Explore Bridal Collection',
+      graphicTitle: 'Royal Polki Atelier',
+      bannerIcon: '✨',
+      bagCount: '1 Heirloom',
+      bagTotal: '₹14,850',
+      mobBanner: 'Direct WhatsApp Concierge & Custom Sizing',
+      products: [
+        {
+          cat: 'Temple Jewellery',
+          name: 'Imperial Polki Choker Necklace',
+          desc: 'Uncut real emerald and ruby cabochon setting on micro-engraved 22k gold foil.',
+          price: '₹12,400',
+          oldPrice: '₹15,000',
+          badge: 'HANDCRAFTED',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwLZ8K3H0bYUUoqmXLkJYI38n5lN7xAwNSVY0DNQcqu6Aybc3EbjrgF3xqATMO76qG8jQCSB5mNTPvOoPB6XeaBzva6MyDKJzE9R6muvmuYX5M-WyzGkhgBqlk8-6Jv1KwFWktd_sg9uhj2KFz-ADWtKLfvbBLv-DyxHLtOZIy_QG71H6mYPTnl4dmmMJeSk7NRGOjftXcdwbcNemW-TrOC7MI2I1nxa_Zo1Zr8U7F0GAnBKZugDaTBg'
+        },
+        {
+          cat: 'Atelier Jhumkas',
+          name: 'Filigree Bell Chandelier Earrings',
+          desc: 'Delicate hand-hammered wirework finished with freshwater seed pearls.',
+          price: '₹2,450',
+          oldPrice: '₹3,200',
+          badge: 'HOT SELLER',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAKuQdM7P58i5wAr8Q1uns1qYIpgxtKaB-MqaF-RwzC6D0DswmAqKf5DoAf4y_eIjlf4-rhz3sNTP6q8SbqzKompxPqqfcR4nuR2oua5cKNXvMAA90VHRK9n-sc5NJzgr-cHZIlcw0KkJBAr2rTXmAG1Pw6YHDWDSeCpWJREUrF555CfrEJLkU0DXKC0Wmeb0KiTZY5rHCz4W2NCNj-HCZnny0riYu0v1ZRac14xfDmXIj1aza7iBBqAg'
+        },
+        {
+          cat: 'Velvet Keepsake',
+          name: 'Hand-Carved Peacock Treasure Chest',
+          desc: 'Solid cast brass box with scarlet velvet lining for precious rings and coins.',
+          price: '₹2,100',
+          oldPrice: '',
+          badge: 'LIMITED 2025',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnXcMSdeDoQAxNRl0IF57A2evCHAiiRKzyPD3ZdPJpjB5NFpicPFO3Hff4HKtbiSIAKDZ07G_cMenf6M-7BodSOfUXILGQ5j-bcluRDGptbp5O6GdoGchkSE6VIo7PTJaD_dsJPX1le17TmuRG_OKfFhMnOs8RB4IF5rjPuOAFb5X5EdSHRJQ_KJeEoF6DIdyT9phhJBJ5cRwAANNq-gZRICF-X5etUxzaLmKRxUeWLPGMH1MjR7OPww'
+        }
+      ]
+    },
+    pantry: {
+      key: 'pantry',
+      label: 'Vedic Earth Millets',
+      domain: 'www.vedicearth-pantry.in',
+      logoText: 'VE',
+      title: 'Vedic Earth Organic Millets & Pantry',
+      tagline: 'Farm-Direct Ancient Grains & Stone-Ground Spices',
+      bannerPill: 'Direct Farmer Collective',
+      bannerTitle: 'Unpolished Foxtail Millets, Vedic Ghee & Lakadong Turmeric',
+      bannerDesc: 'Sourced from organic certified marginal farmers in Rayalaseema & Meghalaya. 0% preservatives, 100% wholesome nutrition.',
+      bannerBtn: 'Explore Pantry Bundles',
+      graphicTitle: 'Pure Vedic Harvest',
+      bannerIcon: '🌾',
+      bagCount: '3 Bundles',
+      bagTotal: '₹1,240',
+      mobBanner: 'Auto-Replenish WhatsApp Subscription',
+      products: [
+        {
+          cat: 'Heritage Grain',
+          name: 'Unpolished Foxtail Millet (Pack of 3)',
+          desc: 'Rich in dietary fiber and naturally low glycemic index grain.',
+          price: '₹480',
+          oldPrice: '₹600',
+          badge: 'ORGANIC CERT',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwLZ8K3H0bYUUoqmXLkJYI38n5lN7xAwNSVY0DNQcqu6Aybc3EbjrgF3xqATMO76qG8jQCSB5mNTPvOoPB6XeaBzva6MyDKJzE9R6muvmuYX5M-WyzGkhgBqlk8-6Jv1KwFWktd_sg9uhj2KFz-ADWtKLfvbBLv-DyxHLtOZIy_QG71H6mYPTnl4dmmMJeSk7NRGOjftXcdwbcNemW-TrOC7MI2I1nxa_Zo1Zr8U7F0GAnBKZugDaTBg'
+        },
+        {
+          cat: 'Golden Spice',
+          name: 'High-Curcumin Lakadong Turmeric (500g)',
+          desc: 'Grown in the pristine hills of Jaintia with 8.5% natural curcumin.',
+          price: '₹390',
+          oldPrice: '',
+          badge: 'HIGH CURCUMIN',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAKuQdM7P58i5wAr8Q1uns1qYIpgxtKaB-MqaF-RwzC6D0DswmAqKf5DoAf4y_eIjlf4-rhz3sNTP6q8SbqzKompxPqqfcR4nuR2oua5cKNXvMAA90VHRK9n-sc5NJzgr-cHZIlcw0KkJBAr2rTXmAG1Pw6YHDWDSeCpWJREUrF555CfrEJLkU0DXKC0Wmeb0KiTZY5rHCz4W2NCNj-HCZnny0riYu0v1ZRac14xfDmXIj1aza7iBBqAg'
+        },
+        {
+          cat: 'Pantry Crockery',
+          name: 'Handcrafted Clay Spice Pot Trio',
+          desc: 'Breathable terracotta jars seasoned with natural linseed oil.',
+          price: '₹370',
+          oldPrice: '',
+          badge: 'EARTH MADE',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnXcMSdeDoQAxNRl0IF57A2evCHAiiRKzyPD3ZdPJpjB5NFpicPFO3Hff4HKtbiSIAKDZ07G_cMenf6M-7BodSOfUXILGQ5j-bcluRDGptbp5O6GdoGchkSE6VIo7PTJaD_dsJPX1le17TmuRG_OKfFhMnOs8RB4IF5rjPuOAFb5X5EdSHRJQ_KJeEoF6DIdyT9phhJBJ5cRwAANNq-gZRICF-X5etUxzaLmKRxUeWLPGMH1MjR7OPww'
+        }
+      ]
+    },
+    couture: {
+      key: 'couture',
+      label: 'Maison Privée Atelier',
+      domain: 'www.maisonprivee-couture.in',
+      logoText: 'MP',
+      title: 'Maison Privée Haute Couture',
+      tagline: 'Modern Tailored Silhouettes & Handwoven Silks',
+      bannerPill: 'Spring / Summer Runway',
+      bannerTitle: 'Hand-Pleated Organza & Raw Mulberry Silk Ensembles',
+      bannerDesc: 'Architectural drapes and quiet luxury tailoring crafted in conscious small-batch micro factories.',
+      bannerBtn: 'View Runway Lookbook',
+      graphicTitle: 'Maison Runway Drop',
+      bannerIcon: '👗',
+      bagCount: '1 Outfit',
+      bagTotal: '₹18,500',
+      mobBanner: 'Direct WhatsApp Custom Tailoring',
+      products: [
+        {
+          cat: 'Couture Ensemble',
+          name: 'Champagne Silk Hand-Pleated Overlay',
+          desc: 'Raw Mulberry silk cape with gold Zari border and flowing side vents.',
+          price: '₹14,500',
+          oldPrice: '₹18,000',
+          badge: 'RUNWAY LOOK 01',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwLZ8K3H0bYUUoqmXLkJYI38n5lN7xAwNSVY0DNQcqu6Aybc3EbjrgF3xqATMO76qG8jQCSB5mNTPvOoPB6XeaBzva6MyDKJzE9R6muvmuYX5M-WyzGkhgBqlk8-6Jv1KwFWktd_sg9uhj2KFz-ADWtKLfvbBLv-DyxHLtOZIy_QG71H6mYPTnl4dmmMJeSk7NRGOjftXcdwbcNemW-TrOC7MI2I1nxa_Zo1Zr8U7F0GAnBKZugDaTBg'
+        },
+        {
+          cat: 'Jeweled Accent',
+          name: 'Gold Dipped Architectural Cuff',
+          desc: 'Minimalist statement cuff in solid brass finished with satin 24k polish.',
+          price: '₹4,000',
+          oldPrice: '',
+          badge: 'LIMITED EDITION',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAKuQdM7P58i5wAr8Q1uns1qYIpgxtKaB-MqaF-RwzC6D0DswmAqKf5DoAf4y_eIjlf4-rhz3sNTP6q8SbqzKompxPqqfcR4nuR2oua5cKNXvMAA90VHRK9n-sc5NJzgr-cHZIlcw0KkJBAr2rTXmAG1Pw6YHDWDSeCpWJREUrF555CfrEJLkU0DXKC0Wmeb0KiTZY5rHCz4W2NCNj-HCZnny0riYu0v1ZRac14xfDmXIj1aza7iBBqAg'
+        },
+        {
+          cat: 'Atelier Case',
+          name: 'Gilded Velvet Lookbook Box',
+          desc: 'Structured keepsakes with magnetic brass closure and gold monogram.',
+          price: '₹1,950',
+          oldPrice: '',
+          badge: 'ATELIER EXCLUSIVE',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnXcMSdeDoQAxNRl0IF57A2evCHAiiRKzyPD3ZdPJpjB5NFpicPFO3Hff4HKtbiSIAKDZ07G_cMenf6M-7BodSOfUXILGQ5j-bcluRDGptbp5O6GdoGchkSE6VIo7PTJaD_dsJPX1le17TmuRG_OKfFhMnOs8RB4IF5rjPuOAFb5X5EdSHRJQ_KJeEoF6DIdyT9phhJBJ5cRwAANNq-gZRICF-X5etUxzaLmKRxUeWLPGMH1MjR7OPww'
+        }
+      ]
+    }
+  };
+
+  const storeKeys = ['botanicals', 'jewels', 'pantry', 'couture'];
+  let currentStoreIndex = 0;
+
+  function updateSimulatorStore(key) {
+    const data = STORE_DATA[key];
+    if (!data) return;
+
+    // Update label & inputs
+    const label = document.getElementById('current-sim-label');
+    if (label) label.textContent = data.label;
+
+    const domainInput = document.getElementById('domain-input');
+    if (domainInput) domainInput.value = data.domain;
+
+    const browserDesktopUrl = document.getElementById('browser-url-desktop');
+    if (browserDesktopUrl) browserDesktopUrl.textContent = 'https://' + data.domain;
+
+    // Update Desktop elements
+    const logoBadge = document.getElementById('store-logo-badge');
+    if (logoBadge) logoBadge.textContent = data.logoText;
+
+    const titleDesk = document.getElementById('store-title-desktop');
+    if (titleDesk) titleDesk.textContent = data.title;
+
+    const tagDesk = document.getElementById('store-tagline-desktop');
+    if (tagDesk) tagDesk.textContent = data.tagline;
+
+    const bannerPill = document.getElementById('store-banner-pill');
+    if (bannerPill) bannerPill.textContent = data.bannerPill;
+
+    const bannerTitle = document.getElementById('store-banner-title');
+    if (bannerTitle) bannerTitle.textContent = data.bannerTitle;
+
+    const bannerDesc = document.getElementById('store-banner-desc');
+    if (bannerDesc) bannerDesc.textContent = data.bannerDesc;
+
+    const bannerBtn = document.getElementById('store-banner-btn-text');
+    if (bannerBtn) bannerBtn.textContent = data.bannerBtn;
+
+    const bannerIcon = document.getElementById('store-banner-icon');
+    if (bannerIcon) bannerIcon.textContent = data.bannerIcon;
+
+    const graphicTitle = document.getElementById('store-graphic-title');
+    if (graphicTitle) graphicTitle.textContent = data.graphicTitle;
+
+    const bagCount = document.getElementById('desktop-bag-count');
+    if (bagCount) bagCount.textContent = data.bagCount;
+
+    const bagTotal = document.getElementById('desktop-bag-total');
+    if (bagTotal) bagTotal.textContent = data.bagTotal;
+
+    // Update Desktop Products
+    for (let i = 0; i < 3; i++) {
+      const p = data.products[i];
+      if (p) {
+        const cat = document.getElementById('prod-cat-' + (i + 1));
+        const name = document.getElementById('prod-name-' + (i + 1));
+        const desc = document.getElementById('prod-desc-' + (i + 1));
+        const price = document.getElementById('prod-price-' + (i + 1));
+        const oldPrice = document.getElementById('prod-oldprice-' + (i + 1));
+        const img = document.getElementById('prod-img-' + (i + 1));
+
+        if (cat) cat.textContent = p.cat;
+        if (name) name.textContent = p.name;
+        if (desc) desc.textContent = p.desc;
+        if (price) price.textContent = p.price;
+        if (oldPrice) oldPrice.textContent = p.oldPrice;
+        if (img && p.img) img.src = p.img;
+      }
+    }
+
+    // Update Mobile Frame elements
+    const mobTitle = document.getElementById('mob-store-title');
+    if (mobTitle) mobTitle.textContent = data.title;
+
+    const mobBanner = document.getElementById('mob-banner-text');
+    if (mobBanner) mobBanner.textContent = data.mobBanner;
+
+    const mobTotal = document.getElementById('mob-cart-total');
+    if (mobTotal) mobTotal.textContent = data.bagTotal;
+
+    for (let i = 0; i < 2; i++) {
+      const p = data.products[i];
+      if (p) {
+        const cat = document.getElementById('mob-prod-cat-' + (i + 1));
+        const name = document.getElementById('mob-prod-name-' + (i + 1));
+        const price = document.getElementById('mob-prod-price-' + (i + 1));
+        const img = document.getElementById('mob-prod-img-' + (i + 1));
+
+        if (cat) cat.textContent = p.cat;
+        if (name) name.textContent = p.name;
+        if (price) price.textContent = p.price;
+        if (img && p.img) img.src = p.img;
+      }
+    }
+  }
+
+  function switchStore(key, btn) {
+    const btns = document.querySelectorAll('.store-nav-btn');
+    btns.forEach(b => {
+      b.className = 'store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white hover:bg-amber-50 text-[#3B2912] border border-amber-200/80 shadow-xs flex items-center gap-1.5';
+    });
+    if (btn) {
+      btn.className = 'store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-all bg-gradient-to-r from-[#D88914] to-[#B87309] text-white shadow-md flex items-center gap-1.5 ring-2 ring-brand-gold/40';
+    }
+    currentStoreIndex = storeKeys.indexOf(key);
+    updateSimulatorStore(key);
+  }
+
+  function cycleStore(direction) {
+    currentStoreIndex = (currentStoreIndex + direction + storeKeys.length) % storeKeys.length;
+    const nextKey = storeKeys[currentStoreIndex];
+    const btns = document.querySelectorAll('.store-nav-btn');
+    btns.forEach((b, i) => {
+      if (i === currentStoreIndex) {
+        b.className = 'store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-all bg-gradient-to-r from-[#D88914] to-[#B87309] text-white shadow-md flex items-center gap-1.5 ring-2 ring-brand-gold/40';
+      } else {
+        b.className = 'store-nav-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-white hover:bg-amber-50 text-[#3B2912] border border-amber-200/80 shadow-xs flex items-center gap-1.5';
+      }
+    });
+    updateSimulatorStore(nextKey);
+  }
+
+  // Viewport Mode Switcher
+  function setViewMode(mode) {
+    const desktopWrap = document.getElementById('desktop-wrapper');
+    const mobileWrap = document.getElementById('mobile-wrapper');
+    const dualBtn = document.getElementById('view-dual-btn');
+    const deskBtn = document.getElementById('view-desktop-btn');
+    const mobBtn = document.getElementById('view-mobile-btn');
+
+    [dualBtn, deskBtn, mobBtn].forEach(b => {
+      if (b) {
+        b.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-[#685233] hover:text-[#1F1608] flex items-center gap-1.5';
+      }
+    });
+
+    if (mode === 'dual') {
+      desktopWrap.className = 'lg:col-span-8 w-full transition-all duration-300 block';
+      mobileWrap.className = 'lg:col-span-4 w-full flex justify-center transition-all duration-300 block';
+      if (dualBtn) dualBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-[#FAF0DD] text-[#2C2112] shadow-xs flex items-center gap-1.5';
+    } else if (mode === 'desktop') {
+      desktopWrap.className = 'lg:col-span-12 w-full transition-all duration-300 block max-w-5xl mx-auto';
+      mobileWrap.className = 'hidden';
+      if (deskBtn) deskBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-[#FAF0DD] text-[#2C2112] shadow-xs flex items-center gap-1.5';
+    } else if (mode === 'mobile') {
+      desktopWrap.className = 'hidden';
+      mobileWrap.className = 'lg:col-span-12 w-full flex justify-center transition-all duration-300 block';
+      if (mobBtn) mobBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-[#FAF0DD] text-[#2C2112] shadow-xs flex items-center gap-1.5';
+    }
+  }
+
+  // Domain sync listener
+  const domainInput = document.getElementById('domain-input');
+  const browserDesktopUrl = document.getElementById('browser-url-desktop');
+  if (domainInput && browserDesktopUrl) {
+    domainInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      browserDesktopUrl.textContent = 'https://' + (val || 'yourbrand.in');
+    });
+  }
+
+  // Fast Claim handler
+  function handleSimulatorClaim(e) {
+    e.preventDefault();
+    const input = document.getElementById('claim-subdomain-input');
+    const toast = document.getElementById('simulator-claim-toast');
+    const msg = document.getElementById('simulator-toast-msg');
+    if (input && toast && msg) {
+      msg.textContent = 'Handle "' + input.value.trim() + '.gojulex.shop" reserved successfully! Opening setup concierge...';
+      toast.classList.remove('hidden');
+      toast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+</script>
+</body></html>
